@@ -5,21 +5,21 @@
 }
 
 :root {
-  --bg: #e4e4e7;
-  --phone: #f7f7f9;
-  --panel: #f3f4f8;
-  --card: #f4f6fb;
-  --soft: #eef0fb;
-  --purple: #4d43d6;
-  --purple-deep: #2e2a8b;
+  --bg: #e7e7ea;
+  --phone: #f6f5f7;
+  --soft: #eef1fb;
+  --purple: #4c45d5;
+  --purple-deep: #2f2d7d;
   --text: #1d1a2f;
-  --muted: #7a7d8f;
-  --line: #e6e6ee;
-  --pink-1: #d86b80;
-  --pink-2: #ef9aa5;
-  --violet-1: #7c67da;
-  --gold: #f3b130;
-  --dark: #23232d;
+  --muted: #757289;
+  --line: #ececf2;
+  --pink: #d9687a;
+  --pink-soft: #ef9aa5;
+  --orange: #d97d57;
+  --cyan: #32a9bf;
+  --gold: #f3b12b;
+  --white: #ffffff;
+  --shadow: rgba(41, 30, 68, 0.08);
 }
 
 html {
@@ -27,7 +27,6 @@ html {
 }
 
 body {
-  margin: 0;
   min-height: 100vh;
   display: flex;
   justify-content: center;
@@ -45,9 +44,9 @@ input {
   width: min(100%, 420px);
   min-height: 100vh;
   background: var(--phone);
-  border-radius: 32px;
-  border: 1px solid #d8d9de;
-  box-shadow: 0 10px 30px rgba(26, 21, 54, 0.06);
+  border-radius: 34px;
+  border: 1px solid #d9d9df;
+  box-shadow: 0 14px 28px rgba(20, 18, 35, 0.04);
   position: relative;
   overflow: hidden;
 }
@@ -55,19 +54,19 @@ input {
 .statusbar {
   height: 34px;
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  padding: 10px 20px 0;
+  justify-content: space-between;
+  padding: 10px 18px 0;
   font-size: 0.9rem;
   font-weight: 700;
-  color: #1a1a1a;
+  color: #19181f;
 }
 
 .topbar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 8px 18px 10px;
+  padding: 7px 18px 10px;
 }
 
 .icon-btn,
@@ -76,19 +75,19 @@ input {
   height: 38px;
   border: none;
   background: transparent;
-  color: var(--dark);
-  font-size: 1.75rem;
+  color: var(--text);
+  font-size: 1.7rem;
   line-height: 1;
-  cursor: pointer;
   display: grid;
   place-items: center;
+  cursor: pointer;
   padding: 0;
 }
 
 .brand {
   color: var(--purple);
   text-decoration: none;
-  font-size: 2.2rem;
+  font-size: 2.3rem;
   font-weight: 900;
   letter-spacing: -0.06em;
   line-height: 1;
@@ -102,7 +101,7 @@ input {
   padding: 11px 14px;
   border-radius: 18px;
   border: 1px solid #dfe4ef;
-  background: rgba(255, 255, 255, 0.65);
+  background: rgba(255, 255, 255, 0.7);
 }
 
 .search input {
@@ -115,17 +114,16 @@ input {
 }
 
 .search input::placeholder {
-  color: #7e8194;
+  color: #8a8ca0;
 }
 
 .hero {
   margin: 4px 16px 14px;
   padding: 18px 18px 14px;
   border-radius: 20px;
-  background: linear-gradient(120deg, #d26c7d 0%, #d66169 28%, #d79ca9 56%, #7a63d7 100%);
+  background: linear-gradient(120deg, #d86b80 0%, #d35b67 22%, #dd98a3 52%, #7b67dd 100%);
   color: #fff;
-  overflow: hidden;
-  box-shadow: 0 12px 24px rgba(141, 95, 180, 0.12);
+  box-shadow: 0 12px 24px rgba(124, 94, 184, 0.12);
 }
 
 .hero-content {
@@ -144,33 +142,33 @@ input {
   font-weight: 900;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  opacity: 0.95;
+  opacity: 0.96;
   margin-bottom: 6px;
 }
 
 .hero-title {
   font-size: clamp(2.1rem, 5vw, 3rem);
-  line-height: 0.95;
   font-weight: 900;
   letter-spacing: -0.05em;
+  line-height: 0.94;
   margin-bottom: 4px;
 }
 
 .hero-sub {
   font-size: 0.88rem;
-  opacity: 0.95;
+  opacity: 0.98;
   margin-bottom: 12px;
 }
 
 .hero-cta {
   border: none;
   border-radius: 12px;
-  padding: 9px 16px;
   background: rgba(255, 255, 255, 0.18);
-  color: #fff;
+  color: var(--white);
+  padding: 9px 16px;
   font-weight: 700;
   cursor: pointer;
-  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.25);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.2);
 }
 
 .hero-figure {
@@ -179,7 +177,7 @@ input {
   display: grid;
   place-items: center;
   font-size: 5.8rem;
-  filter: drop-shadow(0 10px 12px rgba(41, 24, 62, 0.12));
+  filter: drop-shadow(0 12px 18px rgba(35, 24, 58, 0.12));
 }
 
 .section {
@@ -213,23 +211,23 @@ input {
 }
 
 .category {
-  background: #edf1fb;
-  border: 1px solid rgba(131, 132, 162, 0.08);
+  background: var(--soft);
+  border: 1px solid rgba(95, 101, 130, 0.08);
   border-radius: 18px;
-  min-height: 100px;
+  min-height: 104px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 8px;
   color: var(--text);
-  font-size: 0.7rem;
+  font-size: 0.68rem;
   font-weight: 700;
   cursor: pointer;
 }
 
 .cat-icon {
-  font-size: 2.4rem;
+  font-size: 2.5rem;
   line-height: 1;
 }
 
@@ -240,12 +238,12 @@ input {
 
 .category:nth-child(2) .cat-icon,
 .category:nth-child(5) .cat-icon {
-  color: #da7d57;
+  color: var(--orange);
 }
 
 .category:nth-child(3) .cat-icon,
 .category:nth-child(6) .cat-icon {
-  color: #29a4c3;
+  color: var(--cyan);
 }
 
 .prod-grid {
@@ -257,23 +255,23 @@ input {
 
 .prod-card {
   position: relative;
-  background: #fff;
+  background: var(--white);
   border-radius: 16px;
   overflow: hidden;
-  box-shadow: 0 8px 18px rgba(36, 30, 58, 0.03);
+  box-shadow: 0 8px 18px var(--shadow);
 }
 
 .prod-image {
   height: 150px;
   display: grid;
   place-items: center;
-  font-size: 4.25rem;
+  font-size: 4.2rem;
   line-height: 1;
 }
 
-.prod-image.jacket { background: #ddeaf9; }
-.prod-image.blazer { background: #f8dfe2; }
-.prod-image.shoes { background: #dfe6f3; }
+.prod-image.jacket { background: #dfeaf8; }
+.prod-image.blazer { background: #f6dfe2; }
+.prod-image.shoes { background: #dde4f1; }
 
 .prod-body {
   padding: 10px 10px 12px;
@@ -287,8 +285,8 @@ input {
 }
 
 .prod-price {
-  font-size: 1.2rem;
-  color: var(--dark);
+  font-size: 1.15rem;
+  color: var(--text);
   font-weight: 800;
   margin-bottom: 8px;
 }
@@ -298,7 +296,7 @@ input {
   align-items: center;
   gap: 4px;
   font-size: 0.68rem;
-  color: #f4aa2c;
+  color: var(--gold);
   font-weight: 700;
 }
 
@@ -311,7 +309,7 @@ input {
   border: none;
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.9);
-  color: #ef5a66;
+  color: #ee5b6a;
   font-size: 1.3rem;
   display: grid;
   place-items: center;
@@ -323,7 +321,7 @@ input {
   border: none;
   border-radius: 10px;
   background: var(--purple);
-  color: #fff;
+  color: var(--white);
   padding: 8px 10px;
   font-weight: 700;
   margin-top: 8px;
@@ -336,7 +334,7 @@ input {
   right: 0;
   bottom: 0;
   height: 74px;
-  background: rgba(255,255,255,0.95);
+  background: rgba(255,255,255,0.96);
   border-top: 1px solid var(--line);
   display: flex;
   align-items: center;
@@ -353,7 +351,7 @@ input {
   align-items: center;
   justify-content: center;
   gap: 5px;
-  color: #7f7e88;
+  color: #7e7b8a;
   font-size: 0.7rem;
   font-weight: 600;
   cursor: pointer;

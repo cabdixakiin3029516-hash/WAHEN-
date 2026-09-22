@@ -1,307 +1,978 @@
 <!DOCTYPE html>
 <html lang="so">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>WaHeN Marketplace</title>
-<style>
-  :root{
-    --indigo:#4338CA;
-    --indigo-light:#EEF0FE;
-    --ink:#1E1B2E;
-    --muted:#8B879C;
-    --bg:#FAFAFC;
-    --card:#FFFFFF;
-    --line:#EFEDF6;
-    --coral-1:#E8735F;
-    --coral-2:#D9524E;
-    --star:#F5A623;
-  }
-  *{box-sizing:border-box;margin:0;padding:0;}
-  body{
-    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
-    background:var(--bg);
-    color:var(--ink);
-    display:flex;
-    justify-content:center;
-    padding:24px 0;
-  }
-  .phone{
-    width:100%;
-    max-width:390px;
-    background:var(--card);
-    border-radius:36px;
-    overflow:hidden;
-    box-shadow:0 20px 60px rgba(30,27,46,.12);
-    border:1px solid var(--line);
-    padding-bottom:env(safe-area-inset-bottom,0px);
-  }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  /* status bar */
-  .statusbar{
-    display:flex;justify-content:space-between;align-items:center;
-    padding:14px 22px 4px;
-    font-size:13px;font-weight:600;color:var(--ink);
-  }
+  <title>WaHeN Marketplace</title>
 
-  /* nav */
-  .topbar{
-    display:flex;align-items:center;justify-content:space-between;
-    padding:10px 20px 4px;
-  }
-  .brand{
-    font-size:20px;font-weight:800;letter-spacing:.3px;color:var(--indigo);
-  }
-  .icon-btn{
-    width:36px;height:36px;border-radius:12px;
-    display:flex;align-items:center;justify-content:center;
-    background:var(--indigo-light);color:var(--indigo);
-    font-size:16px;border:none;
-  }
-
-  /* search */
-  .search{
-    margin:14px 20px 18px;
-    display:flex;align-items:center;gap:8px;
-    background:var(--indigo-light);
-    border-radius:14px;
-    padding:12px 14px;
-  }
-  .search input{
-    border:none;background:transparent;outline:none;
-    font-size:14px;color:var(--ink);flex:1;
-  }
-  .search input::placeholder{color:var(--muted);}
-  .search span{color:var(--indigo);font-size:15px;}
-
-  /* hero banner */
-  .hero{
-    margin:0 20px 24px;
-    border-radius:18px;
-    padding:22px 20px;
-    background:linear-gradient(135deg,var(--coral-1),var(--coral-2));
-    color:#fff;
-    position:relative;
-    overflow:hidden;
-  }
-  .hero-eyebrow{font-size:12px;font-weight:700;letter-spacing:.4px;opacity:.9;}
-  .hero-title{font-size:24px;font-weight:800;line-height:1.15;margin:6px 0 4px;max-width:60%;}
-  .hero-sub{font-size:12.5px;opacity:.95;max-width:58%;margin-bottom:14px;}
-  .hero-cta{
-    background:var(--indigo);color:#fff;border:none;
-    padding:9px 18px;border-radius:10px;
-    font-size:13px;font-weight:700;
-  }
-  .hero-figure{
-    position:absolute;right:14px;bottom:0;
-    font-size:76px;line-height:1;opacity:.9;
-  }
-
-  /* section heading */
-  .section{padding:0 20px 8px;}
-  .section-head{
-    display:flex;align-items:center;justify-content:space-between;
-    margin-bottom:14px;
-  }
-  .section-head h2{font-size:17px;font-weight:800;}
-  .section-head a{font-size:12.5px;color:var(--indigo);font-weight:700;text-decoration:none;}
-
-  /* categories */
-  .cat-grid{
-    display:grid;
-    grid-template-columns:repeat(4,1fr);
-    gap:16px 8px;
-    margin-bottom:6px;
-  }
-  .cat{
-    display:flex;flex-direction:column;align-items:center;gap:8px;
-    background:none;border:none;
-  }
-  .cat-icon{
-    width:52px;height:52px;border-radius:16px;
-    background:var(--indigo-light);
-    display:flex;align-items:center;justify-content:center;
-    font-size:22px;
-  }
-  .cat span{font-size:11px;font-weight:600;color:var(--ink);text-align:center;}
-
-  /* products */
-  .prod-grid{
-    display:grid;grid-template-columns:repeat(2,1fr);gap:14px;
-    padding:0 20px 22px;
-  }
-  .prod-card{
-    background:var(--card);
-    border:1px solid var(--line);
-    border-radius:16px;
-    overflow:hidden;
-  }
-  .prod-image{
-    height:100px;background:var(--indigo-light);
-    display:flex;align-items:center;justify-content:center;
-    font-size:36px;
-  }
-  .prod-body{padding:10px 12px 12px;}
-  .prod-body h3{font-size:13px;font-weight:700;margin-bottom:4px;}
-  .prod-price{font-size:13.5px;font-weight:800;color:var(--indigo);}
-  .prod-rating{font-size:11px;color:var(--star);font-weight:600;margin-top:2px;}
-  .prod-rating span{color:var(--muted);font-weight:500;}
-
-  /* bottom nav */
-  .bottom-nav{
-    display:flex;justify-content:space-around;align-items:center;
-    padding:12px 8px calc(12px + env(safe-area-inset-bottom,0px));
-    border-top:1px solid var(--line);
-    background:var(--card);
-  }
-  .nav-item{
-    display:flex;flex-direction:column;align-items:center;gap:4px;
-    font-size:10px;font-weight:600;color:var(--muted);
-  }
-  .nav-item .n-icon{font-size:18px;}
-  .nav-item.active{color:var(--indigo);}
-</style>
+  <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
 
-<div class="phone">
+  <div class="app">
 
-  <div class="statusbar">
-    <span>9:41</span>
-    <span>📶 🔋</span>
-  </div>
+    <!-- TOP BAR -->
 
-  <div class="topbar">
-    <button class="icon-btn">☰</button>
-    <div class="brand">WAHEN</div>
-    <button class="icon-btn">🛒</button>
-  </div>
+    <header class="topbar">
 
-  <div class="search">
-    <span>🔍</span>
-    <input type="search" placeholder="Maxaad raadineysaa?">
-  </div>
-
-  <div class="hero">
-    <div class="hero-eyebrow">DUKAAMEYSI XILIYEED</div>
-    <div class="hero-title">Ilaa 30% dhimis</div>
-    <div class="hero-sub">Alaabooyin oo dhan, hal meel.</div>
-    <button class="hero-cta">Dukaan hadda</button>
-    <div class="hero-figure">🧑🏾‍💼</div>
-  </div>
-
-  <section class="section">
-    <div class="section-head">
-      <h2>Qaybaha</h2>
-    </div>
-
-    <div class="cat-grid">
-      <button class="cat">
-        <div class="cat-icon">👔</div>
-        <span>Man</span>
+      <button class="icon-button">
+        ☰
       </button>
-      <button class="cat">
-        <div class="cat-icon">👗</div>
-        <span>Weman</span>
-      </button>
-      <button class="cat">
-        <div class="cat-icon">🍼</div>
-        <span>Baby</span>
-      </button>
-      <button class="cat">
-        <div class="cat-icon">🧴</div>
-        <span>Separate</span>
-      </button>
-      <button class="cat">
-        <div class="cat-icon">🍽️</div>
-        <span>Cuntada</span>
-      </button>
-      <button class="cat">
-        <div class="cat-icon">🔌</div>
-        <span>Electric</span>
-      </button>
-      <button class="cat">
-        <div class="cat-icon">🧱</div>
-        <span>Qalabka Dhismaha</span>
-      </button>
-      <button class="cat">
-        <div class="cat-icon">🗂️</div>
-        <span>Others</span>
-      </button>
-    </div>
-  </section>
 
-  <section class="section">
-    <div class="section-head">
-      <h2>Ugu Iibsan</h2>
-      <a href="#">Eeg dhammaan</a>
-    </div>
-  </section>
-
-  <div class="prod-grid">
-
-    <article class="prod-card">
-      <div class="prod-image">👔</div>
-      <div class="prod-body">
-        <h3>Funaanad Ragga</h3>
-        <div class="prod-price">$26.00</div>
-        <div class="prod-rating">★ 4.5 <span>(120)</span></div>
+      <div class="brand">
+        WAHEN
       </div>
-    </article>
 
-    <article class="prod-card">
-      <div class="prod-image">👗</div>
-      <div class="prod-body">
-        <h3>Dirac Haween</h3>
-        <div class="prod-price">$45.00</div>
-        <div class="prod-rating">★ 4.6 <span>(98)</span></div>
-      </div>
-    </article>
+      <button class="icon-button">
+        🛒
+        <span class="cart-count">2</span>
+      </button>
 
-    <article class="prod-card">
-      <div class="prod-image">👟</div>
-      <div class="prod-body">
-        <h3>Kabo Cusub</h3>
-        <div class="prod-price">$60.00</div>
-        <div class="prod-rating">★ 4.6 <span>(210)</span></div>
-      </div>
-    </article>
+    </header>
 
-    <article class="prod-card">
-      <div class="prod-image">🧱</div>
-      <div class="prod-body">
-        <h3>Qalab Dhisme</h3>
-        <div class="prod-price">$34.00</div>
-        <div class="prod-rating">★ 4.4 <span>(56)</span></div>
+
+    <!-- SEARCH -->
+
+    <div class="search-box">
+
+      <span class="search-icon">🔍</span>
+
+      <input
+        type="search"
+        placeholder="Maxaad raadineysaa?"
+      >
+
+      <button class="filter-button">
+        ☷
+      </button>
+
+    </div>
+
+
+    <!-- HERO -->
+
+    <section class="hero">
+
+      <div class="hero-content">
+
+        <span class="hero-label">
+          DUKAAMEYSI XILIYEED
+        </span>
+
+        <h1>
+          Ilaa 30%<br>
+          dhimis
+        </h1>
+
+        <p>
+          Alaabooyin badan,<br>
+          hal meel.
+        </p>
+
+        <button class="hero-button">
+          Dukaan hadda →
+        </button>
+
       </div>
-    </article>
+
+      <div class="hero-person">
+        🧑🏾‍💼
+      </div>
+
+    </section>
+
+
+    <!-- CATEGORIES -->
+
+    <section class="section">
+
+      <div class="section-title">
+
+        <h2>Qaybaha</h2>
+
+        <a href="#">Dhammaan</a>
+
+      </div>
+
+
+      <div class="categories">
+
+        <button class="category">
+          <div class="category-icon">👔</div>
+          <span>Ragga</span>
+        </button>
+
+        <button class="category">
+          <div class="category-icon">👗</div>
+          <span>Dumarka</span>
+        </button>
+
+        <button class="category">
+          <div class="category-icon">🍼</div>
+          <span>Carruurta</span>
+        </button>
+
+        <button class="category">
+          <div class="category-icon">💄</div>
+          <span>Beauty</span>
+        </button>
+
+        <button class="category">
+          <div class="category-icon">🍽️</div>
+          <span>Guriga</span>
+        </button>
+
+        <button class="category">
+          <div class="category-icon">📱</div>
+          <span>Electronics</span>
+        </button>
+
+        <button class="category">
+          <div class="category-icon">🧱</div>
+          <span>Dhismaha</span>
+        </button>
+
+        <button class="category">
+          <div class="category-icon">🛍️</div>
+          <span>Wax kale</span>
+        </button>
+
+      </div>
+
+    </section>
+
+
+    <!-- POPULAR PRODUCTS -->
+
+    <section class="section products-section">
+
+      <div class="section-title">
+
+        <h2>Ugu Iibsan</h2>
+
+        <a href="#">Dhammaan</a>
+
+      </div>
+
+
+      <div class="products">
+
+
+        <!-- PRODUCT 1 -->
+
+        <article class="product">
+
+          <div class="product-image">
+            👔
+
+            <button class="heart">
+              ♡
+            </button>
+
+          </div>
+
+          <div class="product-info">
+
+            <h3>Funaanad Ragga</h3>
+
+            <div class="rating">
+              ★ 4.5
+              <span>(120)</span>
+            </div>
+
+            <div class="price">
+              $26.00
+            </div>
+
+          </div>
+
+        </article>
+
+
+        <!-- PRODUCT 2 -->
+
+        <article class="product">
+
+          <div class="product-image">
+            👗
+
+            <button class="heart">
+              ♡
+            </button>
+
+          </div>
+
+          <div class="product-info">
+
+            <h3>Dirac Haween</h3>
+
+            <div class="rating">
+              ★ 4.6
+              <span>(98)</span>
+            </div>
+
+            <div class="price">
+              $45.00
+            </div>
+
+          </div>
+
+        </article>
+
+
+        <!-- PRODUCT 3 -->
+
+        <article class="product">
+
+          <div class="product-image">
+            👟
+
+            <button class="heart">
+              ♡
+            </button>
+
+          </div>
+
+          <div class="product-info">
+
+            <h3>Kabo Cusub</h3>
+
+            <div class="rating">
+              ★ 4.6
+              <span>(210)</span>
+            </div>
+
+            <div class="price">
+              $60.00
+            </div>
+
+          </div>
+
+        </article>
+
+
+        <!-- PRODUCT 4 -->
+
+        <article class="product">
+
+          <div class="product-image">
+            📱
+
+            <button class="heart">
+              ♡
+            </button>
+
+          </div>
+
+          <div class="product-info">
+
+            <h3>Samsung Phone</h3>
+
+            <div class="rating">
+              ★ 4.7
+              <span>(185)</span>
+            </div>
+
+            <div class="price">
+              $150.00
+            </div>
+
+          </div>
+
+        </article>
+
+
+        <!-- PRODUCT 5 -->
+
+        <article class="product">
+
+          <div class="product-image">
+            🎧
+
+            <button class="heart">
+              ♡
+            </button>
+
+          </div>
+
+          <div class="product-info">
+
+            <h3>Headphones</h3>
+
+            <div class="rating">
+              ★ 4.4
+              <span>(76)</span>
+            </div>
+
+            <div class="price">
+              $30.00
+            </div>
+
+          </div>
+
+        </article>
+
+
+        <!-- PRODUCT 6 -->
+
+        <article class="product">
+
+          <div class="product-image">
+            💻
+
+            <button class="heart">
+              ♡
+            </button>
+
+          </div>
+
+          <div class="product-info">
+
+            <h3>Laptop</h3>
+
+            <div class="rating">
+              ★ 4.8
+              <span>(64)</span>
+            </div>
+
+            <div class="price">
+              $350.00
+            </div>
+
+          </div>
+
+        </article>
+
+
+        <!-- PRODUCT 7 -->
+
+        <article class="product">
+
+          <div class="product-image">
+            ⌚
+
+            <button class="heart">
+              ♡
+            </button>
+
+          </div>
+
+          <div class="product-info">
+
+            <h3>Smart Watch</h3>
+
+            <div class="rating">
+              ★ 4.5
+              <span>(91)</span>
+            </div>
+
+            <div class="price">
+              $45.00
+            </div>
+
+          </div>
+
+        </article>
+
+
+        <!-- PRODUCT 8 -->
+
+        <article class="product">
+
+          <div class="product-image">
+            👜
+
+            <button class="heart">
+              ♡
+            </button>
+
+          </div>
+
+          <div class="product-info">
+
+            <h3>Boorsada Dumarka</h3>
+
+            <div class="rating">
+              ★ 4.5
+              <span>(83)</span>
+            </div>
+
+            <div class="price">
+              $35.00
+            </div>
+
+          </div>
+
+        </article>
+
+
+        <!-- PRODUCT 9 -->
+
+        <article class="product">
+
+          <div class="product-image">
+            🕶️
+
+            <button class="heart">
+              ♡
+            </button>
+
+          </div>
+
+          <div class="product-info">
+
+            <h3>Muraayad</h3>
+
+            <div class="rating">
+              ★ 4.3
+              <span>(45)</span>
+            </div>
+
+            <div class="price">
+              $20.00
+            </div>
+
+          </div>
+
+        </article>
+
+
+        <!-- PRODUCT 10 -->
+
+        <article class="product">
+
+          <div class="product-image">
+            🧴
+
+            <button class="heart">
+              ♡
+            </button>
+
+          </div>
+
+          <div class="product-info">
+
+            <h3>Perfume</h3>
+
+            <div class="rating">
+              ★ 4.7
+              <span>(132)</span>
+            </div>
+
+            <div class="price">
+              $28.00
+            </div>
+
+          </div>
+
+        </article>
+
+
+        <!-- PRODUCT 11 -->
+
+        <article class="product">
+
+          <div class="product-image">
+            🛋️
+
+            <button class="heart">
+              ♡
+            </button>
+
+          </div>
+
+          <div class="product-info">
+
+            <h3>Sofa</h3>
+
+            <div class="rating">
+              ★ 4.4
+              <span>(37)</span>
+            </div>
+
+            <div class="price">
+              $280.00
+            </div>
+
+          </div>
+
+        </article>
+
+
+        <!-- PRODUCT 12 -->
+
+        <article class="product">
+
+          <div class="product-image">
+            🪑
+
+            <button class="heart">
+              ♡
+            </button>
+
+          </div>
+
+          <div class="product-info">
+
+            <h3>Kursi</h3>
+
+            <div class="rating">
+              ★ 4.3
+              <span>(29)</span>
+            </div>
+
+            <div class="price">
+              $55.00
+            </div>
+
+          </div>
+
+        </article>
+
+
+        <!-- PRODUCT 13 -->
+
+        <article class="product">
+
+          <div class="product-image">
+            🛏️
+
+            <button class="heart">
+              ♡
+            </button>
+
+          </div>
+
+          <div class="product-info">
+
+            <h3>Sariir</h3>
+
+            <div class="rating">
+              ★ 4.6
+              <span>(51)</span>
+            </div>
+
+            <div class="price">
+              $300.00
+            </div>
+
+          </div>
+
+        </article>
+
+
+        <!-- PRODUCT 14 -->
+
+        <article class="product">
+
+          <div class="product-image">
+            🍚
+
+            <button class="heart">
+              ♡
+            </button>
+
+          </div>
+
+          <div class="product-info">
+
+            <h3>Bariis</h3>
+
+            <div class="rating">
+              ★ 4.5
+              <span>(115)</span>
+            </div>
+
+            <div class="price">
+              $25.00
+            </div>
+
+          </div>
+
+        </article>
+
+
+        <!-- PRODUCT 15 -->
+
+        <article class="product">
+
+          <div class="product-image">
+            🍎
+
+            <button class="heart">
+              ♡
+            </button>
+
+          </div>
+
+          <div class="product-info">
+
+            <h3>Miro Cusub</h3>
+
+            <div class="rating">
+              ★ 4.6
+              <span>(88)</span>
+            </div>
+
+            <div class="price">
+              $12.00
+            </div>
+
+          </div>
+
+        </article>
+
+
+        <!-- PRODUCT 16 -->
+
+        <article class="product">
+
+          <div class="product-image">
+            🧃
+
+            <button class="heart">
+              ♡
+            </button>
+
+          </div>
+
+          <div class="product-info">
+
+            <h3>Cabitaan</h3>
+
+            <div class="rating">
+              ★ 4.2
+              <span>(34)</span>
+            </div>
+
+            <div class="price">
+              $6.00
+            </div>
+
+          </div>
+
+        </article>
+
+
+        <!-- PRODUCT 17 -->
+
+        <article class="product">
+
+          <div class="product-image">
+            🎒
+
+            <button class="heart">
+              ♡
+            </button>
+
+          </div>
+
+          <div class="product-info">
+
+            <h3>School Bag</h3>
+
+            <div class="rating">
+              ★ 4.5
+              <span>(67)</span>
+            </div>
+
+            <div class="price">
+              $22.00
+            </div>
+
+          </div>
+
+        </article>
+
+
+        <!-- PRODUCT 18 -->
+
+        <article class="product">
+
+          <div class="product-image">
+            🔌
+
+            <button class="heart">
+              ♡
+            </button>
+
+          </div>
+
+          <div class="product-info">
+
+            <h3>Charger</h3>
+
+            <div class="rating">
+              ★ 4.4
+              <span>(73)</span>
+            </div>
+
+            <div class="price">
+              $10.00
+            </div>
+
+          </div>
+
+        </article>
+
+
+        <!-- PRODUCT 19 -->
+
+        <article class="product">
+
+          <div class="product-image">
+            🔊
+
+            <button class="heart">
+              ♡
+            </button>
+
+          </div>
+
+          <div class="product-info">
+
+            <h3>Speaker</h3>
+
+            <div class="rating">
+              ★ 4.5
+              <span>(58)</span>
+            </div>
+
+            <div class="price">
+              $38.00
+            </div>
+
+          </div>
+
+        </article>
+
+
+        <!-- PRODUCT 20 -->
+
+        <article class="product">
+
+          <div class="product-image">
+            🧳
+
+            <button class="heart">
+              ♡
+            </button>
+
+          </div>
+
+          <div class="product-info">
+
+            <h3>Travel Bag</h3>
+
+            <div class="rating">
+              ★ 4.6
+              <span>(41)</span>
+            </div>
+
+            <div class="price">
+              $50.00
+            </div>
+
+          </div>
+
+        </article>
+
+
+        <!-- PRODUCT 21 -->
+
+        <article class="product">
+
+          <div class="product-image">
+            🧱
+
+            <button class="heart">
+              ♡
+            </button>
+
+          </div>
+
+          <div class="product-info">
+
+            <h3>Qalab Dhisme</h3>
+
+            <div class="rating">
+              ★ 4.4
+              <span>(56)</span>
+            </div>
+
+            <div class="price">
+              $34.00
+            </div>
+
+          </div>
+
+        </article>
+
+
+        <!-- PRODUCT 22 -->
+
+        <article class="product">
+
+          <div class="product-image">
+            💄
+
+            <button class="heart">
+              ♡
+            </button>
+
+          </div>
+
+          <div class="product-info">
+
+            <h3>Makeup</h3>
+
+            <div class="rating">
+              ★ 4.6
+              <span>(102)</span>
+            </div>
+
+            <div class="price">
+              $32.00
+            </div>
+
+          </div>
+
+        </article>
+
+
+        <!-- PRODUCT 23 -->
+
+        <article class="product">
+
+          <div class="product-image">
+            🍼
+
+            <button class="heart">
+              ♡
+            </button>
+
+          </div>
+
+          <div class="product-info">
+
+            <h3>Baby Products</h3>
+
+            <div class="rating">
+              ★ 4.7
+              <span>(71)</span>
+            </div>
+
+            <div class="price">
+              $18.00
+            </div>
+
+          </div>
+
+        </article>
+
+
+        <!-- PRODUCT 24 -->
+
+        <article class="product">
+
+          <div class="product-image">
+            📷
+
+            <button class="heart">
+              ♡
+            </button>
+
+          </div>
+
+          <div class="product-info">
+
+            <h3>Camera</h3>
+
+            <div class="rating">
+              ★ 4.8
+              <span>(63)</span>
+            </div>
+
+            <div class="price">
+              $220.00
+            </div>
+
+          </div>
+
+        </article>
+
+
+        <!-- PRODUCT 25 -->
+
+        <article class="product">
+
+          <div class="product-image">
+            🏀
+
+            <button class="heart">
+              ♡
+            </button>
+
+          </div>
+
+          <div class="product-info">
+
+            <h3>Sports Ball</h3>
+
+            <div class="rating">
+              ★ 4.4
+              <span>(39)</span>
+            </div>
+
+            <div class="price">
+              $18.00
+            </div>
+
+          </div>
+
+        </article>
+
+      </div>
+
+    </section>
+
+
+    <!-- BOTTOM NAVIGATION -->
+
+    <nav class="bottom-nav">
+
+      <a class="bottom-item active" href="#">
+        <span>🏠</span>
+        <small>Home</small>
+      </a>
+
+      <a class="bottom-item" href="#">
+        <span>▦</span>
+        <small>Qaybaha</small>
+      </a>
+
+      <a class="bottom-item" href="#">
+        <span>🛒</span>
+        <small>Cart</small>
+      </a>
+
+      <a class="bottom-item" href="#">
+        <span>📦</span>
+        <small>Orders</small>
+      </a>
+
+      <a class="bottom-item" href="#">
+        <span>👤</span>
+        <small>Account</small>
+      </a>
+
+    </nav>
 
   </div>
-
-  <nav class="bottom-nav">
-    <div class="nav-item active">
-      <span class="n-icon">🏠</span>
-      Home
-    </div>
-    <div class="nav-item">
-      <span class="n-icon">▦</span>
-      Qaybaha
-    </div>
-    <div class="nav-item">
-      <span class="n-icon">🛒</span>
-      Cart
-    </div>
-    <div class="nav-item">
-      <span class="n-icon">📦</span>
-      Orders
-    </div>
-    <div class="nav-item">
-      <span class="n-icon">👤</span>
-      Account
-    </div>
-  </nav>
-
-</div>
 
 </body>
-        </html>
+
+  </html>

@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="so">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>WaHeN — Samee Account</title>
+  <link rel="stylesheet" href="pages.css">
+</head>
+<body>
+  <main class="form-card page-card narrow">
+    <a class="logo" href="index.html">WaHeN</a>
+    <h1>Samee account cusub</h1>
+    <p class="muted">Dooro nooca account-ka si aad u hesho qaybtaada.</p>
+    <form id="account-form" class="form-grid">
+      <label>Magaca oo buuxa<input name="name" required placeholder="Magacaaga"></label>
+      <label>Email<input name="email" type="email" required placeholder="email@example.com"></label>
+      <label>Telefoon<input name="phone" type="tel" placeholder="+252..."></label>
+      <label>Nooca account-ka<select name="role"><option value="buyer">Buyer — Macmiil</option><option value="seller">Seller — Iibiye</option></select></label>
+      <label>Password<input name="password" type="password" minlength="6" required placeholder="Ugu yaraan 6 xaraf"></label>
+      <button class="button" type="submit">Samee account</button>
+    </form>
+    <p id="account-message" class="message" role="status"></p>
+    <a class="back-link" href="login.html">Horey account ma u lahayd? Soo gal</a>
+  </main>
+  <script>
+    document.getElementById('account-form').addEventListener('submit', event => {
+      event.preventDefault();
+      const role = new FormData(event.currentTarget).get('role');
+      sessionStorage.setItem('wahen-role', role);
+      document.getElementById('account-message').textContent = 'Account-ka waa la sameeyay. Hadda waxaad geli kartaa dashboard-kaaga.';
+      setTimeout(() => { window.location.href = role === 'seller' ? 'seller.html' : 'buyer.html'; }, 700);
+    });
+  </script>
+</body>
+</html>

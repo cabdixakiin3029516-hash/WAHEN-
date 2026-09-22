@@ -1,536 +1,71 @@
+/* WaHeN Marketplace MVP
+ * Local demo implementation for the complete buyer -> payment -> order -> delivery -> review flow.
+ * Production note: authentication, payment, authorization and persistence must move to a trusted backend.
+ */
+const DELIVERY_FEE = 5;
+const COMMISSION_RATE = 0.05;
+const COUPONS = { WAHEN10: { percent: 10, minimum: 50, maximum: 20 } };
+const ORDER_STATES = ["PENDING", "PAYMENT_PENDING", "PAID", "SELLER_CONFIRMED", "PREPARING", "READY_FOR_PICKUP", "PICKED_UP", "IN_TRANSIT", "OUT_FOR_DELIVERY", "DELIVERED", "REVIEWED"];
+
+const sellers = [
+  { id: "s1", name: "Hargeisa Mobile Center", owner: "Mohamed Ali", city: "Hargeisa", category: "Electronics", verified: true, rating: 4.7 },
+  { id: "s2", name: "Hargeisa Fashion House", owner: "Amina Mohamed", city: "Hargeisa", category: "Fashion", verified: true, rating: 4.8 },
+  { id: "s3", name: "Somaliland Home & Furniture", owner: "Abdi Hassan", city: "Hargeisa", category: "Home & Furniture", verified: true, rating: 4.6 }
+];
 const products = [
-  { id: 1, name: "Men's Jacket", price: 135, icon: "🧥", category: "ragga", rating: 4.5 },
-  { id: 2, name: "Women's Dress", price: 145, icon: "👗", category: "haween", rating: 4.8 },
-  { id: 3, name: "Sport Shoes", price: 200, icon: "👟", category: "ragga", rating: 4.6 },
-  { id: 4, name: "Men Shirt", price: 35, icon: "👔", category: "ragga", rating: 4.5 },
-  { id: 5, name: "Kids Toy", price: 18, icon: "🧸", category: "caruur", rating: 4.7 },
-  { id: 6, name: "Perfume", price: 28, icon: "🧴", category: "beauty", rating: 4.8 },
-  { id: 7, name: "Rice", price: 32, icon: "🍚", category: "cunto", rating: 4.4 },
-  { id: 8, name: "Smartphone", price: 180, icon: "📱", category: "electronics", rating: 4.7 },
-  { id: 9, name: "Headphones", price: 35, icon: "🎧", category: "electronics", rating: 4.5 },
-  { id: 10, name: "Laptop", price: 450, icon: "💻", category: "electronics", rating: 4.8 },
-  { id: 11, name: "Sofa", price: 250, icon: "🛋️", category: "guri", rating: 4.6 },
-  { id: 12, name: "Work Tools", price: 75, icon: "🧰", category: "dhisme", rating: 4.6 },
-  { id: 13, name: "Women's Bag", price: 40, icon: "👜", category: "haween", rating: 4.6 },
-  { id: 14, name: "Fashion Glasses", price: 20, icon: "🕶️", category: "beauty", rating: 4.5 }
+  { id: 1, name: "Samsung Galaxy A15", price: 180, stock: 12, category: "electronics", subcategory: "Phones", rating: 4.6, sellerId: "s1", icon: "📱", specs: "128GB · 4GB RAM", condition: "New" },
+  { id: 2, name: "Redmi Note 13", price: 195, stock: 8, category: "electronics", subcategory: "Phones", rating: 4.5, sellerId: "s1", icon: "📱", specs: "128GB · AMOLED", condition: "New" },
+  { id: 3, name: "Oraimo Power Bank 20,000mAh", price: 25, stock: 30, category: "electronics", subcategory: "Accessories", rating: 4.4, sellerId: "s1", icon: "🔋", specs: "20,000mAh · USB-C", condition: "New" },
+  { id: 4, name: "Type-C Fast Charger", price: 12, stock: 50, category: "electronics", subcategory: "Accessories", rating: 4.3, sellerId: "s1", icon: "🔌", specs: "25W fast charge", condition: "New" },
+  { id: 5, name: "Men's Formal Suit", price: 85, stock: 15, category: "haween", subcategory: "Fashion", rating: 4.5, sellerId: "s2", icon: "🕴️", specs: "Formal · Premium fabric", condition: "New" },
+  { id: 6, name: "Women's Abaya", price: 35, stock: 25, category: "haween", subcategory: "Fashion", rating: 4.7, sellerId: "s2", icon: "👗", specs: "Modest · Black", condition: "New" },
+  { id: 7, name: "Men's Shoes", price: 30, stock: 20, category: "ragga", subcategory: "Shoes", rating: 4.4, sellerId: "s2", icon: "👞", specs: "Leather · Sizes 40-45", condition: "New" },
+  { id: 8, name: "Women's Handbag", price: 28, stock: 18, category: "haween", subcategory: "Fashion", rating: 4.5, sellerId: "s2", icon: "👜", specs: "Leather finish", condition: "New" },
+  { id: 9, name: "Men's Shirt", price: 18, stock: 35, category: "ragga", subcategory: "Fashion", rating: 4.3, sellerId: "s2", icon: "👔", specs: "Cotton · Multiple sizes", condition: "New" },
+  { id: 10, name: "Sofa Set", price: 450, stock: 5, category: "guri", subcategory: "Home & Furniture", rating: 4.6, sellerId: "s3", icon: "🛋️", specs: "7 seats · Modern design", condition: "New" },
+  { id: 11, name: "Office Chair", price: 75, stock: 15, category: "guri", subcategory: "Home & Furniture", rating: 4.4, sellerId: "s3", icon: "🪑", specs: "Ergonomic · Adjustable", condition: "New" },
+  { id: 12, name: "Dining Table", price: 220, stock: 7, category: "guri", subcategory: "Home & Furniture", rating: 4.5, sellerId: "s3", icon: "🪵", specs: "6 seats · Wood", condition: "New" },
+  { id: 13, name: "Bed", price: 300, stock: 6, category: "guri", subcategory: "Home & Furniture", rating: 4.4, sellerId: "s3", icon: "🛏️", specs: "King size", condition: "New" },
+  { id: 14, name: "Carpet", price: 60, stock: 20, category: "guri", subcategory: "Home & Furniture", rating: 4.2, sellerId: "s3", icon: "🧶", specs: "3×4m · Washable", condition: "New" }
 ];
 
-const orders = [
-  { name: "Men's Jacket", code: "WH-2026-001", status: "Shipped", cls: "shipped" },
-  { name: "Smartphone", code: "WH-2026-014", status: "Pending", cls: "pending" },
-  { name: "Women's Bag", code: "WH-2026-021", status: "Delivered", cls: "delivered" }
-];
-
+const read = (key, fallback) => { try { return JSON.parse(localStorage.getItem(key)) ?? fallback; } catch { return fallback; } };
 const state = {
-  activeView: "home",
-  activeCategory: "all",
-  query: "",
-  cart: JSON.parse(localStorage.getItem("wahen-cart") || "[]"),
-  favorites: new Set(JSON.parse(localStorage.getItem("wahen-favorites") || "[]")),
-  dark: localStorage.getItem("wahen-theme") === "dark"
+  activeView: "home", activeCategory: "all", query: "",
+  cart: read("wahen-cart", []), wishlist: new Set(read("wahen-wishlist", [])), compare: new Set(read("wahen-compare", [])),
+  orders: read("wahen-orders", []), notifications: read("wahen-notifications", []), dark: localStorage.getItem("wahen-theme") === "dark",
+  user: read("wahen-user", { id: "buyer-1", name: "Ahmed Hassan", phone: "+252 63 7000000", city: "Hargeisa", address: "Jigjiga Yar, Hargeisa", role: "buyer" }), coupon: null
 };
-
-const $ = (selector) => document.querySelector(selector);
-const $$ = (selector) => Array.from(document.querySelectorAll(selector));
-
-const money = (value) => `$${Number(value).toFixed(2)}`;
-
-function saveState() {
-  localStorage.setItem("wahen-cart", JSON.stringify(state.cart));
-  localStorage.setItem("wahen-favorites", JSON.stringify([...state.favorites]));
-  localStorage.setItem("wahen-theme", state.dark ? "dark" : "light");
-}
-
-function showToast(message) {
-  const toast = document.getElementById("toast");
-  toast.textContent = message;
-  toast.classList.add("show");
-  clearTimeout(showToast.timer);
-  showToast.timer = setTimeout(() => toast.classList.remove("show"), 1800);
-}
-
-function updateTheme() {
-  document.body.classList.toggle("dark", state.dark);
-  const toggle = document.getElementById("theme-toggle");
-  toggle.textContent = state.dark ? "☀️" : "🌙";
-  saveState();
-}
-
+const $ = (s) => document.querySelector(s); const $$ = (s) => [...document.querySelectorAll(s)];
+const money = (v) => `$${Number(v).toFixed(2)}`;
+const sellerOf = (p) => sellers.find((s) => s.id === p.sellerId);
+const save = () => { localStorage.setItem("wahen-cart", JSON.stringify(state.cart)); localStorage.setItem("wahen-wishlist", JSON.stringify([...state.wishlist])); localStorage.setItem("wahen-compare", JSON.stringify([...state.compare])); localStorage.setItem("wahen-orders", JSON.stringify(state.orders)); localStorage.setItem("wahen-notifications", JSON.stringify(state.notifications)); localStorage.setItem("wahen-theme", state.dark ? "dark" : "light"); localStorage.setItem("wahen-user", JSON.stringify(state.user)); };
+const toast = (message) => { const el = $("#toast"); if (!el) return; el.textContent = message; el.classList.add("show"); clearTimeout(toast.timer); toast.timer = setTimeout(() => el.classList.remove("show"), 2400); };
+const notify = (message, type = "info") => { state.notifications.unshift({ id: Date.now(), message, type, time: new Date().toLocaleString() }); save(); toast(message); };
+function updateTheme() { document.body.classList.toggle("dark", state.dark); const b = $("#theme-toggle"); if (b) b.textContent = state.dark ? "☀️" : "🌙"; save(); }
+function getProduct(id) { return products.find((p) => p.id === Number(id)); }
 function renderProducts() {
-  const grid = document.getElementById("product-grid");
-  const filtered = products.filter((product) => {
-    const matchesQuery = !state.query || product.name.toLowerCase().includes(state.query);
-    const matchesCategory = state.activeCategory === "all" || product.category === state.activeCategory;
-    return matchesQuery && matchesCategory;
-  });
-
-  if (!filtered.length) {
-    grid.innerHTML = '<div class="empty-text" style="grid-column: 1 / -1; padding: 12px 0;">Alaab lama helin.</div>';
-    return;
-  }
-
-  grid.innerHTML = filtered.map((product) => {
-    const isLiked = state.favorites.has(product.name);
-    return `
-      <article class="product-card" data-product-id="${product.id}">
-        <button class="favorite-btn ${isLiked ? "liked" : ""}" type="button" data-favorite="${product.id}" aria-label="Add to favorites">
-          ${isLiked ? "♥" : "♡"}
-        </button>
-        <div class="product-figure" aria-hidden="true">${product.icon}</div>
-        <div class="product-body">
-          <h3 class="product-name">${product.name}</h3>
-          <div class="product-price">${money(product.price)}</div>
-          <div class="product-rating">★ ${product.rating}</div>
-          <button class="product-add" type="button" data-add="${product.id}">🛒 Add to cart</button>
-        </div>
-      </article>
-    `;
-  }).join("");
+  const grid = $("#product-grid"); if (!grid) return;
+  const q = state.query.toLowerCase();
+  const filtered = products.filter((p) => { const hay = `${p.name} ${p.subcategory} ${sellerOf(p).name}`.toLowerCase(); const priceMatch = q.match(/^\$?(\d+)$/) ? p.price <= Number(q.replace("$", "")) : true; return (!q || hay.includes(q) || (q === "phone" && p.subcategory === "Phones") || priceMatch) && (state.activeCategory === "all" || p.category === state.activeCategory); });
+  grid.innerHTML = filtered.length ? filtered.map((p) => { const liked = state.wishlist.has(p.id); const compared = state.compare.has(p.id); return `<article class="product-card" data-product-id="${p.id}"><button class="favorite-btn ${liked ? "liked" : ""}" data-favorite="${p.id}" type="button">${liked ? "♥" : "♡"}</button><div class="product-figure">${p.icon}</div><div class="product-body"><h3 class="product-name">${p.name}</h3><div class="product-price">${money(p.price)}</div><div class="product-rating">★ ${p.rating} · ${p.stock ? `${p.stock} available` : "OUT OF STOCK"}</div><small>${sellerOf(p).name} ${sellerOf(p).verified ? "✓" : ""}</small><button class="product-add" data-add="${p.id}" type="button" ${p.stock < 1 ? "disabled" : ""}>${p.stock ? "🛒 Add to cart" : "Out of stock"}</button><button class="text-btn" data-compare="${p.id}" type="button">${compared ? "✓ Compared" : "Compare"}</button></div></article>`; }).join("") : '<div class="empty-text" style="grid-column:1/-1">Alaab lama helin.</div>';
 }
-
-function updateCartCount() {
-  const total = state.cart.reduce((sum, item) => sum + item.qty, 0);
-  document.getElementById("cart-count").textContent = total;
-}
-
-function renderBuyerOrders() {
-  const list = document.getElementById("buyer-order-list");
-  list.innerHTML = orders.map((order) => `
-    <div class="order-item">
-      <div class="order-meta">
-        <strong>${order.name}</strong>
-        <small>${order.code}</small>
-      </div>
-      <span class="status-tag ${order.cls}">${order.status}</span>
-    </div>
-  `).join("");
-
-  const favoriteTotal = document.getElementById("favorite-total");
-  if (favoriteTotal) favoriteTotal.textContent = state.favorites.size;
-}
-
-function setActiveView(viewName) {
-  state.activeView = viewName;
-  $$('.view').forEach((view) => view.classList.toggle("active", view.dataset.view === viewName));
-  $$('.tab').forEach((tab) => tab.classList.toggle("active", tab.dataset.view === viewName));
-  $$('.nav-item').forEach((nav) => {
-    const active = nav.dataset.view === viewName;
-    nav.classList.toggle("active", active);
-  });
-}
-
-function getProductById(id) {
-  return products.find((item) => item.id === Number(id));
-}
-
-function addToCart(productId) {
-  const product = getProductById(productId);
-  if (!product) return;
-
-  const existing = state.cart.find((item) => item.id === product.id);
-  if (existing) {
-    existing.qty += 1;
-  } else {
-    state.cart.push({ id: product.id, qty: 1 });
-  }
-
-  updateCartCount();
-  saveState();
-  showToast(`${product.name} added to cart`);
-}
-
-function openModal(title, bodyHtml) {
-  const overlay = document.createElement("div");
-  overlay.className = "overlay";
-  overlay.innerHTML = `
-    <div class="modal" role="dialog" aria-modal="true">
-      <div class="modal-head">
-        <h2>${title}</h2>
-        <button class="modal-close" type="button" aria-label="Close">×</button>
-      </div>
-      <div class="modal-body">${bodyHtml}</div>
-    </div>
-  `;
-
-  const closeBtn = overlay.querySelector(".modal-close");
-  closeBtn.addEventListener("click", () => overlay.remove());
-  overlay.addEventListener("click", (event) => {
-    if (event.target === overlay) overlay.remove();
-  });
-
-  document.body.appendChild(overlay);
-  return overlay;
-}
-
-function openProductDetail(productId) {
-  const product = getProductById(productId);
-  if (!product) return;
-
-  const similar = products
-    .filter((item) => item.category === product.category && item.id !== product.id)
-    .slice(0, 3)
-    .map((item) => item.name)
-    .join(", ");
-
-  const panel = openModal(product.name, `
-    <div class="modal-product">
-      <div class="modal-product-icon" aria-hidden="true">${product.icon}</div>
-      <div>
-        <h3>${product.name}</h3>
-        <div class="modal-price">${money(product.price)}</div>
-        <div class="modal-rating">★★★★★ ${product.rating}</div>
-        <p class="empty-text">${similar ? `Similar: ${similar}` : "More items in this category."}</p>
-      </div>
-    </div>
-    <div class="modal-actions">
-      <button class="primary-btn" type="button" data-buy="${product.id}">Buy now</button>
-      <button class="secondary-btn" type="button" data-add-modal="${product.id}">Add to cart</button>
-    </div>
-  `);
-
-  panel.querySelector("[data-buy]")?.addEventListener("click", () => {
-    addToCart(product.id);
-    overlayToCheckout();
-    panel.remove();
-  });
-
-  panel.querySelector("[data-add-modal]")?.addEventListener("click", () => {
-    addToCart(product.id);
-    panel.remove();
-  });
-}
-
-function openCart() {
-  const total = state.cart.reduce((sum, item) => {
-    const product = getProductById(item.id);
-    return sum + (product ? product.price * item.qty : 0);
-  }, 0);
-
-  const rows = state.cart.length
-    ? state.cart.map((item, index) => {
-        const product = getProductById(item.id);
-        return `
-          <div class="cart-row">
-            <span>${product ? product.icon : "🛍️"} ${product ? product.name : "Product"} × ${item.qty}</span>
-            <div style="display:flex; align-items:center; gap:10px;">
-              <strong>${money((product ? product.price : 0) * item.qty)}</strong>
-              <button class="remove-btn" type="button" data-remove-index="${index}">Remove</button>
-            </div>
-          </div>
-        `;
-      }).join("")
-    : '<p class="empty-text">Gaadhigu wuu madhan yahay.</p>';
-
-  const panel = openModal("Gaadhiga wax iibsiga", `
-    <div>${rows}</div>
-    <div class="checkout-line">
-      <strong>Wadarta</strong>
-      <strong>${money(total)}</strong>
-    </div>
-    ${state.cart.length ? '<div class="modal-actions"><button class="primary-btn" type="button" data-checkout>Checkout</button><button class="secondary-btn" type="button" data-track>Track order</button></div>' : ''}
-  `);
-
-  panel.querySelectorAll("[data-remove-index]").forEach((button) => {
-    button.addEventListener("click", () => {
-      const index = Number(button.dataset.removeIndex);
-      state.cart.splice(index, 1);
-      updateCartCount();
-      saveState();
-      panel.remove();
-      openCart();
-    });
-  });
-
-  const checkoutBtn = panel.querySelector("[data-checkout]");
-  if (checkoutBtn) checkoutBtn.addEventListener("click", () => {
-    panel.remove();
-    overlayToCheckout();
-  });
-
-  const trackBtn = panel.querySelector("[data-track]");
-  if (trackBtn) trackBtn.addEventListener("click", () => {
-    panel.remove();
-    openTracking();
-  });
-}
-
-function overlayToCheckout() {
-  const total = state.cart.reduce((sum, item) => {
-    const product = getProductById(item.id);
-    return sum + (product ? product.price * item.qty : 0);
-  }, 0);
-
-  const panel = openModal("Checkout", `
-    <form id="checkout-form" class="form-grid">
-      <label>
-        Magacaaga
-        <input type="text" placeholder="Magaca oo buuxa" required />
-      </label>
-      <label>
-        Taleefonka
-        <input type="tel" placeholder="+252..." required />
-      </label>
-      <label>
-        Cinwaanka keenista
-        <input type="text" placeholder="Magaalada iyo booskayga" required />
-      </label>
-      <label>
-        Habka lacag bixinta
-        <select>
-          <option>EVC Plus</option>
-          <option>Zaad</option>
-          <option>Cash on delivery</option>
-        </select>
-      </label>
-      <div class="checkout-line">
-        <strong>Wadarta</strong>
-        <strong>${money(total)}</strong>
-      </div>
-      <button class="primary-btn" type="submit">Xaqiiji dalabka</button>
-    </form>
-  `);
-
-  panel.querySelector("#checkout-form").addEventListener("submit", (event) => {
-    event.preventDefault();
-    panel.remove();
-    state.cart = [];
-    updateCartCount();
-    saveState();
-    showToast("Dalabka waa la xaqiijiyay");
-    openModal("Dalabka waa la helay ✅", '<p>Waad ku mahadsan tahay. Lambarka dalabkaagu waa <strong>WH-2026-001</strong>.</p>');
-  });
-}
-
-function openTracking() {
-  openModal("Dabagalka dalabka", `
-    <p><strong>WH-2026-001</strong> · Darawal: Maxamed A. · ETA: 2 maalmood</p>
-    <div class="modal-actions">
-      <button class="secondary-btn" type="button">✅ La soo saaray</button>
-      <button class="secondary-btn" type="button">📦 La xajiray</button>
-      <button class="secondary-btn" type="button">🚚 Jidka oo socota</button>
-      <button class="secondary-btn" type="button">🏠 La keenay</button>
-    </div>
-  `);
-}
-
-function openMenu() {
-  const panel = openModal("WaHeN Menu", `
-    <div class="modal-actions">
-      <button class="secondary-btn" type="button" data-menu-account>Buyer account</button>
-      <button class="secondary-btn" type="button" data-menu-orders>My orders</button>
-      <button class="secondary-btn" type="button" data-menu-favorites>Favorites</button>
-    </div>
-  `);
-
-  panel.querySelector("[data-menu-account]")?.addEventListener("click", () => {
-    panel.remove();
-    openAuthModal();
-  });
-
-  panel.querySelector("[data-menu-orders]")?.addEventListener("click", () => {
-    panel.remove();
-    openTracking();
-  });
-
-  panel.querySelector("[data-menu-favorites]")?.addEventListener("click", () => {
-    panel.remove();
-    const items = state.favorites.size ? [...state.favorites].join(", ") : "Waxba ma jecel tahay hada.";
-    openModal("Favorites", `<p>${items}</p>`);
-  });
-}
-
-function openAuthModal(mode = "login") {
-  const isLogin = mode === "login";
-
-  const panel = openModal(isLogin ? "Soo gal" : "Samee account", `
-    <form id="auth-form" class="form-grid">
-      ${!isLogin ? '<label>Magaca<input type="text" placeholder="Magacaaga" required /></label>' : ""}
-      <label>Email
-        <input type="email" placeholder="email@example.com" required />
-      </label>
-      <label>Password
-        <input type="password" placeholder="••••••••" required />
-      </label>
-      ${!isLogin ? '<label>Doorka<select><option>Buyer</option><option>Seller</option></select></label>' : ""}
-      <button class="primary-btn" type="submit">${isLogin ? "Soo gal" : "Isdiiwaangeli"}</button>
-      <button class="auth-link" type="button" data-auth-toggle>${isLogin ? "Samee account cusub" : "Haddii horeba aad leedahay account"}</button>
-    </form>
-  `);
-
-  const form = panel.querySelector("#auth-form");
-  form.addEventListener("submit", (event) => {
-    event.preventDefault();
-    panel.remove();
-    showToast(isLogin ? "Logged in successfully" : "Account created successfully");
-  });
-
-  panel.querySelector("[data-auth-toggle]")?.addEventListener("click", () => {
-    panel.remove();
-    openAuthModal(isLogin ? "signup" : "login");
-  });
-}
-
-function handleActionClick(action) {
-  switch (action) {
-    case "show-all":
-      state.activeCategory = "all";
-      document.querySelectorAll(".category").forEach((button) => button.classList.remove("active"));
-      renderProducts();
-      document.getElementById("product-grid")?.scrollIntoView({ behavior: "smooth", block: "start" });
-      break;
-    case "shop-now":
-      setActiveView("home");
-      document.getElementById("product-grid")?.scrollIntoView({ behavior: "smooth", block: "start" });
-      break;
-    case "view-orders":
-      setActiveView("buyer");
-      openTracking();
-      break;
-    case "favorites":
-      if (!state.favorites.size) {
-        showToast("Wax favorites ah ma jiraan");
-        return;
-      }
-      openModal("Favorites", `<p>${[...state.favorites].join(", ")}</p>`);
-      break;
-    case "add-product":
-      openModal("Add Product", `
-        <form class="form-grid">
-          <label>Product name<input type="text" value="New Product" required /></label>
-          <label>Price<input type="number" value="99" required /></label>
-          <label>Category<select><option>ragga</option><option>haween</option><option>electronics</option></select></label>
-          <button class="primary-btn" type="submit">Save</button>
-        </form>
-      `);
-      break;
-    case "inventory":
-      openModal("Inventory", '<p>Stock level: 500 items available.</p>');
-      break;
-    case "seller-orders":
-      openModal("Orders", '<p>12 new orders pending.</p>');
-      break;
-    case "promotions":
-      openModal("Promotions", '<p>Flash sale: 20% off this weekend.</p>');
-      break;
-    case "manage-users":
-      openModal("Users", '<p>9,410 active users.</p>');
-      break;
-    case "manage-products":
-      openModal("Products", '<p>1,245 products available.</p>');
-      break;
-    case "manage-orders":
-      openModal("Orders", '<p>1,284 processed orders.</p>');
-      break;
-    case "settings":
-      openModal("Settings", '<p>Marketplace controls are online.</p>');
-      break;
-    case "export":
-      showToast("Sales report exported");
-      break;
-    case "store-profile":
-      openModal("My Store", '<p>WaHeN Store — 4.8 rating | 248 reviews.</p>');
-      break;
-    case "categories":
-      document.getElementById("category-grid")?.scrollIntoView({ behavior: "smooth", block: "start" });
-      break;
-    default:
-      break;
-  }
-}
-
-function bindEvents() {
-  document.getElementById("theme-toggle").addEventListener("click", () => {
-    state.dark = !state.dark;
-    updateTheme();
-  });
-
-  document.getElementById("product-search").addEventListener("input", (event) => {
-    state.query = event.target.value.trim().toLowerCase();
-    renderProducts();
-  });
-
-  document.getElementById("search-form").addEventListener("submit", (event) => event.preventDefault());
-
-  document.getElementById("cart-btn").addEventListener("click", openCart);
-  document.getElementById("menu-btn").addEventListener("click", openMenu);
-
-  document.querySelectorAll(".tab").forEach((tab) => {
-    tab.addEventListener("click", () => setActiveView(tab.dataset.view));
-  });
-
-  document.querySelectorAll(".nav-item").forEach((nav) => {
-    nav.addEventListener("click", () => {
-      const view = nav.dataset.view;
-      if (view) setActiveView(view);
-      const action = nav.dataset.action;
-      if (action) handleActionClick(action);
-    });
-  });
-
-  document.querySelectorAll(".category").forEach((button) => {
-    button.addEventListener("click", () => {
-      const category = button.dataset.category;
-      state.activeCategory = category;
-      document.querySelectorAll(".category").forEach((item) => item.classList.toggle("active", item === button));
-      renderProducts();
-      document.getElementById("product-grid")?.scrollIntoView({ behavior: "smooth", block: "start" });
-    });
-  });
-
-  document.addEventListener("click", (event) => {
-    const action = event.target.closest("[data-action]");
-    if (action) {
-      handleActionClick(action.dataset.action);
-      return;
-    }
-
-    const addBtn = event.target.closest("[data-add]");
-    if (addBtn) {
-      addToCart(addBtn.dataset.add);
-      return;
-    }
-
-    const favoriteBtn = event.target.closest("[data-favorite]");
-    if (favoriteBtn) {
-      const product = getProductById(favoriteBtn.dataset.favorite);
-      if (!product) return;
-      if (state.favorites.has(product.name)) {
-        state.favorites.delete(product.name);
-      } else {
-        state.favorites.add(product.name);
-      }
-      saveState();
-      renderProducts();
-      renderBuyerOrders();
-      return;
-    }
-
-    const productCard = event.target.closest(".product-card");
-    if (productCard && !event.target.closest("button")) {
-      openProductDetail(productCard.dataset.productId);
-      return;
-    }
-
-    const authToggle = event.target.closest("[data-auth-toggle]");
-    if (authToggle) {
-      const mode = authToggle.textContent.includes("Samee") ? "signup" : "login";
-      const modal = authToggle.closest(".modal");
-      modal?.closest(".overlay")?.remove();
-      openAuthModal(mode);
-    }
-  });
-
-  document.querySelector("[data-view='home']").addEventListener("click", () => setActiveView("home"));
-}
-
-function init() {
-  updateTheme();
-  renderProducts();
-  renderBuyerOrders();
-  updateCartCount();
-  bindEvents();
-  setActiveView("home");
-}
-
+function cartTotals() { const subtotal = state.cart.reduce((n, i) => n + (getProduct(i.id)?.price || 0) * i.qty, 0); const discount = state.coupon && subtotal >= state.coupon.minimum ? Math.min(subtotal * state.coupon.percent / 100, state.coupon.maximum) : 0; return { subtotal, discount, delivery: state.cart.length ? DELIVERY_FEE : 0, total: subtotal - discount + (state.cart.length ? DELIVERY_FEE : 0) }; }
+function updateCartCount() { const el = $("#cart-count"); if (el) el.textContent = state.cart.reduce((n, i) => n + i.qty, 0); }
+function openModal(title, body, after) { const overlay = document.createElement("div"); overlay.className = "overlay"; overlay.innerHTML = `<div class="modal" role="dialog" aria-modal="true"><div class="modal-head"><h2>${title}</h2><button class="modal-close" type="button">×</button></div><div class="modal-body">${body}</div></div>`; document.body.appendChild(overlay); overlay.querySelector(".modal-close").onclick = () => overlay.remove(); overlay.onclick = (e) => { if (e.target === overlay) overlay.remove(); }; after?.(overlay); return overlay; }
+function addToCart(id) { const p = getProduct(id); if (!p || p.stock < 1) return toast("Product-kan hadda waa ka dhammaaday."); const item = state.cart.find((i) => i.id === p.id); if (item && item.qty >= p.stock) return toast(`Stock-ka ${p.name} intii uu hayay ayaa la gaadhay.`); item ? item.qty++ : state.cart.push({ id: p.id, qty: 1 }); save(); updateCartCount(); toast(`${p.name} ayaa lagu daray cart-ka.`); }
+function openProduct(id) { const p = getProduct(id), s = sellerOf(p); if (!p) return; openModal(p.name, `<div class="modal-product"><div class="modal-product-icon">${p.icon}</div><div><h3>${p.name}</h3><div class="modal-price">${money(p.price)}</div><div>★ ${p.rating} · ${p.stock} stock · ${p.condition}</div><p>${p.specs}. Seller: <strong>${s.name}</strong> ${s.verified ? "✓ Verified" : ""}. Location: ${s.city}. Delivery: Hargeisa and supported cities.</p><p>Product reviews and seller rating are shown after a verified delivery.</p></div></div><div class="modal-actions"><button class="primary-btn" data-buy type="button">Buy now</button><button class="secondary-btn" data-add type="button">Add to cart</button><button class="secondary-btn" data-wish type="button">♡ Wishlist</button></div>`, (m) => { m.querySelector("[data-buy]").onclick = () => { addToCart(p.id); m.remove(); openCheckout(); }; m.querySelector("[data-add]").onclick = () => { addToCart(p.id); m.remove(); }; m.querySelector("[data-wish]").onclick = () => { toggleWishlist(p.id); m.remove(); }; }); }
+function toggleWishlist(id) { state.wishlist.has(Number(id)) ? state.wishlist.delete(Number(id)) : state.wishlist.add(Number(id)); save(); renderProducts(); toast(state.wishlist.has(Number(id)) ? "Wishlist ayaa lagu daray." : "Wishlist ayaa laga saaray."); }
+function openCart() { const t = cartTotals(); const rows = state.cart.length ? state.cart.map((i) => { const p = getProduct(i.id); return `<div class="cart-row"><span>${p.icon} ${p.name}<br><small>${money(p.price)} × <button data-qty="${p.id}" data-delta="-1">−</button> ${i.qty} <button data-qty="${p.id}" data-delta="1">+</button></small></span><strong>${money(p.price * i.qty)}</strong></div>`; }).join("") : '<p class="empty-text">Gaadhigu wuu madhan yahay.</p>'; openModal("Gaadhiga wax iibsiga", `${rows}${state.cart.length ? `<label>Coupon <input id="coupon-input" placeholder="WAHEN10" value="${state.coupon ? "WAHEN10" : ""}"><button class="secondary-btn" id="apply-coupon" type="button">Apply</button></label><div class="checkout-line"><span>Subtotal</span><strong>${money(t.subtotal)}</strong></div><div class="checkout-line"><span>Discount</span><strong>-${money(t.discount)}</strong></div><div class="checkout-line"><span>Delivery</span><strong>${money(t.delivery)}</strong></div><div class="checkout-line"><strong>Total</strong><strong>${money(t.total)}</strong></div><div class="modal-actions"><button class="primary-btn" id="checkout" type="button">Checkout</button><button class="secondary-btn" id="compare" type="button">Compare (${state.compare.size})</button></div>` : ""}`, (m) => { m.querySelectorAll("[data-qty]").forEach((b) => b.onclick = () => { const i = state.cart.find((x) => x.id === Number(b.dataset.qty)); const p = getProduct(i.id); i.qty = Math.max(0, Math.min(p.stock, i.qty + Number(b.dataset.delta))); if (!i.qty) state.cart = state.cart.filter((x) => x !== i); save(); updateCartCount(); m.remove(); openCart(); }); m.querySelector("#apply-coupon")?.addEventListener("click", () => { const code = m.querySelector("#coupon-input").value.trim().toUpperCase(), c = COUPONS[code]; if (!c) return toast("Coupon-ku ma shaqaynayo."); if (cartTotals().subtotal < c.minimum) return toast("Minimum purchase waa $50."); state.coupon = c; m.remove(); openCart(); }); m.querySelector("#checkout")?.addEventListener("click", () => { m.remove(); openCheckout(); }); m.querySelector("#compare")?.addEventListener("click", () => { m.remove(); openCompare(); }); }); }
+function openCheckout() { if (!state.cart.length) return toast("Cart-ku waa madhan yahay."); const t = cartTotals(); openModal("Checkout", `<form id="checkout-form" class="form-grid"><label>Magaca<input name="name" value="${state.user.name}" required></label><label>Phone<input name="phone" value="${state.user.phone}" required></label><label>Address<input name="address" value="${state.user.address}" required></label><label>City<select name="city"><option>Hargeisa</option><option>Berbera</option><option>Borama</option><option>Burco</option><option>Ceerigaabo</option><option>Laascaanood</option></select></label><label>Delivery<select name="delivery"><option>Standard Delivery — $5</option><option>Inter-city — calculated</option></select></label><label>Payment<select name="payment"><option>ZAAD Test Payment</option><option>E-Dahab Test Payment</option><option>Premier Test Payment</option></select></label><div class="checkout-line"><strong>Total</strong><strong>${money(t.total)}</strong></div><button class="primary-btn" type="submit">Continue to secure test payment</button></form>`, (m) => { m.querySelector("#checkout-form").onsubmit = (e) => { e.preventDefault(); const data = Object.fromEntries(new FormData(e.target)); const invalid = state.cart.some((i) => !getProduct(i.id) || getProduct(i.id).stock < i.qty); if (invalid) return toast("Qaar ka mid ah alaabtu stock ma hayso."); m.remove(); openPayment(data, t); }; }); }
+function openPayment(data, t) { openModal("ZAAD Test Payment", `<p>Payment-kan waa MOCK/SANDBOX. Looma isticmaalo lacag dhab ah.</p><p>Amount: <strong>${money(t.total)}</strong><br>Transaction status: PENDING</p><div class="modal-actions"><button class="primary-btn" id="pay-success" type="button">Simulate SUCCESS</button><button class="secondary-btn" id="pay-fail" type="button">Simulate FAILED</button><button class="secondary-btn" id="pay-timeout" type="button">Simulate TIMEOUT</button></div>`, (m) => { m.querySelector("#pay-success").onclick = () => { createOrder(data, t, "SUCCESS"); m.remove(); }; m.querySelector("#pay-fail").onclick = () => { notify("Payment failed. Order-ka lama xaqiijin.", "error"); m.remove(); }; m.querySelector("#pay-timeout").onclick = () => { notify("Payment timeout. Fadlan mar kale isku day.", "error"); m.remove(); }; }); }
+function createOrder(data, t, paymentStatus) { const orderId = `WH${10001 + state.orders.length}`; const items = state.cart.map((i) => ({ ...i, name: getProduct(i.id).name, price: getProduct(i.id).price, sellerId: getProduct(i.id).sellerId })); items.forEach((i) => { getProduct(i.id).stock -= i.qty; }); const order = { id: orderId, buyerId: state.user.id, buyer: data.name, address: data.address, city: data.city, items, subtotal: t.subtotal, discount: t.discount, delivery: t.delivery, total: t.total, paymentStatus, paymentId: `TX-${Date.now()}`, status: paymentStatus === "SUCCESS" ? "PAID" : "PAYMENT_PENDING", history: [{ status: paymentStatus === "SUCCESS" ? "PAID" : "PAYMENT_PENDING", at: new Date().toISOString() }], sellerNotified: true, reviewed: false }; state.orders.unshift(order); state.cart = []; state.coupon = null; save(); updateCartCount(); renderProducts(); notify(`Payment successful. Order ${orderId} ayaa la sameeyay.`); openOrder(orderId); }
+function openOrder(id) { const order = state.orders.find((o) => o.id === id); if (!order) return; const canAdvance = order.status !== "REVIEWED" && order.status !== "DELIVERED" && order.paymentStatus === "SUCCESS"; const next = ORDER_STATES[Math.min(ORDER_STATES.indexOf(order.status) + 1, ORDER_STATES.length - 1)]; openModal(`Order ${order.id}`, `<p><strong>Status:</strong> ${order.status}<br><strong>Payment:</strong> ${order.paymentStatus}<br><strong>Delivery:</strong> ${order.address}, ${order.city}<br><strong>Total:</strong> ${money(order.total)}</p><div class="order-list">${order.history.map((h) => `<div class="order-item"><span>${h.status}</span><small>${new Date(h.at).toLocaleString()}</small></div>`).join("")}</div>${canAdvance ? `<button class="primary-btn" id="advance" type="button">Demo: move to ${next}</button>` : ""}${order.status === "DELIVERED" && !order.reviewed ? `<button class="primary-btn" id="review" type="button">Leave review</button>` : ""}`, (m) => { m.querySelector("#advance")?.addEventListener("click", () => { const i = ORDER_STATES.indexOf(order.status); order.status = ORDER_STATES[Math.min(i + 1, ORDER_STATES.length - 1)]; order.history.push({ status: order.status, at: new Date().toISOString() }); if (order.status === "DELIVERED") settleWallet(order); save(); notify(`${order.id}: ${order.status}`); m.remove(); openOrder(order.id); }); m.querySelector("#review")?.addEventListener("click", () => { order.reviewed = true; order.status = "REVIEWED"; order.history.push({ status: "REVIEWED", at: new Date().toISOString() }); save(); m.remove(); notify("Review-ga waa la diray."); }); }); }
+function settleWallet(order) { order.items.forEach((i) => { const seller = sellerOf(getProduct(i.id)); seller.wallet = (seller.wallet || 500) + i.price * i.qty * (1 - COMMISSION_RATE); }); order.commission = order.subtotal * COMMISSION_RATE; notify(`Seller revenue iyo ${money(order.commission)} commission ayaa la diiwaangeliyay.`); }
+function openCompare() { const list = [...state.compare].map(getProduct).filter(Boolean); if (!list.length) return toast("Dooro ugu yaraan hal product."); openModal("Compare Products", `<div class="compare-grid">${list.map((p) => `<div><h3>${p.name}</h3><p>Price: <strong>${money(p.price)}</strong></p><p>Rating: ★ ${p.rating}</p><p>Stock: ${p.stock}</p><p>Seller: ${sellerOf(p).name}</p><p>Specs: ${p.specs}</p><p>Delivery: Hargeisa coverage</p><p>Reviews: verified reviews after delivery</p></div>`).join("")}</div><p>Comparison-ku wuxuu muujinayaa xogta oo keliya; nidaamku si toos ah uma sheegayo product “best” ilaa criteria la qeexo.</p>`); }
+function openAuth() { openModal("Buyer Login / Test Account", `<form id="auth-form" class="form-grid"><label>Email<input name="email" value="ahmed.test@wahen.example" type="email" required></label><label>Password<input name="password" type="password" required></label><button class="primary-btn" type="submit">Login</button></form><p>Test user: Ahmed Hassan · +252 63 7000000 · Hargeisa</p>`, (m) => m.querySelector("form").onsubmit = (e) => { e.preventDefault(); save(); m.remove(); notify("Ahmed Hassan waa soo galay."); }); }
+function setActiveView(view) { state.activeView = view; $$(".view").forEach((v) => v.classList.toggle("active", v.dataset.view === view)); $$(".tab,.nav-item").forEach((b) => b.classList.toggle("active", b.dataset.view === view)); }
+function action(name) { if (name === "show-all" || name === "shop-now") { state.activeCategory = "all"; renderProducts(); $("#product-grid")?.scrollIntoView({ behavior: "smooth" }); } else if (name === "view-orders" || name === "track") { const o = state.orders[0]; o ? openOrder(o.id) : toast("Dalab weli ma jiro."); } else if (name === "favorites") { openModal("Wishlist", [...state.wishlist].map((id) => getProduct(id)?.name).join(", ") || "Wishlist waa madhan."); } else if (["add-product", "inventory", "seller-orders", "promotions", "manage-users", "manage-products", "manage-orders", "settings", "store-profile"].includes(name)) { openModal(name.replaceAll("-", " "), `<p>Qaybtan waxay diyaar u tahay in backend-ka production lagu xiro. Demo data: ${state.orders.length} orders, ${products.length} products, ${state.notifications.length} notifications.</p>`); } else if (name === "categories") $("#category-grid")?.scrollIntoView({ behavior: "smooth" }); }
+function bind() { $("#theme-toggle")?.addEventListener("click", () => { state.dark = !state.dark; updateTheme(); }); $("#cart-btn")?.addEventListener("click", openCart); $("#menu-btn")?.addEventListener("click", openAuth); $("#product-search")?.addEventListener("input", (e) => { state.query = e.target.value.trim(); renderProducts(); }); $$(".tab,.nav-item[data-view]").forEach((b) => b.addEventListener("click", () => setActiveView(b.dataset.view))); $$(".category").forEach((b) => b.addEventListener("click", () => { state.activeCategory = b.dataset.category; renderProducts(); })); document.addEventListener("click", (e) => { const add = e.target.closest("[data-add]"); if (add) return addToCart(add.dataset.add); const fav = e.target.closest("[data-favorite]"); if (fav) return toggleWishlist(fav.dataset.favorite); const cmp = e.target.closest("[data-compare]"); if (cmp) { const id = Number(cmp.dataset.compare); state.compare.has(id) ? state.compare.delete(id) : state.compare.add(id); save(); renderProducts(); return toast(state.compare.has(id) ? "Compare lagu daray." : "Compare laga saaray."); } const card = e.target.closest(".product-card"); if (card && !e.target.closest("button")) openProduct(card.dataset.productId); const a = e.target.closest("[data-action]"); if (a) action(a.dataset.action); }); }
+function init() { updateTheme(); renderProducts(); updateCartCount(); bind(); }
 init();
-

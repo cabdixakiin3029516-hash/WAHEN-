@@ -4,879 +4,99 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#4338CA">
-
+  <meta name="description" content="WaHeN waa suuq dijitaal ah oo laga helo alaabooyin iyo dukaamo kala duwan.">
   <title>WaHeN Marketplace</title>
-
   <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
-
   <div class="phone">
-
-    <!-- STATUS BAR -->
-    <div class="statusbar">
+    <div class="statusbar" aria-label="Xogta telefoonka">
       <span>9:41</span>
-      <span>📶 🔋</span>
+      <span aria-hidden="true">📶 🔋</span>
     </div>
 
-
-    <!-- TOP BAR -->
     <header class="topbar">
-
-      <button class="icon-btn" aria-label="Menu">
-        ☰
-      </button>
-
-      <div class="brand">
-        WaHeN
-      </div>
-
-      <button class="icon-btn cart-button" aria-label="Cart">
-        🛒
-      </button>
-
+      <button class="icon-btn" type="button" aria-label="Fur menu-ga">☰</button>
+      <a class="brand" href="index.html" aria-label="WaHeN bogga hore">WaHeN</a>
+      <button class="icon-btn cart-button" type="button" aria-label="Fur gaadhiga wax iibsiga">🛒</button>
     </header>
 
+    <form class="search" role="search">
+      <label for="product-search" class="visually-hidden">Raadi alaab</label>
+      <span aria-hidden="true">🔍</span>
+      <input id="product-search" type="search" placeholder="Maxaad raadineysaa?" autocomplete="off">
+    </form>
 
-    <!-- SEARCH -->
-    <div class="search">
-
-      <span>🔍</span>
-
-      <input
-        type="search"
-        placeholder="Maxaad raadineysaa?"
-        aria-label="Raadi alaab"
-      >
-
-    </div>
-
-
-    <!-- HERO -->
-    <section class="hero">
-
-      <div class="hero-eyebrow">
-        DUKAAMEYSI XILIYEED
-      </div>
-
-      <div class="hero-title">
-        Ilaa 30% dhimis
-      </div>
-
-      <div class="hero-sub">
-        Alaabooyin badan, dukaamo badan, hal meel.
-      </div>
-
-      <button class="hero-cta">
-        Dukaan hadda
-      </button>
-
-      <div class="hero-figure">
-        🧑🏾‍💼
-      </div>
-
+    <section class="hero" aria-labelledby="hero-title">
+      <div class="hero-eyebrow">DUKAAMEYSI XILIYEED</div>
+      <h1 id="hero-title" class="hero-title">Ilaa 30% dhimis</h1>
+      <p class="hero-sub">Alaabooyin badan, dukaamo badan, hal meel.</p>
+      <button class="hero-cta" type="button">Dukaan hadda</button>
+      <div class="hero-figure" aria-hidden="true">🧑🏾‍💼</div>
     </section>
 
-
-    <!-- CATEGORIES -->
-    <section class="section">
-
+    <section class="section" aria-labelledby="categories-title">
       <div class="section-head">
-
-        <h2>
-          Qaybaha
-        </h2>
-
-        <a href="#">
-          Dhammaan
-        </a>
-
+        <h2 id="categories-title">Qaybaha</h2>
+        <a href="#products">Dhammaan</a>
       </div>
-
-
       <div class="cat-grid">
-
-        <button class="cat">
-          <div class="cat-icon">👔</div>
-          <span>Ragga</span>
-        </button>
-
-        <button class="cat">
-          <div class="cat-icon">👗</div>
-          <span>Haween</span>
-        </button>
-
-        <button class="cat">
-          <div class="cat-icon">🍼</div>
-          <span>Caruur</span>
-        </button>
-
-        <button class="cat">
-          <div class="cat-icon">🧴</div>
-          <span>Beauty</span>
-        </button>
-
-        <button class="cat">
-          <div class="cat-icon">🍽️</div>
-          <span>Cunto</span>
-        </button>
-
-        <button class="cat">
-          <div class="cat-icon">🔌</div>
-          <span>Electronics</span>
-        </button>
-
-        <button class="cat">
-          <div class="cat-icon">🧱</div>
-          <span>Dhismaha</span>
-        </button>
-
-        <button class="cat">
-          <div class="cat-icon">🗂️</div>
-          <span>Wax kale</span>
-        </button>
-
+        <button class="cat category" type="button" data-category="ragga"><span class="cat-icon" aria-hidden="true">👔</span><span>Ragga</span></button>
+        <button class="cat category" type="button" data-category="haween"><span class="cat-icon" aria-hidden="true">👗</span><span>Haween</span></button>
+        <button class="cat category" type="button" data-category="caruur"><span class="cat-icon" aria-hidden="true">🍼</span><span>Caruur</span></button>
+        <button class="cat category" type="button" data-category="beauty"><span class="cat-icon" aria-hidden="true">🧴</span><span>Beauty</span></button>
+        <button class="cat category" type="button" data-category="cunto"><span class="cat-icon" aria-hidden="true">🍽️</span><span>Cunto</span></button>
+        <button class="cat category" type="button" data-category="electronics"><span class="cat-icon" aria-hidden="true">🔌</span><span>Electronics</span></button>
+        <button class="cat category" type="button" data-category="dhismaha"><span class="cat-icon" aria-hidden="true">🧱</span><span>Dhismaha</span></button>
+        <button class="cat category" type="button" data-category="wax-kale"><span class="cat-icon" aria-hidden="true">🗂️</span><span>Wax kale</span></button>
       </div>
-
     </section>
 
-
-    <!-- POPULAR PRODUCTS -->
-    <section class="section">
-
+    <section class="section" aria-labelledby="popular-title">
       <div class="section-head">
-
-        <h2>
-          Ugu Iibsan
-        </h2>
-
-        <a href="#">
-          Eeg dhammaan
-        </a>
-
+        <h2 id="popular-title">Ugu Iibsan</h2>
+        <a href="#products">Eeg dhammaan</a>
       </div>
-
     </section>
 
-
-    <!-- PRODUCTS -->
-    <main class="prod-grid">
-
-
-      <!-- PRODUCT 1 -->
-      <article class="prod-card">
-
-        <div class="prod-image">
-          👔
-        </div>
-
-        <div class="prod-body">
-
-          <h3>
-            Funaanad Ragga
-          </h3>
-
-          <div class="prod-price">
-            $26.00
-          </div>
-
-          <div class="prod-rating">
-            ★ 4.5
-            <span>(120)</span>
-          </div>
-
-        </div>
-
-      </article>
-
-
-      <!-- PRODUCT 2 -->
-      <article class="prod-card">
-
-        <div class="prod-image">
-          👗
-        </div>
-
-        <div class="prod-body">
-
-          <h3>
-            Dirac Haween
-          </h3>
-
-          <div class="prod-price">
-            $45.00
-          </div>
-
-          <div class="prod-rating">
-            ★ 4.6
-            <span>(98)</span>
-          </div>
-
-        </div>
-
-      </article>
-
-
-      <!-- PRODUCT 3 -->
-      <article class="prod-card">
-
-        <div class="prod-image">
-          👟
-        </div>
-
-        <div class="prod-body">
-
-          <h3>
-            Kabo Cusub
-          </h3>
-
-          <div class="prod-price">
-            $60.00
-          </div>
-
-          <div class="prod-rating">
-            ★ 4.6
-            <span>(210)</span>
-          </div>
-
-        </div>
-
-      </article>
-
-
-      <!-- PRODUCT 4 -->
-      <article class="prod-card">
-
-        <div class="prod-image">
-          🧱
-        </div>
-
-        <div class="prod-body">
-
-          <h3>
-            Qalab Dhisme
-          </h3>
-
-          <div class="prod-price">
-            $34.00
-          </div>
-
-          <div class="prod-rating">
-            ★ 4.4
-            <span>(56)</span>
-          </div>
-
-        </div>
-
-      </article>
-
-
-      <!-- PRODUCT 5 -->
-      <article class="prod-card">
-
-        <div class="prod-image">
-          📱
-        </div>
-
-        <div class="prod-body">
-
-          <h3>
-            Smartphone
-          </h3>
-
-          <div class="prod-price">
-            $180.00
-          </div>
-
-          <div class="prod-rating">
-            ★ 4.7
-            <span>(340)</span>
-          </div>
-
-        </div>
-
-      </article>
-
-
-      <!-- PRODUCT 6 -->
-      <article class="prod-card">
-
-        <div class="prod-image">
-          🎧
-        </div>
-
-        <div class="prod-body">
-
-          <h3>
-            Headphones
-          </h3>
-
-          <div class="prod-price">
-            $35.00
-          </div>
-
-          <div class="prod-rating">
-            ★ 4.5
-            <span>(87)</span>
-          </div>
-
-        </div>
-
-      </article>
-
-
-      <!-- PRODUCT 7 -->
-      <article class="prod-card">
-
-        <div class="prod-image">
-          👜
-        </div>
-
-        <div class="prod-body">
-
-          <h3>
-            Boorso Haween
-          </h3>
-
-          <div class="prod-price">
-            $40.00
-          </div>
-
-          <div class="prod-rating">
-            ★ 4.6
-            <span>(76)</span>
-          </div>
-
-        </div>
-
-      </article>
-
-
-      <!-- PRODUCT 8 -->
-      <article class="prod-card">
-
-        <div class="prod-image">
-          ⌚
-        </div>
-
-        <div class="prod-body">
-
-          <h3>
-            Saacad
-          </h3>
-
-          <div class="prod-price">
-            $55.00
-          </div>
-
-          <div class="prod-rating">
-            ★ 4.4
-            <span>(65)</span>
-          </div>
-
-        </div>
-
-      </article>
-
-
-      <!-- PRODUCT 9 -->
-      <article class="prod-card">
-
-        <div class="prod-image">
-          🧴
-        </div>
-
-        <div class="prod-body">
-
-          <h3>
-            Perfume
-          </h3>
-
-          <div class="prod-price">
-            $28.00
-          </div>
-
-          <div class="prod-rating">
-            ★ 4.8
-            <span>(154)</span>
-          </div>
-
-        </div>
-
-      </article>
-
-
-      <!-- PRODUCT 10 -->
-      <article class="prod-card">
-
-        <div class="prod-image">
-          👞
-        </div>
-
-        <div class="prod-body">
-
-          <h3>
-            Kabo Rag
-          </h3>
-
-          <div class="prod-price">
-            $48.00
-          </div>
-
-          <div class="prod-rating">
-            ★ 4.5
-            <span>(102)</span>
-          </div>
-
-        </div>
-
-      </article>
-
-
-      <!-- PRODUCT 11 -->
-      <article class="prod-card">
-
-        <div class="prod-image">
-          🍚
-        </div>
-
-        <div class="prod-body">
-
-          <h3>
-            Bariis
-          </h3>
-
-          <div class="prod-price">
-            $32.00
-          </div>
-
-          <div class="prod-rating">
-            ★ 4.4
-            <span>(81)</span>
-          </div>
-
-        </div>
-
-      </article>
-
-
-      <!-- PRODUCT 12 -->
-      <article class="prod-card">
-
-        <div class="prod-image">
-          🥛
-        </div>
-
-        <div class="prod-body">
-
-          <h3>
-            Caano
-          </h3>
-
-          <div class="prod-price">
-            $8.00
-          </div>
-
-          <div class="prod-rating">
-            ★ 4.3
-            <span>(45)</span>
-          </div>
-
-        </div>
-
-      </article>
-
-
-      <!-- PRODUCT 13 -->
-      <article class="prod-card">
-
-        <div class="prod-image">
-          🛋️
-        </div>
-
-        <div class="prod-body">
-
-          <h3>
-            Sofa
-          </h3>
-
-          <div class="prod-price">
-            $250.00
-          </div>
-
-          <div class="prod-rating">
-            ★ 4.6
-            <span>(39)</span>
-          </div>
-
-        </div>
-
-      </article>
-
-
-      <!-- PRODUCT 14 -->
-      <article class="prod-card">
-
-        <div class="prod-image">
-          🪑
-        </div>
-
-        <div class="prod-body">
-
-          <h3>
-            Kursi
-          </h3>
-
-          <div class="prod-price">
-            $35.00
-          </div>
-
-          <div class="prod-rating">
-            ★ 4.4
-            <span>(33)</span>
-          </div>
-
-        </div>
-
-      </article>
-
-
-      <!-- PRODUCT 15 -->
-      <article class="prod-card">
-
-        <div class="prod-image">
-          💡
-        </div>
-
-        <div class="prod-body">
-
-          <h3>
-            Nal
-          </h3>
-
-          <div class="prod-price">
-            $15.00
-          </div>
-
-          <div class="prod-rating">
-            ★ 4.5
-            <span>(54)</span>
-          </div>
-
-        </div>
-
-      </article>
-
-
-      <!-- PRODUCT 16 -->
-      <article class="prod-card">
-
-        <div class="prod-image">
-          🧸
-        </div>
-
-        <div class="prod-body">
-
-          <h3>
-            Toy Caruur
-          </h3>
-
-          <div class="prod-price">
-            $18.00
-          </div>
-
-          <div class="prod-rating">
-            ★ 4.7
-            <span>(73)</span>
-          </div>
-
-        </div>
-
-      </article>
-
-
-      <!-- PRODUCT 17 -->
-      <article class="prod-card">
-
-        <div class="prod-image">
-          👶
-        </div>
-
-        <div class="prod-body">
-
-          <h3>
-            Dhar Baby
-          </h3>
-
-          <div class="prod-price">
-            $22.00
-          </div>
-
-          <div class="prod-rating">
-            ★ 4.5
-            <span>(61)</span>
-          </div>
-
-        </div>
-
-      </article>
-
-
-      <!-- PRODUCT 18 -->
-      <article class="prod-card">
-
-        <div class="prod-image">
-          🧢
-        </div>
-
-        <div class="prod-body">
-
-          <h3>
-            Koofiyad
-          </h3>
-
-          <div class="prod-price">
-            $12.00
-          </div>
-
-          <div class="prod-rating">
-            ★ 4.4
-            <span>(48)</span>
-          </div>
-
-        </div>
-
-      </article>
-
-
-      <!-- PRODUCT 19 -->
-      <article class="prod-card">
-
-        <div class="prod-image">
-          🕶️
-        </div>
-
-        <div class="prod-body">
-
-          <h3>
-            Muraayad
-          </h3>
-
-          <div class="prod-price">
-            $20.00
-          </div>
-
-          <div class="prod-rating">
-            ★ 4.5
-            <span>(91)</span>
-          </div>
-
-        </div>
-
-      </article>
-
-
-      <!-- PRODUCT 20 -->
-      <article class="prod-card">
-
-        <div class="prod-image">
-          🧰
-        </div>
-
-        <div class="prod-body">
-
-          <h3>
-            Qalab Shaqo
-          </h3>
-
-          <div class="prod-price">
-            $75.00
-          </div>
-
-          <div class="prod-rating">
-            ★ 4.6
-            <span>(42)</span>
-          </div>
-
-        </div>
-
-      </article>
-
-
-      <!-- PRODUCT 21 -->
-      <article class="prod-card">
-
-        <div class="prod-image">
-          🍳
-        </div>
-
-        <div class="prod-body">
-
-          <h3>
-            Qalabka Jikada
-          </h3>
-
-          <div class="prod-price">
-            $45.00
-          </div>
-
-          <div class="prod-rating">
-            ★ 4.5
-            <span>(67)</span>
-          </div>
-
-        </div>
-
-      </article>
-
-
-      <!-- PRODUCT 22 -->
-      <article class="prod-card">
-
-        <div class="prod-image">
-          🧹
-        </div>
-
-        <div class="prod-body">
-
-          <h3>
-            Qalabka Guriga
-          </h3>
-
-          <div class="prod-price">
-            $25.00
-          </div>
-
-          <div class="prod-rating">
-            ★ 4.3
-            <span>(38)</span>
-          </div>
-
-        </div>
-
-      </article>
-
-
-      <!-- PRODUCT 23 -->
-      <article class="prod-card">
-
-        <div class="prod-image">
-          🥤
-        </div>
-
-        <div class="prod-body">
-
-          <h3>
-            Cabitaan
-          </h3>
-
-          <div class="prod-price">
-            $10.00
-          </div>
-
-          <div class="prod-rating">
-            ★ 4.4
-            <span>(59)</span>
-          </div>
-
-        </div>
-
-      </article>
-
-
-      <!-- PRODUCT 24 -->
-      <article class="prod-card">
-
-        <div class="prod-image">
-          🍎
-        </div>
-
-        <div class="prod-body">
-
-          <h3>
-            Miraha
-          </h3>
-
-          <div class="prod-price">
-            $14.00
-          </div>
-
-          <div class="prod-rating">
-            ★ 4.6
-            <span>(72)</span>
-          </div>
-
-        </div>
-
-      </article>
-
-
-      <!-- PRODUCT 25 -->
-      <article class="prod-card">
-
-        <div class="prod-image">
-          🏠
-        </div>
-
-        <div class="prod-body">
-
-          <h3>
-            Alaab Guri
-          </h3>
-
-          <div class="prod-price">
-            $90.00
-          </div>
-
-          <div class="prod-rating">
-            ★ 4.5
-            <span>(52)</span>
-          </div>
-
-        </div>
-
-      </article>
-
-
+    <main id="products" class="prod-grid" aria-label="Alaabooyinka la heli karo">
+      <article class="prod-card" data-category="ragga"><div class="prod-image" aria-hidden="true">👔</div><div class="prod-body"><h3>Funaanad Ragga</h3><div class="prod-price">$26.00</div><div class="prod-rating" aria-label="4.5 xiddigood, 120 qiimeyn">★ 4.5 <span>(120)</span></div></div></article>
+      <article class="prod-card" data-category="haween"><div class="prod-image" aria-hidden="true">👗</div><div class="prod-body"><h3>Dirac Haween</h3><div class="prod-price">$45.00</div><div class="prod-rating" aria-label="4.6 xiddigood, 98 qiimeyn">★ 4.6 <span>(98)</span></div></div></article>
+      <article class="prod-card" data-category="ragga"><div class="prod-image" aria-hidden="true">👟</div><div class="prod-body"><h3>Kabo Cusub</h3><div class="prod-price">$60.00</div><div class="prod-rating">★ 4.6 <span>(210)</span></div></div></article>
+      <article class="prod-card" data-category="dhismaha"><div class="prod-image" aria-hidden="true">🧱</div><div class="prod-body"><h3>Qalab Dhisme</h3><div class="prod-price">$34.00</div><div class="prod-rating">★ 4.4 <span>(56)</span></div></div></article>
+      <article class="prod-card" data-category="electronics"><div class="prod-image" aria-hidden="true">📱</div><div class="prod-body"><h3>Smartphone</h3><div class="prod-price">$180.00</div><div class="prod-rating">★ 4.7 <span>(340)</span></div></div></article>
+      <article class="prod-card" data-category="electronics"><div class="prod-image" aria-hidden="true">🎧</div><div class="prod-body"><h3>Headphones</h3><div class="prod-price">$35.00</div><div class="prod-rating">★ 4.5 <span>(87)</span></div></div></article>
+      <article class="prod-card" data-category="haween"><div class="prod-image" aria-hidden="true">👜</div><div class="prod-body"><h3>Boorso Haween</h3><div class="prod-price">$40.00</div><div class="prod-rating">★ 4.6 <span>(76)</span></div></div></article>
+      <article class="prod-card" data-category="haween"><div class="prod-image" aria-hidden="true">⌚</div><div class="prod-body"><h3>Saacad</h3><div class="prod-price">$55.00</div><div class="prod-rating">★ 4.4 <span>(65)</span></div></div></article>
+      <article class="prod-card" data-category="beauty"><div class="prod-image" aria-hidden="true">🧴</div><div class="prod-body"><h3>Perfume</h3><div class="prod-price">$28.00</div><div class="prod-rating">★ 4.8 <span>(154)</span></div></div></article>
+      <article class="prod-card" data-category="ragga"><div class="prod-image" aria-hidden="true">👞</div><div class="prod-body"><h3>Kabo Rag</h3><div class="prod-price">$48.00</div><div class="prod-rating">★ 4.5 <span>(102)</span></div></div></article>
+      <article class="prod-card" data-category="cunto"><div class="prod-image" aria-hidden="true">🍚</div><div class="prod-body"><h3>Bariis</h3><div class="prod-price">$32.00</div><div class="prod-rating">★ 4.4 <span>(81)</span></div></div></article>
+      <article class="prod-card" data-category="cunto"><div class="prod-image" aria-hidden="true">🥛</div><div class="prod-body"><h3>Caano</h3><div class="prod-price">$8.00</div><div class="prod-rating">★ 4.3 <span>(45)</span></div></div></article>
+      <article class="prod-card" data-category="wax-kale"><div class="prod-image" aria-hidden="true">🛋️</div><div class="prod-body"><h3>Sofa</h3><div class="prod-price">$250.00</div><div class="prod-rating">★ 4.6 <span>(39)</span></div></div></article>
+      <article class="prod-card" data-category="wax-kale"><div class="prod-image" aria-hidden="true">🪑</div><div class="prod-body"><h3>Kursi</h3><div class="prod-price">$35.00</div><div class="prod-rating">★ 4.4 <span>(33)</span></div></div></article>
+      <article class="prod-card" data-category="electronics"><div class="prod-image" aria-hidden="true">💡</div><div class="prod-body"><h3>Nal</h3><div class="prod-price">$15.00</div><div class="prod-rating">★ 4.5 <span>(54)</span></div></div></article>
+      <article class="prod-card" data-category="caruur"><div class="prod-image" aria-hidden="true">🧸</div><div class="prod-body"><h3>Toy Caruur</h3><div class="prod-price">$18.00</div><div class="prod-rating">★ 4.7 <span>(73)</span></div></div></article>
+      <article class="prod-card" data-category="caruur"><div class="prod-image" aria-hidden="true">👶</div><div class="prod-body"><h3>Dhar Baby</h3><div class="prod-price">$22.00</div><div class="prod-rating">★ 4.5 <span>(61)</span></div></div></article>
+      <article class="prod-card" data-category="ragga"><div class="prod-image" aria-hidden="true">🧢</div><div class="prod-body"><h3>Koofiyad</h3><div class="prod-price">$12.00</div><div class="prod-rating">★ 4.4 <span>(48)</span></div></div></article>
+      <article class="prod-card" data-category="haween"><div class="prod-image" aria-hidden="true">🕶️</div><div class="prod-body"><h3>Muraayad</h3><div class="prod-price">$20.00</div><div class="prod-rating">★ 4.5 <span>(91)</span></div></div></article>
+      <article class="prod-card" data-category="dhismaha"><div class="prod-image" aria-hidden="true">🧰</div><div class="prod-body"><h3>Qalab Shaqo</h3><div class="prod-price">$75.00</div><div class="prod-rating">★ 4.6 <span>(42)</span></div></div></article>
+      <article class="prod-card" data-category="cunto"><div class="prod-image" aria-hidden="true">🍳</div><div class="prod-body"><h3>Qalabka Jikada</h3><div class="prod-price">$45.00</div><div class="prod-rating">★ 4.5 <span>(67)</span></div></div></article>
+      <article class="prod-card" data-category="wax-kale"><div class="prod-image" aria-hidden="true">🧹</div><div class="prod-body"><h3>Qalabka Guriga</h3><div class="prod-price">$25.00</div><div class="prod-rating">★ 4.3 <span>(38)</span></div></div></article>
+      <article class="prod-card" data-category="cunto"><div class="prod-image" aria-hidden="true">🥤</div><div class="prod-body"><h3>Cabitaan</h3><div class="prod-price">$10.00</div><div class="prod-rating">★ 4.4 <span>(59)</span></div></div></article>
+      <article class="prod-card" data-category="cunto"><div class="prod-image" aria-hidden="true">🍎</div><div class="prod-body"><h3>Miraha</h3><div class="prod-price">$14.00</div><div class="prod-rating">★ 4.6 <span>(72)</span></div></div></article>
+      <article class="prod-card" data-category="wax-kale"><div class="prod-image" aria-hidden="true">🏠</div><div class="prod-body"><h3>Alaab Guri</h3><div class="prod-price">$90.00</div><div class="prod-rating">★ 4.5 <span>(52)</span></div></div></article>
     </main>
 
-
-    <!-- BOTTOM NAVIGATION -->
-    <nav class="bottom-nav">
-
-      <div class="nav-item active">
-        <span class="n-icon">🏠</span>
-        Home
-      </div>
-
-      <div class="nav-item">
-        <span class="n-icon">▦</span>
-        Qaybaha
-      </div>
-
-      <div class="nav-item">
-        <span class="n-icon">🛒</span>
-        Cart
-      </div>
-
-      <div class="nav-item">
-        <span class="n-icon">📦</span>
-        Orders
-      </div>
-
-      <div class="nav-item">
-        <span class="n-icon">👤</span>
-        Account
-      </div>
-
+    <nav class="bottom-nav" aria-label="Navigation-ka hoose">
+      <button class="nav-item active" type="button"><span class="n-icon" aria-hidden="true">🏠</span><span>Home</span></button>
+      <button class="nav-item" type="button"><span class="n-icon" aria-hidden="true">▦</span><span>Qaybaha</span></button>
+      <button class="nav-item" type="button"><span class="n-icon" aria-hidden="true">🛒</span><span>Cart</span></button>
+      <button class="nav-item" type="button"><span class="n-icon" aria-hidden="true">📦</span><span>Orders</span></button>
+      <button class="nav-item" type="button"><span class="n-icon" aria-hidden="true">👤</span><span>Account</span></button>
     </nav>
-
   </div>
 
-
-  <!-- JAVASCRIPT -->
   <script src="script.js"></script>
-
 </body>
-        </html>
+</html>

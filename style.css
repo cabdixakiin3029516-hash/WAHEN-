@@ -4,241 +4,337 @@
   padding: 0;
 }
 
-body {
-  font-family: Arial, sans-serif;
-  background: #EFF6FF;
-  color: #172033;
+:root {
+  --blue: #2563EB;
+  --dark-blue: #1D4ED8;
+  --orange: #F97316;
+  --dark-orange: #EA580C;
+  --white: #FFFFFF;
+  --light-blue: #EFF6FF;
+  --text: #172033;
+  --muted: #64748B;
+  --border: #DBEAFE;
 }
 
-/* NAVBAR */
+body {
+  font-family: Arial, sans-serif;
+  background: var(--light-blue);
+  color: var(--text);
+}
+
+
+/* =========================
+   NAVBAR
+========================= */
 
 .navbar {
-  background: #FFFFFF;
-  padding: 15px 25px;
+  background: var(--white);
+  padding: 16px 30px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.12);
+  box-shadow: 0 3px 12px rgba(37, 99, 235, 0.12);
   position: sticky;
   top: 0;
   z-index: 100;
 }
 
 .logo {
-  color: #2563EB;
-  font-size: 28px;
-  font-weight: bold;
+  color: var(--blue);
+  font-size: 30px;
+  font-weight: 800;
+  letter-spacing: 1px;
 }
 
 .nav-links {
   display: flex;
-  gap: 25px;
+  gap: 28px;
 }
 
 .nav-links a {
   text-decoration: none;
-  color: #172033;
-  font-weight: 500;
+  color: var(--text);
+  font-weight: 600;
 }
 
 .nav-links a:hover {
-  color: #2563EB;
+  color: var(--blue);
 }
 
 .cart-button {
-  background: #2563EB;
-  color: #FFFFFF;
+  background: var(--orange);
+  color: var(--white);
   border: none;
-  padding: 10px 15px;
-  border-radius: 8px;
+  padding: 11px 18px;
+  border-radius: 9px;
   cursor: pointer;
+  font-weight: bold;
+}
+
+.cart-button:hover {
+  background: var(--dark-orange);
 }
 
 
-/* HERO */
+/* =========================
+   HERO
+========================= */
 
 .hero {
   text-align: center;
-  padding: 60px 20px;
-  background: #FFFFFF;
+  padding: 70px 20px;
+  background: var(--white);
 }
 
 .hero h1 {
-  color: #1D4ED8;
-  font-size: 38px;
+  color: var(--blue);
+  font-size: 42px;
   margin-bottom: 15px;
 }
 
 .hero p {
-  color: #64748B;
-  margin-bottom: 25px;
+  color: var(--muted);
+  margin-bottom: 28px;
   font-size: 18px;
 }
 
 .search-box {
   display: flex;
   justify-content: center;
-  max-width: 650px;
+  max-width: 700px;
   margin: auto;
 }
 
 .search-box input {
   width: 75%;
-  padding: 15px;
-  border: 1px solid #CBD5E1;
+  padding: 16px;
+  border: 2px solid var(--border);
   border-radius: 10px 0 0 10px;
   font-size: 16px;
+  outline: none;
+}
+
+.search-box input:focus {
+  border-color: var(--blue);
 }
 
 .search-box button {
-  padding: 15px 20px;
+  padding: 16px 24px;
   border: none;
-  background: #2563EB;
-  color: #FFFFFF;
+  background: var(--blue);
+  color: var(--white);
   border-radius: 0 10px 10px 0;
   cursor: pointer;
+  font-weight: bold;
 }
 
 .search-box button:hover {
-  background: #1D4ED8;
+  background: var(--dark-blue);
 }
 
 
-/* MAIN */
+/* =========================
+   MAIN
+========================= */
 
 main {
-  max-width: 1100px;
+  max-width: 1200px;
   margin: auto;
-  padding: 35px 20px;
+  padding: 45px 25px;
 }
 
 section {
-  margin-bottom: 40px;
+  margin-bottom: 50px;
 }
 
 h2 {
-  margin-bottom: 20px;
-  color: #172033;
+  margin-bottom: 22px;
+  font-size: 26px;
 }
 
 
-/* CATEGORIES */
+/* =========================
+   CATEGORIES
+========================= */
 
 .category-list {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 12px;
 }
 
 .category-list button {
-  padding: 12px 18px;
-  background: #FFFFFF;
-  color: #2563EB;
+  padding: 13px 20px;
+  background: var(--white);
+  color: var(--blue);
   border: 1px solid #BFDBFE;
   border-radius: 10px;
   cursor: pointer;
   font-size: 15px;
+  font-weight: 600;
+  transition: 0.2s;
 }
 
 .category-list button:hover {
-  background: #2563EB;
-  color: #FFFFFF;
+  background: var(--blue);
+  color: var(--white);
 }
 
 
-/* PRODUCTS */
+/* =========================
+   PRODUCTS
+   3 ALAABOOD SAFKIIBA
+========================= */
 
 .section-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
+  margin-bottom: 25px;
 }
 
 .section-header a {
   text-decoration: none;
-  color: #2563EB;
+  color: var(--blue);
   font-weight: bold;
 }
 
 .product-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 20px;
+
+  /* 3 alaabood isku saf */
+  grid-template-columns: repeat(3, 1fr);
+
+  gap: 25px;
 }
+
+
+/* PRODUCT CARD */
 
 .product-card {
-  background: #FFFFFF;
-  padding: 15px;
-  border-radius: 12px;
-  box-shadow: 0 2px 10px rgba(37, 99, 235, 0.10);
+  background: var(--white);
+  padding: 18px;
+  border-radius: 16px;
+
+  box-shadow: 0 4px 15px rgba(37, 99, 235, 0.10);
+
+  transition: transform 0.2s, box-shadow 0.2s;
 }
 
+.product-card:hover {
+  transform: translateY(-5px);
+
+  box-shadow: 0 8px 25px rgba(37, 99, 235, 0.18);
+}
+
+
+/* PRODUCT IMAGE */
+
 .product-image {
-  height: 170px;
-  background: #EFF6FF;
-  border-radius: 10px;
+  height: 210px;
+
+  background: var(--light-blue);
+
+  border-radius: 13px;
+
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 60px;
-  margin-bottom: 15px;
+
+  font-size: 70px;
+
+  margin-bottom: 17px;
 }
 
+
+/* PRODUCT NAME */
+
 .product-card h3 {
+  font-size: 19px;
   margin-bottom: 8px;
 }
 
+
+/* DESCRIPTION */
+
 .product-description {
-  color: #64748B;
+  color: var(--muted);
   font-size: 14px;
-  margin-bottom: 10px;
+  margin-bottom: 12px;
+  line-height: 1.5;
 }
 
+
+/* PRICE */
+
 .price {
-  color: #1D4ED8;
-  font-size: 20px;
-  font-weight: bold;
-  margin-bottom: 12px;
+  color: var(--orange);
+
+  font-size: 22px;
+
+  font-weight: 800;
+
+  margin-bottom: 14px;
 }
+
+
+/* ADD CART */
 
 .add-cart {
   width: 100%;
-  padding: 11px;
+
+  padding: 12px;
+
   border: none;
-  border-radius: 8px;
-  background: #2563EB;
-  color: #FFFFFF;
+
+  border-radius: 9px;
+
+  background: var(--blue);
+
+  color: var(--white);
+
   cursor: pointer;
+
+  font-weight: bold;
+
+  transition: 0.2s;
 }
 
 .add-cart:hover {
-  background: #1D4ED8;
+  background: var(--dark-blue);
 }
 
 
-/* FOOTER */
+/* =========================
+   FOOTER
+========================= */
 
 footer {
-  background: #FFFFFF;
+  background: var(--white);
+
   text-align: center;
-  padding: 35px 20px;
+
+  padding: 40px 20px;
+
   margin-top: 30px;
-  border-top: 1px solid #DBEAFE;
+
+  border-top: 1px solid var(--border);
 }
 
 footer h3 {
-  color: #2563EB;
+  color: var(--blue);
   margin-bottom: 10px;
 }
 
 footer p {
-  color: #64748B;
+  color: var(--muted);
   margin: 6px 0;
 }
 
 
-/* MOBILE */
+/* =========================
+   TABLET
+========================= */
 
 @media (max-width: 800px) {
 
@@ -247,31 +343,40 @@ footer p {
   }
 
   .hero h1 {
-    font-size: 30px;
+    font-size: 32px;
   }
 
+  /* Tablet = 2 alaabood safkii */
   .product-grid {
     grid-template-columns: repeat(2, 1fr);
   }
-
 }
+
+
+/* =========================
+   MOBILE
+========================= */
 
 @media (max-width: 500px) {
 
   .navbar {
-    padding: 12px 15px;
+    padding: 13px 15px;
   }
 
   .logo {
-    font-size: 24px;
+    font-size: 25px;
   }
 
   .hero {
-    padding: 40px 15px;
+    padding: 45px 15px;
   }
 
   .hero h1 {
-    font-size: 26px;
+    font-size: 27px;
+  }
+
+  .hero p {
+    font-size: 16px;
   }
 
   .search-box input {
@@ -283,8 +388,12 @@ footer p {
     padding: 12px 5px;
   }
 
+  /* Mobile = 1 alaab safkii */
   .product-grid {
     grid-template-columns: 1fr;
   }
 
-    }
+  .product-image {
+    height: 190px;
+  }
+  }

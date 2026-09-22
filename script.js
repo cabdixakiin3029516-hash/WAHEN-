@@ -1,60 +1,536 @@
-document.addEventListener('DOMContentLoaded', () => {
-  const products = [
-    ['Men\'s Jacket',135,'🧥','ragga','4.5'],['Women\'s Dress',145,'👗','haween','4.8'],['Sport Shoes',200,'👟','ragga','4.6'],['Men Shirt',35,'👔','ragga','4.5'],['Kids Toy',18,'🧸','caruur','4.7'],['Perfume',28,'🧴','beauty','4.8'],['Rice',32,'🍚','cunto','4.4'],['Smartphone',180,'📱','electronics','4.7'],['Headphones',35,'🎧','electronics','4.5'],['Laptop',450,'💻','electronics','4.8'],['Sofa',250,'🛋️','guri','4.6'],['Work Tools',75,'🧰','dhisme','4.6']
-  ];
-  const orders = [['Men\'s Jacket','#WH-2026-001','Shipped','shipped'],['Smartphone','#WH-2026-014','Pending','pending'],['Women\'s Bag','#WH-2026-021','Delivered','delivered']];
-  const state = { cart: [], favorites: new Set(), page: 'home', query: '', category: 'all', dark: localStorage.getItem('wahen-dark') === '1' };
-  const $ = selector => document.querySelector(selector);
-  const $$ = selector => [...document.querySelectorAll(selector)];
-  const money = value => `$${Number(value).toFixed(2)}`;
+const products = [
+  { id: 1, name: "Men's Jacket", price: 135, icon: "🧥", category: "ragga", rating: 4.5 },
+  { id: 2, name: "Women's Dress", price: 145, icon: "👗", category: "haween", rating: 4.8 },
+  { id: 3, name: "Sport Shoes", price: 200, icon: "👟", category: "ragga", rating: 4.6 },
+  { id: 4, name: "Men Shirt", price: 35, icon: "👔", category: "ragga", rating: 4.5 },
+  { id: 5, name: "Kids Toy", price: 18, icon: "🧸", category: "caruur", rating: 4.7 },
+  { id: 6, name: "Perfume", price: 28, icon: "🧴", category: "beauty", rating: 4.8 },
+  { id: 7, name: "Rice", price: 32, icon: "🍚", category: "cunto", rating: 4.4 },
+  { id: 8, name: "Smartphone", price: 180, icon: "📱", category: "electronics", rating: 4.7 },
+  { id: 9, name: "Headphones", price: 35, icon: "🎧", category: "electronics", rating: 4.5 },
+  { id: 10, name: "Laptop", price: 450, icon: "💻", category: "electronics", rating: 4.8 },
+  { id: 11, name: "Sofa", price: 250, icon: "🛋️", category: "guri", rating: 4.6 },
+  { id: 12, name: "Work Tools", price: 75, icon: "🧰", category: "dhisme", rating: 4.6 },
+  { id: 13, name: "Women's Bag", price: 40, icon: "👜", category: "haween", rating: 4.6 },
+  { id: 14, name: "Fashion Glasses", price: 20, icon: "🕶️", category: "beauty", rating: 4.5 }
+];
 
-  if (state.dark) document.body.classList.add('dark');
-  document.body.insertAdjacentHTML('beforeend', '<button class="theme-toggle" id="theme-toggle" aria-label="Beddel muuqaalka">🌙</button>');
+const orders = [
+  { name: "Men's Jacket", code: "WH-2026-001", status: "Shipped", cls: "shipped" },
+  { name: "Smartphone", code: "WH-2026-014", status: "Pending", cls: "pending" },
+  { name: "Women's Bag", code: "WH-2026-021", status: "Delivered", cls: "delivered" }
+];
 
-  function renderProducts() {
-    const list = products.filter(item => {
-      const matchesText = !state.query || item[0].toLowerCase().includes(state.query);
-      const matchesCategory = state.category === 'all' || item[3] === state.category;
-      return matchesText && matchesCategory;
-    });
-    $('#products').innerHTML = list.length ? list.map((item, index) => `
-      <article class="product" data-product="${products.indexOf(item)}">
-        <button class="heart" data-favorite="${products.indexOf(item)}">${state.favorites.has(item[0]) ? '♥' : '♡'}</button>
-        <div class="pic">${item[2]}</div><div class="product-body"><h3>${item[0]}</h3><div class="price">${money(item[1])}</div><div class="rating">★ ${item[4]}</div><button class="add" data-add="${products.indexOf(item)}">🛒 Cart ku dar</button></div>
-      </article>`).join('') : '<p class="empty">Alaab lama helin.</p>';
-    $('#favorite-count').textContent = state.favorites.size;
-  }
+const state = {
+  activeView: "home",
+  activeCategory: "all",
+  query: "",
+  cart: JSON.parse(localStorage.getItem("wahen-cart") || "[]"),
+  favorites: new Set(JSON.parse(localStorage.getItem("wahen-favorites") || "[]")),
+  dark: localStorage.getItem("wahen-theme") === "dark"
+};
 
-  function updateCart() { $('#cart-count').textContent = state.cart.reduce((total, item) => total + item.qty, 0); }
-  function setPage(page) {
-    state.page = page;
-    $$('.view').forEach(view => view.classList.toggle('active', view.dataset.page === page));
-    $$('.tab,.nav').forEach(button => button.classList.toggle('active', button.dataset.view === page));
-    if (page === 'orders') renderOrders();
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }
-  function openModal(title, body, after) {
-    const overlay = document.createElement('div'); overlay.className = 'overlay';
-    overlay.innerHTML = `<div class="modal"><div class="modal-head"><h2>${title}</h2><button class="close">×</button></div><div class="modal-body">${body}</div></div>`;
-    document.body.appendChild(overlay); overlay.querySelector('.close').onclick = () => overlay.remove(); overlay.onclick = event => { if (event.target === overlay) overlay.remove(); }; if (after) after(overlay);
-    return overlay;
-  }
-  function productDetails(index) { const item = products[index]; openModal(item[0], `<div class="product-detail"><div class="pic">${item[2]}</div><h3>${item[0]}</h3><p class="price">${money(item[1])}</p><p>★ ${item[4]} — Alaab tayo leh oo laga heli karo WaHeN.</p><div class="modal-actions"><button class="primary" data-modal-add="${index}">Cart ku dar</button><button class="primary" data-modal-buy="${index}">Hadda iibso</button></div></div>`, modal => { modal.querySelector('[data-modal-add]').onclick = () => { addToCart(index); modal.remove(); }; modal.querySelector('[data-modal-buy]').onclick = () => { addToCart(index); modal.remove(); showCheckout(); }; }); }
-  function addToCart(index) { const item = products[index]; const found = state.cart.find(cartItem => cartItem.name === item[0]); found ? found.qty++ : state.cart.push({ name:item[0], price:item[1], icon:item[2], qty:1 }); updateCart(); }
-  function showCart() { const total = state.cart.reduce((sum,item) => sum + item.price * item.qty, 0); const body = state.cart.length ? state.cart.map((item,index) => `<div class="checkout-row"><span>${item.icon} ${item.name} × ${item.qty}</span><strong>${money(item.price * item.qty)}</strong><button class="text-btn" data-remove="${index}">Ka saar</button></div>`).join('') + `<div class="checkout-row"><strong>Wadarta</strong><strong>${money(total)}</strong></div><button class="primary" id="go-checkout">Checkout</button>` : '<p>Cart-kaagu waa madhan yahay.</p>'; const modal = openModal('Cart-kaaga', body); modal.querySelectorAll('[data-remove]').forEach(button => button.onclick = () => { state.cart.splice(Number(button.dataset.remove),1); modal.remove(); updateCart(); showCart(); }); modal.querySelector('#go-checkout')?.addEventListener('click', () => { modal.remove(); showCheckout(); }); }
-  function showCheckout() { if (!state.cart.length) return showCart(); const total = state.cart.reduce((sum,item) => sum + item.price * item.qty, 0); const modal = openModal('Checkout', `<form class="form" id="checkout-form"><label>Magacaaga<input required placeholder="Magaca oo buuxa"></label><label>Telefoon<input required type="tel" placeholder="+252..."></label><label>Goobta keenista<input required placeholder="Magaalada iyo cinwaanka"></label><label>Habka lacag bixinta<select><option>EVC Plus</option><option>Zaad</option><option>Cash on delivery</option></select></label><div class="checkout-row"><strong>Wadarta</strong><strong>${money(total)}</strong></div><button class="primary">Xaqiiji dalabka</button></form>`); modal.querySelector('#checkout-form').onsubmit = event => { event.preventDefault(); modal.remove(); state.cart = []; updateCart(); openModal('Dalabka waa la helay ✅', '<p>Waad ku mahadsan tahay. Lambarka dalabkaagu waa <strong>WH-2026-001</strong>.</p>'); }; }
-  function renderOrders() { $('#orders-list').innerHTML = orders.map(order => `<div class="order"><div><strong>${order[0]}</strong><small>${order[1]}</small></div><span class="status ${order[3]}">${order[2]}</span></div>`).join(''); $('#buyer-orders').innerHTML = orders.slice(0,2).map(order => `<div class="order"><div><strong>${order[0]}</strong><small>${order[1]}</small></div><span class="status ${order[3]}">${order[2]}</span></div>`).join(''); }
-  function loginModal() { openModal('Soo gal / Isdiiwaangeli', `<div class="form"><label>Email<input type="email" placeholder="email@example.com"></label><label>Password<input type="password" placeholder="••••••••"></label><button class="primary" id="login">Soo gal</button><button class="text-btn" id="signup">Account cusub samee</button></div>`, modal => { modal.querySelector('#login').onclick = () => { modal.remove(); openModal('Soo dhawoow 👋','Account-kaaga si guul leh ayaa loo furay.'); }; modal.querySelector('#signup').onclick = () => { modal.remove(); signupModal(); }; }); }
-  function signupModal() { openModal('Samee account', '<form class="form" id="signup-form"><label>Magac<input required></label><label>Email<input required type="email"></label><label>Dooro nooca account-ka<select><option>Buyer</option><option>Seller</option></select></label><label>Password<input required type="password"></label><button class="primary">Isdiiwaangeli</button></form>', modal => { modal.querySelector('form').onsubmit = e => { e.preventDefault(); modal.remove(); openModal('Waad ku mahadsan tahay ✅','Account-kaaga waa la sameeyay.'); }; }); }
+const $ = (selector) => document.querySelector(selector);
+const $$ = (selector) => Array.from(document.querySelectorAll(selector));
 
-  document.addEventListener('click', event => {
-    const view = event.target.closest('[data-view]'); if (view) { event.preventDefault(); setPage(view.dataset.view); }
-    const add = event.target.closest('[data-add]'); if (add) { addToCart(Number(add.dataset.add)); return; }
-    const fav = event.target.closest('[data-favorite]'); if (fav) { const item = products[Number(fav.dataset.favorite)]; state.favorites.has(item[0]) ? state.favorites.delete(item[0]) : state.favorites.add(item[0]); renderProducts(); return; }
-    const card = event.target.closest('.product'); if (card && !event.target.closest('button')) productDetails(Number(card.dataset.product));
-    const category = event.target.closest('[data-category]'); if (category) { state.category = category.dataset.category; setPage('home'); renderProducts(); $('#products').scrollIntoView({behavior:'smooth'}); }
-    const action = event.target.closest('[data-action]')?.dataset.action; if (action === 'shop' || action === 'all-products') { state.category = 'all'; setPage('home'); renderProducts(); $('#products').scrollIntoView({behavior:'smooth'}); } else if (action === 'categories') $('#products').previousElementSibling?.scrollIntoView({behavior:'smooth'}); else if (action === 'favorites') openModal('Favorites', state.favorites.size ? [...state.favorites].join(', ') : 'Wax favorites ah ma jiraan.'); else if (action) openModal('WaHeN', 'Qaybtan maamulka waa diyaar in backend lagu xiro.');
+const money = (value) => `$${Number(value).toFixed(2)}`;
+
+function saveState() {
+  localStorage.setItem("wahen-cart", JSON.stringify(state.cart));
+  localStorage.setItem("wahen-favorites", JSON.stringify([...state.favorites]));
+  localStorage.setItem("wahen-theme", state.dark ? "dark" : "light");
+}
+
+function showToast(message) {
+  const toast = document.getElementById("toast");
+  toast.textContent = message;
+  toast.classList.add("show");
+  clearTimeout(showToast.timer);
+  showToast.timer = setTimeout(() => toast.classList.remove("show"), 1800);
+}
+
+function updateTheme() {
+  document.body.classList.toggle("dark", state.dark);
+  const toggle = document.getElementById("theme-toggle");
+  toggle.textContent = state.dark ? "☀️" : "🌙";
+  saveState();
+}
+
+function renderProducts() {
+  const grid = document.getElementById("product-grid");
+  const filtered = products.filter((product) => {
+    const matchesQuery = !state.query || product.name.toLowerCase().includes(state.query);
+    const matchesCategory = state.activeCategory === "all" || product.category === state.activeCategory;
+    return matchesQuery && matchesCategory;
   });
-  $('#cart-button').onclick = showCart; $('#menu-button').onclick = loginModal; $('#product-search').oninput = event => { state.query = event.target.value.toLowerCase().trim(); renderProducts(); }; $('#search-form').onsubmit = event => event.preventDefault(); $('#theme-toggle').onclick = () => { state.dark = !state.dark; document.body.classList.toggle('dark', state.dark); localStorage.setItem('wahen-dark', state.dark ? '1' : '0'); };
-  renderProducts(); renderOrders(); updateCart();
-});
+
+  if (!filtered.length) {
+    grid.innerHTML = '<div class="empty-text" style="grid-column: 1 / -1; padding: 12px 0;">Alaab lama helin.</div>';
+    return;
+  }
+
+  grid.innerHTML = filtered.map((product) => {
+    const isLiked = state.favorites.has(product.name);
+    return `
+      <article class="product-card" data-product-id="${product.id}">
+        <button class="favorite-btn ${isLiked ? "liked" : ""}" type="button" data-favorite="${product.id}" aria-label="Add to favorites">
+          ${isLiked ? "♥" : "♡"}
+        </button>
+        <div class="product-figure" aria-hidden="true">${product.icon}</div>
+        <div class="product-body">
+          <h3 class="product-name">${product.name}</h3>
+          <div class="product-price">${money(product.price)}</div>
+          <div class="product-rating">★ ${product.rating}</div>
+          <button class="product-add" type="button" data-add="${product.id}">🛒 Add to cart</button>
+        </div>
+      </article>
+    `;
+  }).join("");
+}
+
+function updateCartCount() {
+  const total = state.cart.reduce((sum, item) => sum + item.qty, 0);
+  document.getElementById("cart-count").textContent = total;
+}
+
+function renderBuyerOrders() {
+  const list = document.getElementById("buyer-order-list");
+  list.innerHTML = orders.map((order) => `
+    <div class="order-item">
+      <div class="order-meta">
+        <strong>${order.name}</strong>
+        <small>${order.code}</small>
+      </div>
+      <span class="status-tag ${order.cls}">${order.status}</span>
+    </div>
+  `).join("");
+
+  const favoriteTotal = document.getElementById("favorite-total");
+  if (favoriteTotal) favoriteTotal.textContent = state.favorites.size;
+}
+
+function setActiveView(viewName) {
+  state.activeView = viewName;
+  $$('.view').forEach((view) => view.classList.toggle("active", view.dataset.view === viewName));
+  $$('.tab').forEach((tab) => tab.classList.toggle("active", tab.dataset.view === viewName));
+  $$('.nav-item').forEach((nav) => {
+    const active = nav.dataset.view === viewName;
+    nav.classList.toggle("active", active);
+  });
+}
+
+function getProductById(id) {
+  return products.find((item) => item.id === Number(id));
+}
+
+function addToCart(productId) {
+  const product = getProductById(productId);
+  if (!product) return;
+
+  const existing = state.cart.find((item) => item.id === product.id);
+  if (existing) {
+    existing.qty += 1;
+  } else {
+    state.cart.push({ id: product.id, qty: 1 });
+  }
+
+  updateCartCount();
+  saveState();
+  showToast(`${product.name} added to cart`);
+}
+
+function openModal(title, bodyHtml) {
+  const overlay = document.createElement("div");
+  overlay.className = "overlay";
+  overlay.innerHTML = `
+    <div class="modal" role="dialog" aria-modal="true">
+      <div class="modal-head">
+        <h2>${title}</h2>
+        <button class="modal-close" type="button" aria-label="Close">×</button>
+      </div>
+      <div class="modal-body">${bodyHtml}</div>
+    </div>
+  `;
+
+  const closeBtn = overlay.querySelector(".modal-close");
+  closeBtn.addEventListener("click", () => overlay.remove());
+  overlay.addEventListener("click", (event) => {
+    if (event.target === overlay) overlay.remove();
+  });
+
+  document.body.appendChild(overlay);
+  return overlay;
+}
+
+function openProductDetail(productId) {
+  const product = getProductById(productId);
+  if (!product) return;
+
+  const similar = products
+    .filter((item) => item.category === product.category && item.id !== product.id)
+    .slice(0, 3)
+    .map((item) => item.name)
+    .join(", ");
+
+  const panel = openModal(product.name, `
+    <div class="modal-product">
+      <div class="modal-product-icon" aria-hidden="true">${product.icon}</div>
+      <div>
+        <h3>${product.name}</h3>
+        <div class="modal-price">${money(product.price)}</div>
+        <div class="modal-rating">★★★★★ ${product.rating}</div>
+        <p class="empty-text">${similar ? `Similar: ${similar}` : "More items in this category."}</p>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="primary-btn" type="button" data-buy="${product.id}">Buy now</button>
+      <button class="secondary-btn" type="button" data-add-modal="${product.id}">Add to cart</button>
+    </div>
+  `);
+
+  panel.querySelector("[data-buy]")?.addEventListener("click", () => {
+    addToCart(product.id);
+    overlayToCheckout();
+    panel.remove();
+  });
+
+  panel.querySelector("[data-add-modal]")?.addEventListener("click", () => {
+    addToCart(product.id);
+    panel.remove();
+  });
+}
+
+function openCart() {
+  const total = state.cart.reduce((sum, item) => {
+    const product = getProductById(item.id);
+    return sum + (product ? product.price * item.qty : 0);
+  }, 0);
+
+  const rows = state.cart.length
+    ? state.cart.map((item, index) => {
+        const product = getProductById(item.id);
+        return `
+          <div class="cart-row">
+            <span>${product ? product.icon : "🛍️"} ${product ? product.name : "Product"} × ${item.qty}</span>
+            <div style="display:flex; align-items:center; gap:10px;">
+              <strong>${money((product ? product.price : 0) * item.qty)}</strong>
+              <button class="remove-btn" type="button" data-remove-index="${index}">Remove</button>
+            </div>
+          </div>
+        `;
+      }).join("")
+    : '<p class="empty-text">Gaadhigu wuu madhan yahay.</p>';
+
+  const panel = openModal("Gaadhiga wax iibsiga", `
+    <div>${rows}</div>
+    <div class="checkout-line">
+      <strong>Wadarta</strong>
+      <strong>${money(total)}</strong>
+    </div>
+    ${state.cart.length ? '<div class="modal-actions"><button class="primary-btn" type="button" data-checkout>Checkout</button><button class="secondary-btn" type="button" data-track>Track order</button></div>' : ''}
+  `);
+
+  panel.querySelectorAll("[data-remove-index]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const index = Number(button.dataset.removeIndex);
+      state.cart.splice(index, 1);
+      updateCartCount();
+      saveState();
+      panel.remove();
+      openCart();
+    });
+  });
+
+  const checkoutBtn = panel.querySelector("[data-checkout]");
+  if (checkoutBtn) checkoutBtn.addEventListener("click", () => {
+    panel.remove();
+    overlayToCheckout();
+  });
+
+  const trackBtn = panel.querySelector("[data-track]");
+  if (trackBtn) trackBtn.addEventListener("click", () => {
+    panel.remove();
+    openTracking();
+  });
+}
+
+function overlayToCheckout() {
+  const total = state.cart.reduce((sum, item) => {
+    const product = getProductById(item.id);
+    return sum + (product ? product.price * item.qty : 0);
+  }, 0);
+
+  const panel = openModal("Checkout", `
+    <form id="checkout-form" class="form-grid">
+      <label>
+        Magacaaga
+        <input type="text" placeholder="Magaca oo buuxa" required />
+      </label>
+      <label>
+        Taleefonka
+        <input type="tel" placeholder="+252..." required />
+      </label>
+      <label>
+        Cinwaanka keenista
+        <input type="text" placeholder="Magaalada iyo booskayga" required />
+      </label>
+      <label>
+        Habka lacag bixinta
+        <select>
+          <option>EVC Plus</option>
+          <option>Zaad</option>
+          <option>Cash on delivery</option>
+        </select>
+      </label>
+      <div class="checkout-line">
+        <strong>Wadarta</strong>
+        <strong>${money(total)}</strong>
+      </div>
+      <button class="primary-btn" type="submit">Xaqiiji dalabka</button>
+    </form>
+  `);
+
+  panel.querySelector("#checkout-form").addEventListener("submit", (event) => {
+    event.preventDefault();
+    panel.remove();
+    state.cart = [];
+    updateCartCount();
+    saveState();
+    showToast("Dalabka waa la xaqiijiyay");
+    openModal("Dalabka waa la helay ✅", '<p>Waad ku mahadsan tahay. Lambarka dalabkaagu waa <strong>WH-2026-001</strong>.</p>');
+  });
+}
+
+function openTracking() {
+  openModal("Dabagalka dalabka", `
+    <p><strong>WH-2026-001</strong> · Darawal: Maxamed A. · ETA: 2 maalmood</p>
+    <div class="modal-actions">
+      <button class="secondary-btn" type="button">✅ La soo saaray</button>
+      <button class="secondary-btn" type="button">📦 La xajiray</button>
+      <button class="secondary-btn" type="button">🚚 Jidka oo socota</button>
+      <button class="secondary-btn" type="button">🏠 La keenay</button>
+    </div>
+  `);
+}
+
+function openMenu() {
+  const panel = openModal("WaHeN Menu", `
+    <div class="modal-actions">
+      <button class="secondary-btn" type="button" data-menu-account>Buyer account</button>
+      <button class="secondary-btn" type="button" data-menu-orders>My orders</button>
+      <button class="secondary-btn" type="button" data-menu-favorites>Favorites</button>
+    </div>
+  `);
+
+  panel.querySelector("[data-menu-account]")?.addEventListener("click", () => {
+    panel.remove();
+    openAuthModal();
+  });
+
+  panel.querySelector("[data-menu-orders]")?.addEventListener("click", () => {
+    panel.remove();
+    openTracking();
+  });
+
+  panel.querySelector("[data-menu-favorites]")?.addEventListener("click", () => {
+    panel.remove();
+    const items = state.favorites.size ? [...state.favorites].join(", ") : "Waxba ma jecel tahay hada.";
+    openModal("Favorites", `<p>${items}</p>`);
+  });
+}
+
+function openAuthModal(mode = "login") {
+  const isLogin = mode === "login";
+
+  const panel = openModal(isLogin ? "Soo gal" : "Samee account", `
+    <form id="auth-form" class="form-grid">
+      ${!isLogin ? '<label>Magaca<input type="text" placeholder="Magacaaga" required /></label>' : ""}
+      <label>Email
+        <input type="email" placeholder="email@example.com" required />
+      </label>
+      <label>Password
+        <input type="password" placeholder="••••••••" required />
+      </label>
+      ${!isLogin ? '<label>Doorka<select><option>Buyer</option><option>Seller</option></select></label>' : ""}
+      <button class="primary-btn" type="submit">${isLogin ? "Soo gal" : "Isdiiwaangeli"}</button>
+      <button class="auth-link" type="button" data-auth-toggle>${isLogin ? "Samee account cusub" : "Haddii horeba aad leedahay account"}</button>
+    </form>
+  `);
+
+  const form = panel.querySelector("#auth-form");
+  form.addEventListener("submit", (event) => {
+    event.preventDefault();
+    panel.remove();
+    showToast(isLogin ? "Logged in successfully" : "Account created successfully");
+  });
+
+  panel.querySelector("[data-auth-toggle]")?.addEventListener("click", () => {
+    panel.remove();
+    openAuthModal(isLogin ? "signup" : "login");
+  });
+}
+
+function handleActionClick(action) {
+  switch (action) {
+    case "show-all":
+      state.activeCategory = "all";
+      document.querySelectorAll(".category").forEach((button) => button.classList.remove("active"));
+      renderProducts();
+      document.getElementById("product-grid")?.scrollIntoView({ behavior: "smooth", block: "start" });
+      break;
+    case "shop-now":
+      setActiveView("home");
+      document.getElementById("product-grid")?.scrollIntoView({ behavior: "smooth", block: "start" });
+      break;
+    case "view-orders":
+      setActiveView("buyer");
+      openTracking();
+      break;
+    case "favorites":
+      if (!state.favorites.size) {
+        showToast("Wax favorites ah ma jiraan");
+        return;
+      }
+      openModal("Favorites", `<p>${[...state.favorites].join(", ")}</p>`);
+      break;
+    case "add-product":
+      openModal("Add Product", `
+        <form class="form-grid">
+          <label>Product name<input type="text" value="New Product" required /></label>
+          <label>Price<input type="number" value="99" required /></label>
+          <label>Category<select><option>ragga</option><option>haween</option><option>electronics</option></select></label>
+          <button class="primary-btn" type="submit">Save</button>
+        </form>
+      `);
+      break;
+    case "inventory":
+      openModal("Inventory", '<p>Stock level: 500 items available.</p>');
+      break;
+    case "seller-orders":
+      openModal("Orders", '<p>12 new orders pending.</p>');
+      break;
+    case "promotions":
+      openModal("Promotions", '<p>Flash sale: 20% off this weekend.</p>');
+      break;
+    case "manage-users":
+      openModal("Users", '<p>9,410 active users.</p>');
+      break;
+    case "manage-products":
+      openModal("Products", '<p>1,245 products available.</p>');
+      break;
+    case "manage-orders":
+      openModal("Orders", '<p>1,284 processed orders.</p>');
+      break;
+    case "settings":
+      openModal("Settings", '<p>Marketplace controls are online.</p>');
+      break;
+    case "export":
+      showToast("Sales report exported");
+      break;
+    case "store-profile":
+      openModal("My Store", '<p>WaHeN Store — 4.8 rating | 248 reviews.</p>');
+      break;
+    case "categories":
+      document.getElementById("category-grid")?.scrollIntoView({ behavior: "smooth", block: "start" });
+      break;
+    default:
+      break;
+  }
+}
+
+function bindEvents() {
+  document.getElementById("theme-toggle").addEventListener("click", () => {
+    state.dark = !state.dark;
+    updateTheme();
+  });
+
+  document.getElementById("product-search").addEventListener("input", (event) => {
+    state.query = event.target.value.trim().toLowerCase();
+    renderProducts();
+  });
+
+  document.getElementById("search-form").addEventListener("submit", (event) => event.preventDefault());
+
+  document.getElementById("cart-btn").addEventListener("click", openCart);
+  document.getElementById("menu-btn").addEventListener("click", openMenu);
+
+  document.querySelectorAll(".tab").forEach((tab) => {
+    tab.addEventListener("click", () => setActiveView(tab.dataset.view));
+  });
+
+  document.querySelectorAll(".nav-item").forEach((nav) => {
+    nav.addEventListener("click", () => {
+      const view = nav.dataset.view;
+      if (view) setActiveView(view);
+      const action = nav.dataset.action;
+      if (action) handleActionClick(action);
+    });
+  });
+
+  document.querySelectorAll(".category").forEach((button) => {
+    button.addEventListener("click", () => {
+      const category = button.dataset.category;
+      state.activeCategory = category;
+      document.querySelectorAll(".category").forEach((item) => item.classList.toggle("active", item === button));
+      renderProducts();
+      document.getElementById("product-grid")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  });
+
+  document.addEventListener("click", (event) => {
+    const action = event.target.closest("[data-action]");
+    if (action) {
+      handleActionClick(action.dataset.action);
+      return;
+    }
+
+    const addBtn = event.target.closest("[data-add]");
+    if (addBtn) {
+      addToCart(addBtn.dataset.add);
+      return;
+    }
+
+    const favoriteBtn = event.target.closest("[data-favorite]");
+    if (favoriteBtn) {
+      const product = getProductById(favoriteBtn.dataset.favorite);
+      if (!product) return;
+      if (state.favorites.has(product.name)) {
+        state.favorites.delete(product.name);
+      } else {
+        state.favorites.add(product.name);
+      }
+      saveState();
+      renderProducts();
+      renderBuyerOrders();
+      return;
+    }
+
+    const productCard = event.target.closest(".product-card");
+    if (productCard && !event.target.closest("button")) {
+      openProductDetail(productCard.dataset.productId);
+      return;
+    }
+
+    const authToggle = event.target.closest("[data-auth-toggle]");
+    if (authToggle) {
+      const mode = authToggle.textContent.includes("Samee") ? "signup" : "login";
+      const modal = authToggle.closest(".modal");
+      modal?.closest(".overlay")?.remove();
+      openAuthModal(mode);
+    }
+  });
+
+  document.querySelector("[data-view='home']").addEventListener("click", () => setActiveView("home"));
+}
+
+function init() {
+  updateTheme();
+  renderProducts();
+  renderBuyerOrders();
+  updateCartCount();
+  bindEvents();
+  setActiveView("home");
+}
+
+init();
+

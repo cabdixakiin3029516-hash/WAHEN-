@@ -1,105 +1,467 @@
-/* WaHeN Marketplace demo interactions */
 document.addEventListener('DOMContentLoaded', () => {
-  const products = [...document.querySelectorAll('.prod-card')];
-  const search = document.querySelector('#product-search');
+  const productCards = [...document.querySelectorAll('.prod-card')];
+  const searchInput = document.querySelector('#product-search');
   const cartButton = document.querySelector('.cart-button');
+  const menuButton = document.querySelector('.icon-btn');
   const categoryButtons = [...document.querySelectorAll('.category')];
-  const state = { cart: [], favorites: new Set(), activeCategory: 'all', query: '' };
+  const navItems = [...document.querySelectorAll('.nav-item')];
+  const heroCta = document.querySelector('.hero-cta');
+  const productsSection = document.querySelector('#products');
+  const categorySection = document.querySelector('#categories-title')?.closest('.section');
+
+  const state = {
+    cart: [],
+    favorites: new Set(),
+    activeCategory: 'all',
+    query: ''
+  };
 
   const money = value => `$${Number(value).toFixed(2)}`;
+
   const productInfo = card => ({
     name: card.querySelector('h3')?.textContent.trim() || 'Alaab',
-    price: parseFloat(card.querySelector('.prod-price')?.textContent.replace(/[^0-9.]/g, '')) || 0,
+    price: Number.parseFloat(card.querySelector('.prod-price')?.textContent.replace(/[^0-9.]/g, '') || '0') || 0,
     icon: card.querySelector('.prod-image')?.textContent.trim() || '🛍️',
     category: card.dataset.category || 'wax-kale',
-    rating: card.querySelector('.prod-rating')?.textContent.trim() || '★ 4.8'
+    ratingText: card.querySelector('.prod-rating')?.textContent.trim() || '★ 4.8'
   });
 
-  const inject = html => {
-    const node = document.createElement('div');
-    node.innerHTML = html.trim();
-    document.body.appendChild(node.firstElementChild);
-    return document.body.lastElementChild;
-  };
-  const close = event => event.target.closest('.wh-close')?.closest('.wh-overlay')?.remove();
-
-  // Extra UI is generated here so the existing catalogue remains backwards compatible.
-  const style = document.createElement('style');
-  style.textContent = `
-    .wh-overlay{position:fixed;inset:0;background:#16132999;z-index:100;display:grid;place-items:center;padding:16px}
-    .wh-panel{background:#fff;color:#1e1b2e;border-radius:20px;width:min(620px,100%);max-height:90vh;overflow:auto;padding:22px;box-shadow:0 20px 60px #1115}
-    .wh-panel h2{margin:0 0 8px}.wh-head{display:flex;justify-content:space-between;gap:12px;align-items:center}.wh-close{border:0;background:#f0f1f8;border-radius:50%;width:34px;height:34px;font-size:20px;cursor:pointer}
-    .wh-row{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid #edf0f7}.wh-muted{color:#74738a;font-size:13px}.wh-btn{border:0;border-radius:10px;padding:11px 15px;background:#4338ca;color:#fff;font-weight:700;cursor:pointer}.wh-btn.alt{background:#edf0ff;color:#4338ca}.wh-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}.wh-field{display:block;width:100%;padding:11px;border:1px solid #d8dcf0;border-radius:10px;margin:8px 0}.wh-product{display:flex;gap:16px;align-items:center;padding:10px 0}.wh-product-icon{font-size:52px;background:#eef2ff;border-radius:14px;padding:12px}.wh-stars{color:#efa900;letter-spacing:2px}.wh-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:14px}.wh-stat{background:#f5f6ff;border-radius:14px;padding:14px}.wh-stat strong{font-size:22px;display:block}@media(max-width:500px){.wh-grid{grid-template-columns:1fr}}
+  const css = document.createElement('style');
+  css.textContent = `
+    .wh-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(18, 17, 32, 0.62);
+      display: grid;
+      place-items: center;
+      padding: 16px;
+      z-index: 1000;
+    }
+    .wh-panel {
+      width: min(620px, 100%);
+      max-height: 90vh;
+      background: #ffffff;
+      color: #1d1a2f;
+      border-radius: 22px;
+      box-shadow: 0 24px 55px rgba(17, 12, 41, 0.25);
+      padding: 20px;
+      overflow: auto;
+    }
+    .wh-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+    .wh-head h2 {
+      margin: 0;
+      font-size: 1.5rem;
+      letter-spacing: -0.04em;
+    }
+    .wh-close {
+      width: 34px;
+      height: 34px;
+      border: 0;
+      border-radius: 50%;
+      background: #f1f2f9;
+      color: #1d1a2f;
+      font-size: 1.5rem;
+      line-height: 1;
+      cursor: pointer;
+    }
+    .wh-body {
+      display: grid;
+      gap: 12px;
+    }
+    .wh-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 12px 0;
+      border-bottom: 1px solid #edf0f7;
+    }
+    .wh-row:last-child {
+      border-bottom: 0;
+    }
+    .wh-empty {
+      color: #6f7285;
+      margin: 8px 0;
+    }
+    .wh-remove {
+      border: 0;
+      background: #fff0f1;
+      color: #b63b4f;
+      border-radius: 10px;
+      padding: 6px 8px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .wh-product {
+      display: grid;
+      grid-template-columns: 88px 1fr;
+      gap: 16px;
+      align-items: center;
+      padding: 6px 0 8px;
+    }
+    .wh-product-icon {
+      display: grid;
+      place-items: center;
+      width: 88px;
+      height: 88px;
+      border-radius: 18px;
+      background: #eef1fb;
+      font-size: 3rem;
+    }
+    .wh-product-meta h3 {
+      margin: 0 0 4px;
+      font-size: 1.15rem;
+    }
+    .wh-price {
+      font-size: 1.3rem;
+      font-weight: 800;
+      margin-bottom: 4px;
+    }
+    .wh-stars {
+      color: #f4b437;
+      font-size: 0.9rem;
+      margin-bottom: 6px;
+    }
+    .wh-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      padding-top: 8px;
+    }
+    .wh-btn {
+      border: 0;
+      border-radius: 12px;
+      padding: 10px 14px;
+      background: #4c45d5;
+      color: #ffffff;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .wh-btn.secondary {
+      background: #eef1fb;
+      color: #1d1a2f;
+    }
+    .wh-btn.danger {
+      background: #f5d7dd;
+      color: #8d2c40;
+    }
+    .wh-actions .wh-btn {
+      flex: 1 1 min(180px, 100%);
+    }
+    .wh-choose {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      padding-top: 6px;
+    }
+    .wh-choose button {
+      border: 0;
+      border-radius: 10px;
+      background: #edf0f7;
+      color: #1d1a2f;
+      padding: 8px 10px;
+      cursor: pointer;
+    }
   `;
-  document.head.appendChild(style);
+  document.head.appendChild(css);
 
-  function openPanel(title, body) {
-    const overlay = inject(`<div class="wh-overlay"><section class="wh-panel" role="dialog" aria-modal="true"><div class="wh-head"><h2>${title}</h2><button class="wh-close" aria-label="Xir">×</button></div>${body}</section></div>`);
-    overlay.addEventListener('click', close);
+  function injectPanel(title, bodyHtml) {
+    const overlay = document.createElement('div');
+    overlay.className = 'wh-overlay';
+    overlay.innerHTML = `
+      <div class="wh-panel" role="dialog" aria-modal="true">
+        <div class="wh-head">
+          <h2>${title}</h2>
+          <button type="button" class="wh-close" aria-label="Xir">×</button>
+        </div>
+        <div class="wh-body">${bodyHtml}</div>
+      </div>
+    `;
+
+    const panel = overlay.querySelector('.wh-panel');
+    panel.addEventListener('click', event => event.stopPropagation());
+    overlay.addEventListener('click', event => {
+      if (event.target === overlay || event.target.closest('.wh-close')) {
+        overlay.remove();
+      }
+    });
+
+    document.body.appendChild(overlay);
     return overlay;
   }
 
   function renderProducts() {
-    products.forEach(card => {
+    productCards.forEach(card => {
       const info = productInfo(card);
       const matchesQuery = !state.query || info.name.toLowerCase().includes(state.query);
       const matchesCategory = state.activeCategory === 'all' || info.category === state.activeCategory;
       card.style.display = matchesQuery && matchesCategory ? '' : 'none';
     });
   }
-  search?.addEventListener('input', e => { state.query = e.target.value.toLowerCase().trim(); renderProducts(); });
-  categoryButtons.forEach(button => button.addEventListener('click', () => {
-    state.activeCategory = button.dataset.category || 'all';
-    renderProducts();
-    document.querySelector('#products')?.scrollIntoView({ behavior: 'smooth' });
-  }));
 
-  function updateCart() {
-    const count = state.cart.reduce((sum, item) => sum + item.qty, 0);
-    if (cartButton) cartButton.textContent = `🛒 ${count}`;
+  function syncCategoryButtons() {
+    categoryButtons.forEach(button => {
+      const isActive = (button.dataset.category || 'all') === state.activeCategory;
+      button.classList.toggle('is-active', isActive);
+      button.setAttribute('aria-pressed', String(isActive));
+    });
   }
+
+  function updateCartBadge() {
+    const total = state.cart.reduce((sum, item) => sum + item.qty, 0);
+    if (cartButton) {
+      cartButton.textContent = total ? `🛒 ${total}` : '🛒';
+    }
+  }
+
   function addToCart(card) {
     const info = productInfo(card);
-    const found = state.cart.find(item => item.name === info.name);
-    found ? found.qty++ : state.cart.push({ ...info, qty: 1 });
-    updateCart();
-    cartButton?.animate([{ transform: 'scale(1)' }, { transform: 'scale(1.12)' }, { transform: 'scale(1)' }], { duration: 250 });
+    const existing = state.cart.find(item => item.name === info.name);
+
+    if (existing) {
+      existing.qty += 1;
+    } else {
+      state.cart.push({ ...info, qty: 1 });
+    }
+
+    updateCartBadge();
+    if (cartButton) {
+      cartButton.animate(
+        [{ transform: 'scale(1)' }, { transform: 'scale(1.14)' }, { transform: 'scale(1)' }],
+        { duration: 220, easing: 'ease-out' }
+      );
+    }
   }
-  products.forEach(card => {
-    card.addEventListener('click', e => {
-      if (e.target.closest('button')) return;
-      const info = productInfo(card);
-      const similar = products.filter(p => p !== card && p.dataset.category === info.category).slice(0, 3).map(p => productInfo(p).name).join(', ') || 'Alaabooyin kale';
-      openPanel(info.name, `<div class="wh-product"><div class="wh-product-icon">${info.icon}</div><div><h3>${info.name}</h3><strong>${money(info.price)}</strong><p class="wh-stars">★★★★★</p><p class="wh-muted">Iibiye: WaHeN Verified Seller · 4.8/5</p></div></div><p>Faahfaahin: Alaab tayo leh, la hubiyey, waxaana lagu geyn karaa gobollada iyo magaalooyinka adeegga WaHeN.</p><p class="wh-muted">Waxyaabaha la midka ah: ${similar}</p><div class="wh-actions"><button class="wh-btn wh-buy">Hadda iibso</button><button class="wh-btn alt wh-add">Gaadhiga ku dar</button><button class="wh-btn alt wh-share">🔗 La wadaag</button></div><hr><h3>Faallooyinka macaamiisha</h3><p>★★★★★ “Alaab fiican iyo adeeg degdeg ah.”</p><button class="wh-btn alt wh-review">★ Qiimee alaabtan</button>`).querySelector('.wh-panel')?.addEventListener('click', event => {
-        if (event.target.closest('.wh-add')) addToCart(card);
-        if (event.target.closest('.wh-buy')) { addToCart(card); showCart(); }
-        if (event.target.closest('.wh-share')) navigator.clipboard?.writeText(location.href).then(() => alert('Linkiga waa la koobiyeeyay.'));
-        if (event.target.closest('.wh-review')) alert('Mahadsanid! Qiimayntaada waa la kaydin doonaa marka aad gasho account-ka.');
+
+  productCards.forEach(card => {
+    if (!card.querySelector('.favorite-btn')) {
+      const favBtn = document.createElement('button');
+      favBtn.type = 'button';
+      favBtn.className = 'favorite-btn';
+      favBtn.setAttribute('aria-label', 'Ku dar kuwa la jecel yahay');
+      favBtn.textContent = '♡';
+      favBtn.addEventListener('click', event => {
+        event.stopPropagation();
+        const name = productInfo(card).name;
+        if (state.favorites.has(name)) {
+          state.favorites.delete(name);
+          favBtn.textContent = '♡';
+        } else {
+          state.favorites.add(name);
+          favBtn.textContent = '♥';
+        }
       });
-    });
-  });
-  products.forEach(card => {
-    const fav = document.createElement('button'); fav.className = 'favorite-btn'; fav.type = 'button'; fav.textContent = '♡'; fav.setAttribute('aria-label', 'Ku dar kuwa la jecel yahay');
-    fav.addEventListener('click', e => { e.stopPropagation(); const name = productInfo(card).name; state.favorites.has(name) ? (state.favorites.delete(name), fav.textContent = '♡') : (state.favorites.add(name), fav.textContent = '♥'); });
-    card.appendChild(fav);
-    const add = document.createElement('button'); add.className = 'product-cart-btn'; add.type = 'button'; add.textContent = '🛒 Gaadhiga ku dar'; add.addEventListener('click', e => { e.stopPropagation(); addToCart(card); });
-    card.querySelector('.prod-body')?.appendChild(add);
+      card.appendChild(favBtn);
+    }
+
+    if (!card.querySelector('.product-cart-btn')) {
+      const addBtn = document.createElement('button');
+      addBtn.type = 'button';
+      addBtn.className = 'product-cart-btn';
+      addBtn.textContent = '🛒 Gaadhiga ku dar';
+      addBtn.addEventListener('click', event => {
+        event.stopPropagation();
+        addToCart(card);
+      });
+      const body = card.querySelector('.prod-body');
+      if (body) body.appendChild(addBtn);
+    }
   });
 
   function showCart() {
-    const total = state.cart.reduce((sum, i) => sum + i.price * i.qty, 0);
-    const rows = state.cart.length ? state.cart.map((item, index) => `<div class="wh-row"><span>${item.icon} ${item.name} × ${item.qty}</span><strong>${money(item.price * item.qty)}</strong><button class="wh-close wh-remove" data-index="${index}" aria-label="Ka saar">×</button></div>`).join('') : '<p class="wh-muted">Gaadhigu wuu madhan yahay.</p>';
-    const panel = openPanel('Gaadhiga wax iibsiga', `${rows}<div class="wh-row"><strong>Wadarta</strong><strong>${money(total)}</strong></div>${state.cart.length ? '<h3>Gaarsiinta</h3><select class="wh-field"><option>Hargeisa (1–2 maalmood)</option><option>Boorama (2–4 maalmood)</option><option>Berbera (2–3 maalmood)</option><option>Gobollada kale (3–7 maalmood)</option></select><input class="wh-field" placeholder="Magaca qofka loo dirayo / recipient"><select class="wh-field"><option>Zaad</option><option>e-Dahab</option><option>Premier Wallet</option><option>Visa / Mastercard</option></select><div class="wh-actions"><button class="wh-btn wh-checkout">Dalbo oo bixi</button><button class="wh-btn alt wh-track">La soco dalabka</button></div>' : ''}`);
-    panel.querySelectorAll('.wh-remove').forEach(btn => btn.addEventListener('click', () => { state.cart.splice(Number(btn.dataset.index), 1); panel.closest('.wh-overlay').remove(); updateCart(); showCart(); }));
-    panel.querySelector('.wh-checkout')?.addEventListener('click', () => { panel.closest('.wh-overlay').remove(); openPanel('Dalabka waa la helay ✅', '<p>Waad ku mahadsan tahay. Lambarka dalabka: <strong>WH-2026-001</strong></p><p class="wh-muted">Waxaad kala socon kartaa: Processing → Shipped → Out for Delivery → Delivered.</p><button class="wh-btn wh-track">Track order</button>'); });
-    panel.querySelector('.wh-track')?.addEventListener('click', () => { panel.closest('.wh-overlay').remove(); showTracking(); });
+    const total = state.cart.reduce((sum, item) => sum + item.price * item.qty, 0);
+
+    const rows = state.cart.length
+      ? state.cart.map((item, index) => `
+          <div class="wh-row">
+            <span>${item.icon} ${item.name} × ${item.qty}</span>
+            <div style="display:flex;align-items:center;gap:10px;">
+              <strong>${money(item.price * item.qty)}</strong>
+              <button type="button" class="wh-remove" data-index="${index}">Remove</button>
+            </div>
+          </div>
+        `).join('')
+      : '<p class="wh-empty">Gaadhigu wuu madhan yahay.</p>';
+
+    const panel = injectPanel('Gaadhiga wax iibsiga', `
+      ${rows}
+      <div class="wh-row">
+        <strong>Wadarta</strong>
+        <strong>${money(total)}</strong>
+      </div>
+      ${state.cart.length ? `
+        <div class="wh-actions">
+          <button type="button" class="wh-btn wh-checkout">Checkout</button>
+          <button type="button" class="wh-btn secondary wh-track">Track order</button>
+        </div>
+      ` : ''}
+    `);
+
+    panel.querySelectorAll('.wh-remove').forEach(button => {
+      button.addEventListener('click', () => {
+        const idx = Number(button.dataset.index);
+        state.cart.splice(idx, 1);
+        panel.remove();
+        updateCartBadge();
+        showCart();
+      });
+    });
+
+    panel.querySelector('.wh-checkout')?.addEventListener('click', () => {
+      panel.remove();
+      injectPanel('Dalabka waa la helay ✅', '<p>Waad ku mahadsan tahay. Lambarka dalabkaagu waa <strong>WH-2026-001</strong>.</p><div class="wh-actions"><button type="button" class="wh-btn wh-track">Dabagalka dalabka</button></div>');
+      const nextPanel = document.body.lastElementChild;
+      nextPanel.querySelector('.wh-track')?.addEventListener('click', () => {
+        nextPanel.remove();
+        showTracking();
+      });
+    });
+
+    panel.querySelector('.wh-track')?.addEventListener('click', () => {
+      panel.remove();
+      showTracking();
+    });
   }
+
+  function showTracking() {
+    injectPanel('Dabagalka dalabka', `
+      <p><strong>WH-2026-001</strong> · Darawal: Maxamed A. · ETA: 2 maalmood</p>
+      <div class="wh-choose">
+        <button type="button">✅ La soo saaray</button>
+        <button type="button">📦 La xajiray</button>
+        <button type="button">🚚 Jidka oo socota</button>
+        <button type="button">🏠 La keenay</button>
+      </div>
+    `);
+  }
+
+  function openMenu() {
+    const menuPanel = injectPanel('WaHeN Menu', `
+      <div class="wh-actions">
+        <button type="button" class="wh-btn secondary wh-account">Buyer account</button>
+        <button type="button" class="wh-btn secondary wh-orders">My orders</button>
+        <button type="button" class="wh-btn secondary wh-favorites">Favorites</button>
+      </div>
+    `);
+
+    menuPanel.querySelector('.wh-account')?.addEventListener('click', () => {
+      menuPanel.remove();
+      injectPanel('Account', '<p>Ma aha account-aday daqiiqad. Tan hadda waxaa lagu soo jeedin karaa xisaabintaaga.</p>');
+    });
+
+    menuPanel.querySelector('.wh-orders')?.addEventListener('click', () => {
+      menuPanel.remove();
+      showTracking();
+    });
+
+    menuPanel.querySelector('.wh-favorites')?.addEventListener('click', () => {
+      menuPanel.remove();
+      const items = state.favorites.size ? [...state.favorites].join(', ') : 'Waxba ma jecel tahay hada.';
+      injectPanel('Favorites', `<p>${items}</p>`);
+    });
+  }
+
+  productCards.forEach(card => {
+    card.addEventListener('click', event => {
+      if (event.target.closest('button')) return;
+
+      const info = productInfo(card);
+      const similar = productCards
+        .filter(item => item !== card && item.dataset.category === info.category)
+        .slice(0, 3)
+        .map(item => productInfo(item).name);
+
+      const detailPanel = injectPanel(info.name, `
+        <div class="wh-product">
+          <div class="wh-product-icon">${info.icon}</div>
+          <div class="wh-product-meta">
+            <h3>${info.name}</h3>
+            <div class="wh-price">${money(info.price)}</div>
+            <div class="wh-stars">★★★★★ ${info.ratingText}</div>
+            <p>${similar.length ? `Similar: ${similar.join(', ')}` : 'More items in this category.'}</p>
+          </div>
+        </div>
+        <div class="wh-actions">
+          <button type="button" class="wh-btn wh-add">Add to cart</button>
+          <button type="button" class="wh-btn secondary wh-buy">Buy now</button>
+          <button type="button" class="wh-btn secondary wh-share">Share</button>
+          <button type="button" class="wh-btn secondary wh-review">Review</button>
+        </div>
+      `);
+
+      detailPanel.querySelector('.wh-add')?.addEventListener('click', () => {
+        addToCart(card);
+        detailPanel.remove();
+      });
+
+      detailPanel.querySelector('.wh-buy')?.addEventListener('click', () => {
+        addToCart(card);
+        detailPanel.remove();
+        showCart();
+      });
+
+      detailPanel.querySelector('.wh-share')?.addEventListener('click', async () => {
+        try {
+          await navigator.clipboard.writeText(window.location.href);
+          alert('Linkiga waa la koobiyeeyay.');
+        } catch {
+          alert('Linkiga waan koobiyeeyay, laakiin browser-ka ma taageerto copy-to-clipboard.');
+        }
+      });
+
+      detailPanel.querySelector('.wh-review')?.addEventListener('click', () => {
+        alert('Mahadsanid! Qiimayntaada waa la kaydin doonaa marka aad gasho account-ka.');
+      });
+    });
+  });
+
+  searchInput?.addEventListener('input', event => {
+    state.query = event.target.value.toLowerCase().trim();
+    renderProducts();
+  });
+
+  categoryButtons.forEach(button => {
+    button.addEventListener('click', () => {
+      state.activeCategory = button.dataset.category || 'all';
+      syncCategoryButtons();
+      renderProducts();
+      productsSection?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  });
+
   cartButton?.addEventListener('click', showCart);
+  menuButton?.addEventListener('click', openMenu);
 
-  function showTracking() { openPanel('Dabagalka dalabka', '<p><strong>WH-2026-001</strong> · Darawal: Maxamed A. · ETA: 2 maalmood</p><div class="wh-grid"><div class="wh-stat">✅<strong>Processing</strong><span class="wh-muted">Dalabka waa la xaqiijiyey</span></div><div class="wh-stat">📦<strong>Shipped</strong><span class="wh-muted">Alaabtu way baxday</span></div><div class="wh-stat">🚚<strong>Out for Delivery</strong><span class="wh-muted">Darawalku wuu wadaa</span></div><div class="wh-stat">🏠<strong>Delivered</strong><span class="wh-muted">Weli lama gaadhsiin</span></div></div>'); }
+  navItems.forEach(item => {
+    item.addEventListener('click', () => {
+      const label = item.textContent.trim().toLowerCase();
 
-  document.querySelector('.icon-btn')?.addEventListener('click', () => openPanel('WaHeN Menu', '<div class="wh-actions"><button class="wh-btn wh-account">Buyer account</button><button class="wh-btn alt wh-seller">Seller Dashboard</button><button class="wh-btn alt wh-admin">Admin Dashboard</button></div><p class="wh-muted">Dooro account-ka aad rabto inaad isticmaasho. Buyer wuxuu alaab u diri karaa qof kale (recipient).</p>'));
-  document.querySelectorAll('.nav-item').forEach(item => item.addEventListener('click', () => { const label = item.textContent.trim().toLowerCase(); if (label.includes('cart')) showCart(); else if (label.includes('order')) showTracking(); else if (label.includes('account')) openPanel('Account & Support', '<p>Buyer · Seller · Family account</p><button class="wh-btn wh-support">La xidhiidh taageerada</button><p class="wh-muted">Salaan! WaHeN Support waxay diyaar u tahay inay kaa caawiso.</p>'); else if (label.includes('qayb')) document.querySelector('#categories-title')?.scrollIntoView({ behavior: 'smooth' }); }));
-  document.querySelector('.hero-cta')?.addEventListener('click', () => document.querySelector('#products')?.scrollIntoView({ behavior: 'smooth' }));
-  updateCart();
+      if (label.includes('home')) {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      } else if (label.includes('categories')) {
+        categorySection?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      } else if (label.includes('cart')) {
+        showCart();
+      } else if (label.includes('orders')) {
+        showTracking();
+      } else if (label.includes('account')) {
+        openMenu();
+      }
+    });
+  });
+
+  heroCta?.addEventListener('click', () => {
+    productsSection?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+
+  updateCartBadge();
+  syncCategoryButtons();
+  renderProducts();
 });

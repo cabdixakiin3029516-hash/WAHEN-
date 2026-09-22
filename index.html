@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="so">
-
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#4338CA">
 
   <title>WaHeN Marketplace</title>
 
@@ -12,73 +12,67 @@
 
 <body>
 
-  <div class="app">
+  <div class="phone">
+
+    <!-- STATUS BAR -->
+    <div class="statusbar">
+      <span>9:41</span>
+      <span>📶 🔋</span>
+    </div>
+
 
     <!-- TOP BAR -->
-
     <header class="topbar">
 
-      <button class="icon-button">
+      <button class="icon-btn" aria-label="Menu">
         ☰
       </button>
 
       <div class="brand">
-        WAHEN
+        WaHeN
       </div>
 
-      <button class="icon-button">
+      <button class="icon-btn cart-button" aria-label="Cart">
         🛒
-        <span class="cart-count">2</span>
       </button>
 
     </header>
 
 
     <!-- SEARCH -->
+    <div class="search">
 
-    <div class="search-box">
-
-      <span class="search-icon">🔍</span>
+      <span>🔍</span>
 
       <input
         type="search"
         placeholder="Maxaad raadineysaa?"
+        aria-label="Raadi alaab"
       >
-
-      <button class="filter-button">
-        ☷
-      </button>
 
     </div>
 
 
     <!-- HERO -->
-
     <section class="hero">
 
-      <div class="hero-content">
-
-        <span class="hero-label">
-          DUKAAMEYSI XILIYEED
-        </span>
-
-        <h1>
-          Ilaa 30%<br>
-          dhimis
-        </h1>
-
-        <p>
-          Alaabooyin badan,<br>
-          hal meel.
-        </p>
-
-        <button class="hero-button">
-          Dukaan hadda →
-        </button>
-
+      <div class="hero-eyebrow">
+        DUKAAMEYSI XILIYEED
       </div>
 
-      <div class="hero-person">
+      <div class="hero-title">
+        Ilaa 30% dhimis
+      </div>
+
+      <div class="hero-sub">
+        Alaabooyin badan, dukaamo badan, hal meel.
+      </div>
+
+      <button class="hero-cta">
+        Dukaan hadda
+      </button>
+
+      <div class="hero-figure">
         🧑🏾‍💼
       </div>
 
@@ -86,57 +80,60 @@
 
 
     <!-- CATEGORIES -->
-
     <section class="section">
 
-      <div class="section-title">
+      <div class="section-head">
 
-        <h2>Qaybaha</h2>
+        <h2>
+          Qaybaha
+        </h2>
 
-        <a href="#">Dhammaan</a>
+        <a href="#">
+          Dhammaan
+        </a>
 
       </div>
 
 
-      <div class="categories">
+      <div class="cat-grid">
 
-        <button class="category">
-          <div class="category-icon">👔</div>
+        <button class="cat">
+          <div class="cat-icon">👔</div>
           <span>Ragga</span>
         </button>
 
-        <button class="category">
-          <div class="category-icon">👗</div>
-          <span>Dumarka</span>
+        <button class="cat">
+          <div class="cat-icon">👗</div>
+          <span>Haween</span>
         </button>
 
-        <button class="category">
-          <div class="category-icon">🍼</div>
-          <span>Carruurta</span>
+        <button class="cat">
+          <div class="cat-icon">🍼</div>
+          <span>Caruur</span>
         </button>
 
-        <button class="category">
-          <div class="category-icon">💄</div>
+        <button class="cat">
+          <div class="cat-icon">🧴</div>
           <span>Beauty</span>
         </button>
 
-        <button class="category">
-          <div class="category-icon">🍽️</div>
-          <span>Guriga</span>
+        <button class="cat">
+          <div class="cat-icon">🍽️</div>
+          <span>Cunto</span>
         </button>
 
-        <button class="category">
-          <div class="category-icon">📱</div>
+        <button class="cat">
+          <div class="cat-icon">🔌</div>
           <span>Electronics</span>
         </button>
 
-        <button class="category">
-          <div class="category-icon">🧱</div>
+        <button class="cat">
+          <div class="cat-icon">🧱</div>
           <span>Dhismaha</span>
         </button>
 
-        <button class="category">
-          <div class="category-icon">🛍️</div>
+        <button class="cat">
+          <div class="cat-icon">🗂️</div>
           <span>Wax kale</span>
         </button>
 
@@ -146,833 +143,740 @@
 
 
     <!-- POPULAR PRODUCTS -->
+    <section class="section">
 
-    <section class="section products-section">
+      <div class="section-head">
 
-      <div class="section-title">
+        <h2>
+          Ugu Iibsan
+        </h2>
 
-        <h2>Ugu Iibsan</h2>
-
-        <a href="#">Dhammaan</a>
-
-      </div>
-
-
-      <div class="products">
-
-
-        <!-- PRODUCT 1 -->
-
-        <article class="product">
-
-          <div class="product-image">
-            👔
-
-            <button class="heart">
-              ♡
-            </button>
-
-          </div>
-
-          <div class="product-info">
-
-            <h3>Funaanad Ragga</h3>
-
-            <div class="rating">
-              ★ 4.5
-              <span>(120)</span>
-            </div>
-
-            <div class="price">
-              $26.00
-            </div>
-
-          </div>
-
-        </article>
-
-
-        <!-- PRODUCT 2 -->
-
-        <article class="product">
-
-          <div class="product-image">
-            👗
-
-            <button class="heart">
-              ♡
-            </button>
-
-          </div>
-
-          <div class="product-info">
-
-            <h3>Dirac Haween</h3>
-
-            <div class="rating">
-              ★ 4.6
-              <span>(98)</span>
-            </div>
-
-            <div class="price">
-              $45.00
-            </div>
-
-          </div>
-
-        </article>
-
-
-        <!-- PRODUCT 3 -->
-
-        <article class="product">
-
-          <div class="product-image">
-            👟
-
-            <button class="heart">
-              ♡
-            </button>
-
-          </div>
-
-          <div class="product-info">
-
-            <h3>Kabo Cusub</h3>
-
-            <div class="rating">
-              ★ 4.6
-              <span>(210)</span>
-            </div>
-
-            <div class="price">
-              $60.00
-            </div>
-
-          </div>
-
-        </article>
-
-
-        <!-- PRODUCT 4 -->
-
-        <article class="product">
-
-          <div class="product-image">
-            📱
-
-            <button class="heart">
-              ♡
-            </button>
-
-          </div>
-
-          <div class="product-info">
-
-            <h3>Samsung Phone</h3>
-
-            <div class="rating">
-              ★ 4.7
-              <span>(185)</span>
-            </div>
-
-            <div class="price">
-              $150.00
-            </div>
-
-          </div>
-
-        </article>
-
-
-        <!-- PRODUCT 5 -->
-
-        <article class="product">
-
-          <div class="product-image">
-            🎧
-
-            <button class="heart">
-              ♡
-            </button>
-
-          </div>
-
-          <div class="product-info">
-
-            <h3>Headphones</h3>
-
-            <div class="rating">
-              ★ 4.4
-              <span>(76)</span>
-            </div>
-
-            <div class="price">
-              $30.00
-            </div>
-
-          </div>
-
-        </article>
-
-
-        <!-- PRODUCT 6 -->
-
-        <article class="product">
-
-          <div class="product-image">
-            💻
-
-            <button class="heart">
-              ♡
-            </button>
-
-          </div>
-
-          <div class="product-info">
-
-            <h3>Laptop</h3>
-
-            <div class="rating">
-              ★ 4.8
-              <span>(64)</span>
-            </div>
-
-            <div class="price">
-              $350.00
-            </div>
-
-          </div>
-
-        </article>
-
-
-        <!-- PRODUCT 7 -->
-
-        <article class="product">
-
-          <div class="product-image">
-            ⌚
-
-            <button class="heart">
-              ♡
-            </button>
-
-          </div>
-
-          <div class="product-info">
-
-            <h3>Smart Watch</h3>
-
-            <div class="rating">
-              ★ 4.5
-              <span>(91)</span>
-            </div>
-
-            <div class="price">
-              $45.00
-            </div>
-
-          </div>
-
-        </article>
-
-
-        <!-- PRODUCT 8 -->
-
-        <article class="product">
-
-          <div class="product-image">
-            👜
-
-            <button class="heart">
-              ♡
-            </button>
-
-          </div>
-
-          <div class="product-info">
-
-            <h3>Boorsada Dumarka</h3>
-
-            <div class="rating">
-              ★ 4.5
-              <span>(83)</span>
-            </div>
-
-            <div class="price">
-              $35.00
-            </div>
-
-          </div>
-
-        </article>
-
-
-        <!-- PRODUCT 9 -->
-
-        <article class="product">
-
-          <div class="product-image">
-            🕶️
-
-            <button class="heart">
-              ♡
-            </button>
-
-          </div>
-
-          <div class="product-info">
-
-            <h3>Muraayad</h3>
-
-            <div class="rating">
-              ★ 4.3
-              <span>(45)</span>
-            </div>
-
-            <div class="price">
-              $20.00
-            </div>
-
-          </div>
-
-        </article>
-
-
-        <!-- PRODUCT 10 -->
-
-        <article class="product">
-
-          <div class="product-image">
-            🧴
-
-            <button class="heart">
-              ♡
-            </button>
-
-          </div>
-
-          <div class="product-info">
-
-            <h3>Perfume</h3>
-
-            <div class="rating">
-              ★ 4.7
-              <span>(132)</span>
-            </div>
-
-            <div class="price">
-              $28.00
-            </div>
-
-          </div>
-
-        </article>
-
-
-        <!-- PRODUCT 11 -->
-
-        <article class="product">
-
-          <div class="product-image">
-            🛋️
-
-            <button class="heart">
-              ♡
-            </button>
-
-          </div>
-
-          <div class="product-info">
-
-            <h3>Sofa</h3>
-
-            <div class="rating">
-              ★ 4.4
-              <span>(37)</span>
-            </div>
-
-            <div class="price">
-              $280.00
-            </div>
-
-          </div>
-
-        </article>
-
-
-        <!-- PRODUCT 12 -->
-
-        <article class="product">
-
-          <div class="product-image">
-            🪑
-
-            <button class="heart">
-              ♡
-            </button>
-
-          </div>
-
-          <div class="product-info">
-
-            <h3>Kursi</h3>
-
-            <div class="rating">
-              ★ 4.3
-              <span>(29)</span>
-            </div>
-
-            <div class="price">
-              $55.00
-            </div>
-
-          </div>
-
-        </article>
-
-
-        <!-- PRODUCT 13 -->
-
-        <article class="product">
-
-          <div class="product-image">
-            🛏️
-
-            <button class="heart">
-              ♡
-            </button>
-
-          </div>
-
-          <div class="product-info">
-
-            <h3>Sariir</h3>
-
-            <div class="rating">
-              ★ 4.6
-              <span>(51)</span>
-            </div>
-
-            <div class="price">
-              $300.00
-            </div>
-
-          </div>
-
-        </article>
-
-
-        <!-- PRODUCT 14 -->
-
-        <article class="product">
-
-          <div class="product-image">
-            🍚
-
-            <button class="heart">
-              ♡
-            </button>
-
-          </div>
-
-          <div class="product-info">
-
-            <h3>Bariis</h3>
-
-            <div class="rating">
-              ★ 4.5
-              <span>(115)</span>
-            </div>
-
-            <div class="price">
-              $25.00
-            </div>
-
-          </div>
-
-        </article>
-
-
-        <!-- PRODUCT 15 -->
-
-        <article class="product">
-
-          <div class="product-image">
-            🍎
-
-            <button class="heart">
-              ♡
-            </button>
-
-          </div>
-
-          <div class="product-info">
-
-            <h3>Miro Cusub</h3>
-
-            <div class="rating">
-              ★ 4.6
-              <span>(88)</span>
-            </div>
-
-            <div class="price">
-              $12.00
-            </div>
-
-          </div>
-
-        </article>
-
-
-        <!-- PRODUCT 16 -->
-
-        <article class="product">
-
-          <div class="product-image">
-            🧃
-
-            <button class="heart">
-              ♡
-            </button>
-
-          </div>
-
-          <div class="product-info">
-
-            <h3>Cabitaan</h3>
-
-            <div class="rating">
-              ★ 4.2
-              <span>(34)</span>
-            </div>
-
-            <div class="price">
-              $6.00
-            </div>
-
-          </div>
-
-        </article>
-
-
-        <!-- PRODUCT 17 -->
-
-        <article class="product">
-
-          <div class="product-image">
-            🎒
-
-            <button class="heart">
-              ♡
-            </button>
-
-          </div>
-
-          <div class="product-info">
-
-            <h3>School Bag</h3>
-
-            <div class="rating">
-              ★ 4.5
-              <span>(67)</span>
-            </div>
-
-            <div class="price">
-              $22.00
-            </div>
-
-          </div>
-
-        </article>
-
-
-        <!-- PRODUCT 18 -->
-
-        <article class="product">
-
-          <div class="product-image">
-            🔌
-
-            <button class="heart">
-              ♡
-            </button>
-
-          </div>
-
-          <div class="product-info">
-
-            <h3>Charger</h3>
-
-            <div class="rating">
-              ★ 4.4
-              <span>(73)</span>
-            </div>
-
-            <div class="price">
-              $10.00
-            </div>
-
-          </div>
-
-        </article>
-
-
-        <!-- PRODUCT 19 -->
-
-        <article class="product">
-
-          <div class="product-image">
-            🔊
-
-            <button class="heart">
-              ♡
-            </button>
-
-          </div>
-
-          <div class="product-info">
-
-            <h3>Speaker</h3>
-
-            <div class="rating">
-              ★ 4.5
-              <span>(58)</span>
-            </div>
-
-            <div class="price">
-              $38.00
-            </div>
-
-          </div>
-
-        </article>
-
-
-        <!-- PRODUCT 20 -->
-
-        <article class="product">
-
-          <div class="product-image">
-            🧳
-
-            <button class="heart">
-              ♡
-            </button>
-
-          </div>
-
-          <div class="product-info">
-
-            <h3>Travel Bag</h3>
-
-            <div class="rating">
-              ★ 4.6
-              <span>(41)</span>
-            </div>
-
-            <div class="price">
-              $50.00
-            </div>
-
-          </div>
-
-        </article>
-
-
-        <!-- PRODUCT 21 -->
-
-        <article class="product">
-
-          <div class="product-image">
-            🧱
-
-            <button class="heart">
-              ♡
-            </button>
-
-          </div>
-
-          <div class="product-info">
-
-            <h3>Qalab Dhisme</h3>
-
-            <div class="rating">
-              ★ 4.4
-              <span>(56)</span>
-            </div>
-
-            <div class="price">
-              $34.00
-            </div>
-
-          </div>
-
-        </article>
-
-
-        <!-- PRODUCT 22 -->
-
-        <article class="product">
-
-          <div class="product-image">
-            💄
-
-            <button class="heart">
-              ♡
-            </button>
-
-          </div>
-
-          <div class="product-info">
-
-            <h3>Makeup</h3>
-
-            <div class="rating">
-              ★ 4.6
-              <span>(102)</span>
-            </div>
-
-            <div class="price">
-              $32.00
-            </div>
-
-          </div>
-
-        </article>
-
-
-        <!-- PRODUCT 23 -->
-
-        <article class="product">
-
-          <div class="product-image">
-            🍼
-
-            <button class="heart">
-              ♡
-            </button>
-
-          </div>
-
-          <div class="product-info">
-
-            <h3>Baby Products</h3>
-
-            <div class="rating">
-              ★ 4.7
-              <span>(71)</span>
-            </div>
-
-            <div class="price">
-              $18.00
-            </div>
-
-          </div>
-
-        </article>
-
-
-        <!-- PRODUCT 24 -->
-
-        <article class="product">
-
-          <div class="product-image">
-            📷
-
-            <button class="heart">
-              ♡
-            </button>
-
-          </div>
-
-          <div class="product-info">
-
-            <h3>Camera</h3>
-
-            <div class="rating">
-              ★ 4.8
-              <span>(63)</span>
-            </div>
-
-            <div class="price">
-              $220.00
-            </div>
-
-          </div>
-
-        </article>
-
-
-        <!-- PRODUCT 25 -->
-
-        <article class="product">
-
-          <div class="product-image">
-            🏀
-
-            <button class="heart">
-              ♡
-            </button>
-
-          </div>
-
-          <div class="product-info">
-
-            <h3>Sports Ball</h3>
-
-            <div class="rating">
-              ★ 4.4
-              <span>(39)</span>
-            </div>
-
-            <div class="price">
-              $18.00
-            </div>
-
-          </div>
-
-        </article>
+        <a href="#">
+          Eeg dhammaan
+        </a>
 
       </div>
 
     </section>
 
 
-    <!-- BOTTOM NAVIGATION -->
+    <!-- PRODUCTS -->
+    <main class="prod-grid">
 
+
+      <!-- PRODUCT 1 -->
+      <article class="prod-card">
+
+        <div class="prod-image">
+          👔
+        </div>
+
+        <div class="prod-body">
+
+          <h3>
+            Funaanad Ragga
+          </h3>
+
+          <div class="prod-price">
+            $26.00
+          </div>
+
+          <div class="prod-rating">
+            ★ 4.5
+            <span>(120)</span>
+          </div>
+
+        </div>
+
+      </article>
+
+
+      <!-- PRODUCT 2 -->
+      <article class="prod-card">
+
+        <div class="prod-image">
+          👗
+        </div>
+
+        <div class="prod-body">
+
+          <h3>
+            Dirac Haween
+          </h3>
+
+          <div class="prod-price">
+            $45.00
+          </div>
+
+          <div class="prod-rating">
+            ★ 4.6
+            <span>(98)</span>
+          </div>
+
+        </div>
+
+      </article>
+
+
+      <!-- PRODUCT 3 -->
+      <article class="prod-card">
+
+        <div class="prod-image">
+          👟
+        </div>
+
+        <div class="prod-body">
+
+          <h3>
+            Kabo Cusub
+          </h3>
+
+          <div class="prod-price">
+            $60.00
+          </div>
+
+          <div class="prod-rating">
+            ★ 4.6
+            <span>(210)</span>
+          </div>
+
+        </div>
+
+      </article>
+
+
+      <!-- PRODUCT 4 -->
+      <article class="prod-card">
+
+        <div class="prod-image">
+          🧱
+        </div>
+
+        <div class="prod-body">
+
+          <h3>
+            Qalab Dhisme
+          </h3>
+
+          <div class="prod-price">
+            $34.00
+          </div>
+
+          <div class="prod-rating">
+            ★ 4.4
+            <span>(56)</span>
+          </div>
+
+        </div>
+
+      </article>
+
+
+      <!-- PRODUCT 5 -->
+      <article class="prod-card">
+
+        <div class="prod-image">
+          📱
+        </div>
+
+        <div class="prod-body">
+
+          <h3>
+            Smartphone
+          </h3>
+
+          <div class="prod-price">
+            $180.00
+          </div>
+
+          <div class="prod-rating">
+            ★ 4.7
+            <span>(340)</span>
+          </div>
+
+        </div>
+
+      </article>
+
+
+      <!-- PRODUCT 6 -->
+      <article class="prod-card">
+
+        <div class="prod-image">
+          🎧
+        </div>
+
+        <div class="prod-body">
+
+          <h3>
+            Headphones
+          </h3>
+
+          <div class="prod-price">
+            $35.00
+          </div>
+
+          <div class="prod-rating">
+            ★ 4.5
+            <span>(87)</span>
+          </div>
+
+        </div>
+
+      </article>
+
+
+      <!-- PRODUCT 7 -->
+      <article class="prod-card">
+
+        <div class="prod-image">
+          👜
+        </div>
+
+        <div class="prod-body">
+
+          <h3>
+            Boorso Haween
+          </h3>
+
+          <div class="prod-price">
+            $40.00
+          </div>
+
+          <div class="prod-rating">
+            ★ 4.6
+            <span>(76)</span>
+          </div>
+
+        </div>
+
+      </article>
+
+
+      <!-- PRODUCT 8 -->
+      <article class="prod-card">
+
+        <div class="prod-image">
+          ⌚
+        </div>
+
+        <div class="prod-body">
+
+          <h3>
+            Saacad
+          </h3>
+
+          <div class="prod-price">
+            $55.00
+          </div>
+
+          <div class="prod-rating">
+            ★ 4.4
+            <span>(65)</span>
+          </div>
+
+        </div>
+
+      </article>
+
+
+      <!-- PRODUCT 9 -->
+      <article class="prod-card">
+
+        <div class="prod-image">
+          🧴
+        </div>
+
+        <div class="prod-body">
+
+          <h3>
+            Perfume
+          </h3>
+
+          <div class="prod-price">
+            $28.00
+          </div>
+
+          <div class="prod-rating">
+            ★ 4.8
+            <span>(154)</span>
+          </div>
+
+        </div>
+
+      </article>
+
+
+      <!-- PRODUCT 10 -->
+      <article class="prod-card">
+
+        <div class="prod-image">
+          👞
+        </div>
+
+        <div class="prod-body">
+
+          <h3>
+            Kabo Rag
+          </h3>
+
+          <div class="prod-price">
+            $48.00
+          </div>
+
+          <div class="prod-rating">
+            ★ 4.5
+            <span>(102)</span>
+          </div>
+
+        </div>
+
+      </article>
+
+
+      <!-- PRODUCT 11 -->
+      <article class="prod-card">
+
+        <div class="prod-image">
+          🍚
+        </div>
+
+        <div class="prod-body">
+
+          <h3>
+            Bariis
+          </h3>
+
+          <div class="prod-price">
+            $32.00
+          </div>
+
+          <div class="prod-rating">
+            ★ 4.4
+            <span>(81)</span>
+          </div>
+
+        </div>
+
+      </article>
+
+
+      <!-- PRODUCT 12 -->
+      <article class="prod-card">
+
+        <div class="prod-image">
+          🥛
+        </div>
+
+        <div class="prod-body">
+
+          <h3>
+            Caano
+          </h3>
+
+          <div class="prod-price">
+            $8.00
+          </div>
+
+          <div class="prod-rating">
+            ★ 4.3
+            <span>(45)</span>
+          </div>
+
+        </div>
+
+      </article>
+
+
+      <!-- PRODUCT 13 -->
+      <article class="prod-card">
+
+        <div class="prod-image">
+          🛋️
+        </div>
+
+        <div class="prod-body">
+
+          <h3>
+            Sofa
+          </h3>
+
+          <div class="prod-price">
+            $250.00
+          </div>
+
+          <div class="prod-rating">
+            ★ 4.6
+            <span>(39)</span>
+          </div>
+
+        </div>
+
+      </article>
+
+
+      <!-- PRODUCT 14 -->
+      <article class="prod-card">
+
+        <div class="prod-image">
+          🪑
+        </div>
+
+        <div class="prod-body">
+
+          <h3>
+            Kursi
+          </h3>
+
+          <div class="prod-price">
+            $35.00
+          </div>
+
+          <div class="prod-rating">
+            ★ 4.4
+            <span>(33)</span>
+          </div>
+
+        </div>
+
+      </article>
+
+
+      <!-- PRODUCT 15 -->
+      <article class="prod-card">
+
+        <div class="prod-image">
+          💡
+        </div>
+
+        <div class="prod-body">
+
+          <h3>
+            Nal
+          </h3>
+
+          <div class="prod-price">
+            $15.00
+          </div>
+
+          <div class="prod-rating">
+            ★ 4.5
+            <span>(54)</span>
+          </div>
+
+        </div>
+
+      </article>
+
+
+      <!-- PRODUCT 16 -->
+      <article class="prod-card">
+
+        <div class="prod-image">
+          🧸
+        </div>
+
+        <div class="prod-body">
+
+          <h3>
+            Toy Caruur
+          </h3>
+
+          <div class="prod-price">
+            $18.00
+          </div>
+
+          <div class="prod-rating">
+            ★ 4.7
+            <span>(73)</span>
+          </div>
+
+        </div>
+
+      </article>
+
+
+      <!-- PRODUCT 17 -->
+      <article class="prod-card">
+
+        <div class="prod-image">
+          👶
+        </div>
+
+        <div class="prod-body">
+
+          <h3>
+            Dhar Baby
+          </h3>
+
+          <div class="prod-price">
+            $22.00
+          </div>
+
+          <div class="prod-rating">
+            ★ 4.5
+            <span>(61)</span>
+          </div>
+
+        </div>
+
+      </article>
+
+
+      <!-- PRODUCT 18 -->
+      <article class="prod-card">
+
+        <div class="prod-image">
+          🧢
+        </div>
+
+        <div class="prod-body">
+
+          <h3>
+            Koofiyad
+          </h3>
+
+          <div class="prod-price">
+            $12.00
+          </div>
+
+          <div class="prod-rating">
+            ★ 4.4
+            <span>(48)</span>
+          </div>
+
+        </div>
+
+      </article>
+
+
+      <!-- PRODUCT 19 -->
+      <article class="prod-card">
+
+        <div class="prod-image">
+          🕶️
+        </div>
+
+        <div class="prod-body">
+
+          <h3>
+            Muraayad
+          </h3>
+
+          <div class="prod-price">
+            $20.00
+          </div>
+
+          <div class="prod-rating">
+            ★ 4.5
+            <span>(91)</span>
+          </div>
+
+        </div>
+
+      </article>
+
+
+      <!-- PRODUCT 20 -->
+      <article class="prod-card">
+
+        <div class="prod-image">
+          🧰
+        </div>
+
+        <div class="prod-body">
+
+          <h3>
+            Qalab Shaqo
+          </h3>
+
+          <div class="prod-price">
+            $75.00
+          </div>
+
+          <div class="prod-rating">
+            ★ 4.6
+            <span>(42)</span>
+          </div>
+
+        </div>
+
+      </article>
+
+
+      <!-- PRODUCT 21 -->
+      <article class="prod-card">
+
+        <div class="prod-image">
+          🍳
+        </div>
+
+        <div class="prod-body">
+
+          <h3>
+            Qalabka Jikada
+          </h3>
+
+          <div class="prod-price">
+            $45.00
+          </div>
+
+          <div class="prod-rating">
+            ★ 4.5
+            <span>(67)</span>
+          </div>
+
+        </div>
+
+      </article>
+
+
+      <!-- PRODUCT 22 -->
+      <article class="prod-card">
+
+        <div class="prod-image">
+          🧹
+        </div>
+
+        <div class="prod-body">
+
+          <h3>
+            Qalabka Guriga
+          </h3>
+
+          <div class="prod-price">
+            $25.00
+          </div>
+
+          <div class="prod-rating">
+            ★ 4.3
+            <span>(38)</span>
+          </div>
+
+        </div>
+
+      </article>
+
+
+      <!-- PRODUCT 23 -->
+      <article class="prod-card">
+
+        <div class="prod-image">
+          🥤
+        </div>
+
+        <div class="prod-body">
+
+          <h3>
+            Cabitaan
+          </h3>
+
+          <div class="prod-price">
+            $10.00
+          </div>
+
+          <div class="prod-rating">
+            ★ 4.4
+            <span>(59)</span>
+          </div>
+
+        </div>
+
+      </article>
+
+
+      <!-- PRODUCT 24 -->
+      <article class="prod-card">
+
+        <div class="prod-image">
+          🍎
+        </div>
+
+        <div class="prod-body">
+
+          <h3>
+            Miraha
+          </h3>
+
+          <div class="prod-price">
+            $14.00
+          </div>
+
+          <div class="prod-rating">
+            ★ 4.6
+            <span>(72)</span>
+          </div>
+
+        </div>
+
+      </article>
+
+
+      <!-- PRODUCT 25 -->
+      <article class="prod-card">
+
+        <div class="prod-image">
+          🏠
+        </div>
+
+        <div class="prod-body">
+
+          <h3>
+            Alaab Guri
+          </h3>
+
+          <div class="prod-price">
+            $90.00
+          </div>
+
+          <div class="prod-rating">
+            ★ 4.5
+            <span>(52)</span>
+          </div>
+
+        </div>
+
+      </article>
+
+
+    </main>
+
+
+    <!-- BOTTOM NAVIGATION -->
     <nav class="bottom-nav">
 
-      <a class="bottom-item active" href="#">
-        <span>🏠</span>
-        <small>Home</small>
-      </a>
+      <div class="nav-item active">
+        <span class="n-icon">🏠</span>
+        Home
+      </div>
 
-      <a class="bottom-item" href="#">
-        <span>▦</span>
-        <small>Qaybaha</small>
-      </a>
+      <div class="nav-item">
+        <span class="n-icon">▦</span>
+        Qaybaha
+      </div>
 
-      <a class="bottom-item" href="#">
-        <span>🛒</span>
-        <small>Cart</small>
-      </a>
+      <div class="nav-item">
+        <span class="n-icon">🛒</span>
+        Cart
+      </div>
 
-      <a class="bottom-item" href="#">
-        <span>📦</span>
-        <small>Orders</small>
-      </a>
+      <div class="nav-item">
+        <span class="n-icon">📦</span>
+        Orders
+      </div>
 
-      <a class="bottom-item" href="#">
-        <span>👤</span>
-        <small>Account</small>
-      </a>
+      <div class="nav-item">
+        <span class="n-icon">👤</span>
+        Account
+      </div>
 
     </nav>
 
   </div>
 
-</body>
 
-  </html>
+  <!-- JAVASCRIPT -->
+  <script src="script.js"></script>
+
+</body>
+        </html>

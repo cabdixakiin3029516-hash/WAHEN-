@@ -4,58 +4,215 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
   <title>WaHeN Marketplace</title>
+
   <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 
-  <header>
-    <h1>WaHeN</h1>
-    <p>Wax kasta hal meel ka hel</p>
+  <!-- NAVIGATION -->
+  <nav class="navbar">
 
-    <input
-      type="search"
-      placeholder="Raadi alaab ama adeeg..."
-    >
-  </header>
+    <div class="logo">
+      WaHeN
+    </div>
 
+    <div class="nav-links">
+      <a href="#">Home</a>
+      <a href="#">Categories</a>
+      <a href="#">Orders</a>
+      <a href="#">Account</a>
+    </div>
+
+    <button class="cart-button">
+      🛒 Cart
+    </button>
+
+  </nav>
+
+
+  <!-- HERO -->
+  <section class="hero">
+
+    <h1>Wax kasta hal meel ka hel</h1>
+
+    <p>
+      Ka hel alaabooyin iyo ganacsiyo kala duwan
+      adigoo isticmaalaya WaHeN.
+    </p>
+
+    <div class="search-box">
+
+      <input
+        type="search"
+        placeholder="Maxaad raadineysaa?"
+      >
+
+      <button>
+        🔍 Raadi
+      </button>
+
+    </div>
+
+  </section>
+
+
+  <!-- MAIN -->
   <main>
 
-    <section>
+    <!-- CATEGORIES -->
+    <section class="categories">
+
       <h2>Qaybaha</h2>
 
-      <button>Dharka</button>
-      <button>Electronics</button>
-      <button>Guriga</button>
-      <button>Beauty</button>
-      <button>Raashinka</button>
-      <button>Ganacsiyada</button>
+      <div class="category-list">
+
+        <button>👕 Dharka</button>
+        <button>📱 Electronics</button>
+        <button>🏠 Guriga</button>
+        <button>💄 Beauty</button>
+        <button>🍎 Raashinka</button>
+        <button>🏪 Ganacsiyada</button>
+
+      </div>
+
     </section>
 
-    <section>
-      <h2>Alaabooyin</h2>
 
-      <article>
-        <h3>Samsung Phone</h3>
-        <p>Qiime: $150</p>
-        <button>Faahfaahin</button>
-        <button>Ku dar Cart</button>
-      </article>
+    <!-- PRODUCTS -->
+    <section class="products">
 
-      <article>
-        <h3>Kabo</h3>
-        <p>Qiime: $25</p>
-        <button>Faahfaahin</button>
-        <button>Ku dar Cart</button>
-      </article>
+      <div class="section-header">
+
+        <h2>Alaabooyin</h2>
+
+        <a href="#">
+          Eeg dhammaan →
+        </a>
+
+      </div>
+
+
+      <div class="product-grid">
+
+
+        <!-- PRODUCT 1 -->
+        <article class="product-card">
+
+          <div class="product-image">
+            📱
+          </div>
+
+          <h3>Samsung Phone</h3>
+
+          <p class="product-description">
+            Smartphone tayo wanaagsan.
+          </p>
+
+          <p class="price">
+            $150
+          </p>
+
+          <button class="add-cart">
+            🛒 Ku dar Cart
+          </button>
+
+        </article>
+
+
+        <!-- PRODUCT 2 -->
+        <article class="product-card">
+
+          <div class="product-image">
+            👟
+          </div>
+
+          <h3>Kabo</h3>
+
+          <p class="product-description">
+            Kabo tayo wanaagsan oo cusub.
+          </p>
+
+          <p class="price">
+            $25
+          </p>
+
+          <button class="add-cart">
+            🛒 Ku dar Cart
+          </button>
+
+        </article>
+
+
+        <!-- PRODUCT 3 -->
+        <article class="product-card">
+
+          <div class="product-image">
+            👕
+          </div>
+
+          <h3>Funaanad</h3>
+
+          <p class="product-description">
+            Funaanad tayo wanaagsan.
+          </p>
+
+          <p class="price">
+            $15
+          </p>
+
+          <button class="add-cart">
+            🛒 Ku dar Cart
+          </button>
+
+        </article>
+
+
+        <!-- PRODUCT 4 -->
+        <article class="product-card">
+
+          <div class="product-image">
+            🎧
+          </div>
+
+          <h3>Headphones</h3>
+
+          <p class="product-description">
+            Headphones tayo wanaagsan.
+          </p>
+
+          <p class="price">
+            $30
+          </p>
+
+          <button class="add-cart">
+            🛒 Ku dar Cart
+          </button>
+
+        </article>
+
+      </div>
 
     </section>
 
   </main>
 
+
+  <!-- FOOTER -->
   <footer>
-    <p>© 2026 WaHeN Marketplace</p>
+
+    <h3>WaHeN Marketplace</h3>
+
+    <p>
+      Wax kasta hal meel ka hel.
+    </p>
+
+    <p>
+      © 2026 WaHeN
+    </p>
+
   </footer>
 
 </body>

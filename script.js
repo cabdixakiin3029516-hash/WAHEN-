@@ -1,467 +1,60 @@
 document.addEventListener('DOMContentLoaded', () => {
-  const productCards = [...document.querySelectorAll('.prod-card')];
-  const searchInput = document.querySelector('#product-search');
-  const cartButton = document.querySelector('.cart-button');
-  const menuButton = document.querySelector('.icon-btn');
-  const categoryButtons = [...document.querySelectorAll('.category')];
-  const navItems = [...document.querySelectorAll('.nav-item')];
-  const heroCta = document.querySelector('.hero-cta');
-  const productsSection = document.querySelector('#products');
-  const categorySection = document.querySelector('#categories-title')?.closest('.section');
-
-  const state = {
-    cart: [],
-    favorites: new Set(),
-    activeCategory: 'all',
-    query: ''
-  };
-
+  const products = [
+    ['Men\'s Jacket',135,'🧥','ragga','4.5'],['Women\'s Dress',145,'👗','haween','4.8'],['Sport Shoes',200,'👟','ragga','4.6'],['Men Shirt',35,'👔','ragga','4.5'],['Kids Toy',18,'🧸','caruur','4.7'],['Perfume',28,'🧴','beauty','4.8'],['Rice',32,'🍚','cunto','4.4'],['Smartphone',180,'📱','electronics','4.7'],['Headphones',35,'🎧','electronics','4.5'],['Laptop',450,'💻','electronics','4.8'],['Sofa',250,'🛋️','guri','4.6'],['Work Tools',75,'🧰','dhisme','4.6']
+  ];
+  const orders = [['Men\'s Jacket','#WH-2026-001','Shipped','shipped'],['Smartphone','#WH-2026-014','Pending','pending'],['Women\'s Bag','#WH-2026-021','Delivered','delivered']];
+  const state = { cart: [], favorites: new Set(), page: 'home', query: '', category: 'all', dark: localStorage.getItem('wahen-dark') === '1' };
+  const $ = selector => document.querySelector(selector);
+  const $$ = selector => [...document.querySelectorAll(selector)];
   const money = value => `$${Number(value).toFixed(2)}`;
 
-  const productInfo = card => ({
-    name: card.querySelector('h3')?.textContent.trim() || 'Alaab',
-    price: Number.parseFloat(card.querySelector('.prod-price')?.textContent.replace(/[^0-9.]/g, '') || '0') || 0,
-    icon: card.querySelector('.prod-image')?.textContent.trim() || '🛍️',
-    category: card.dataset.category || 'wax-kale',
-    ratingText: card.querySelector('.prod-rating')?.textContent.trim() || '★ 4.8'
-  });
-
-  const css = document.createElement('style');
-  css.textContent = `
-    .wh-overlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(18, 17, 32, 0.62);
-      display: grid;
-      place-items: center;
-      padding: 16px;
-      z-index: 1000;
-    }
-    .wh-panel {
-      width: min(620px, 100%);
-      max-height: 90vh;
-      background: #ffffff;
-      color: #1d1a2f;
-      border-radius: 22px;
-      box-shadow: 0 24px 55px rgba(17, 12, 41, 0.25);
-      padding: 20px;
-      overflow: auto;
-    }
-    .wh-head {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      margin-bottom: 12px;
-    }
-    .wh-head h2 {
-      margin: 0;
-      font-size: 1.5rem;
-      letter-spacing: -0.04em;
-    }
-    .wh-close {
-      width: 34px;
-      height: 34px;
-      border: 0;
-      border-radius: 50%;
-      background: #f1f2f9;
-      color: #1d1a2f;
-      font-size: 1.5rem;
-      line-height: 1;
-      cursor: pointer;
-    }
-    .wh-body {
-      display: grid;
-      gap: 12px;
-    }
-    .wh-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 10px;
-      padding: 12px 0;
-      border-bottom: 1px solid #edf0f7;
-    }
-    .wh-row:last-child {
-      border-bottom: 0;
-    }
-    .wh-empty {
-      color: #6f7285;
-      margin: 8px 0;
-    }
-    .wh-remove {
-      border: 0;
-      background: #fff0f1;
-      color: #b63b4f;
-      border-radius: 10px;
-      padding: 6px 8px;
-      font-size: 0.72rem;
-      font-weight: 700;
-      cursor: pointer;
-    }
-    .wh-product {
-      display: grid;
-      grid-template-columns: 88px 1fr;
-      gap: 16px;
-      align-items: center;
-      padding: 6px 0 8px;
-    }
-    .wh-product-icon {
-      display: grid;
-      place-items: center;
-      width: 88px;
-      height: 88px;
-      border-radius: 18px;
-      background: #eef1fb;
-      font-size: 3rem;
-    }
-    .wh-product-meta h3 {
-      margin: 0 0 4px;
-      font-size: 1.15rem;
-    }
-    .wh-price {
-      font-size: 1.3rem;
-      font-weight: 800;
-      margin-bottom: 4px;
-    }
-    .wh-stars {
-      color: #f4b437;
-      font-size: 0.9rem;
-      margin-bottom: 6px;
-    }
-    .wh-actions {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      padding-top: 8px;
-    }
-    .wh-btn {
-      border: 0;
-      border-radius: 12px;
-      padding: 10px 14px;
-      background: #4c45d5;
-      color: #ffffff;
-      font-weight: 700;
-      cursor: pointer;
-    }
-    .wh-btn.secondary {
-      background: #eef1fb;
-      color: #1d1a2f;
-    }
-    .wh-btn.danger {
-      background: #f5d7dd;
-      color: #8d2c40;
-    }
-    .wh-actions .wh-btn {
-      flex: 1 1 min(180px, 100%);
-    }
-    .wh-choose {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      padding-top: 6px;
-    }
-    .wh-choose button {
-      border: 0;
-      border-radius: 10px;
-      background: #edf0f7;
-      color: #1d1a2f;
-      padding: 8px 10px;
-      cursor: pointer;
-    }
-  `;
-  document.head.appendChild(css);
-
-  function injectPanel(title, bodyHtml) {
-    const overlay = document.createElement('div');
-    overlay.className = 'wh-overlay';
-    overlay.innerHTML = `
-      <div class="wh-panel" role="dialog" aria-modal="true">
-        <div class="wh-head">
-          <h2>${title}</h2>
-          <button type="button" class="wh-close" aria-label="Xir">×</button>
-        </div>
-        <div class="wh-body">${bodyHtml}</div>
-      </div>
-    `;
-
-    const panel = overlay.querySelector('.wh-panel');
-    panel.addEventListener('click', event => event.stopPropagation());
-    overlay.addEventListener('click', event => {
-      if (event.target === overlay || event.target.closest('.wh-close')) {
-        overlay.remove();
-      }
-    });
-
-    document.body.appendChild(overlay);
-    return overlay;
-  }
+  if (state.dark) document.body.classList.add('dark');
+  document.body.insertAdjacentHTML('beforeend', '<button class="theme-toggle" id="theme-toggle" aria-label="Beddel muuqaalka">🌙</button>');
 
   function renderProducts() {
-    productCards.forEach(card => {
-      const info = productInfo(card);
-      const matchesQuery = !state.query || info.name.toLowerCase().includes(state.query);
-      const matchesCategory = state.activeCategory === 'all' || info.category === state.activeCategory;
-      card.style.display = matchesQuery && matchesCategory ? '' : 'none';
+    const list = products.filter(item => {
+      const matchesText = !state.query || item[0].toLowerCase().includes(state.query);
+      const matchesCategory = state.category === 'all' || item[3] === state.category;
+      return matchesText && matchesCategory;
     });
+    $('#products').innerHTML = list.length ? list.map((item, index) => `
+      <article class="product" data-product="${products.indexOf(item)}">
+        <button class="heart" data-favorite="${products.indexOf(item)}">${state.favorites.has(item[0]) ? '♥' : '♡'}</button>
+        <div class="pic">${item[2]}</div><div class="product-body"><h3>${item[0]}</h3><div class="price">${money(item[1])}</div><div class="rating">★ ${item[4]}</div><button class="add" data-add="${products.indexOf(item)}">🛒 Cart ku dar</button></div>
+      </article>`).join('') : '<p class="empty">Alaab lama helin.</p>';
+    $('#favorite-count').textContent = state.favorites.size;
   }
 
-  function syncCategoryButtons() {
-    categoryButtons.forEach(button => {
-      const isActive = (button.dataset.category || 'all') === state.activeCategory;
-      button.classList.toggle('is-active', isActive);
-      button.setAttribute('aria-pressed', String(isActive));
-    });
+  function updateCart() { $('#cart-count').textContent = state.cart.reduce((total, item) => total + item.qty, 0); }
+  function setPage(page) {
+    state.page = page;
+    $$('.view').forEach(view => view.classList.toggle('active', view.dataset.page === page));
+    $$('.tab,.nav').forEach(button => button.classList.toggle('active', button.dataset.view === page));
+    if (page === 'orders') renderOrders();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
-
-  function updateCartBadge() {
-    const total = state.cart.reduce((sum, item) => sum + item.qty, 0);
-    if (cartButton) {
-      cartButton.textContent = total ? `🛒 ${total}` : '🛒';
-    }
+  function openModal(title, body, after) {
+    const overlay = document.createElement('div'); overlay.className = 'overlay';
+    overlay.innerHTML = `<div class="modal"><div class="modal-head"><h2>${title}</h2><button class="close">×</button></div><div class="modal-body">${body}</div></div>`;
+    document.body.appendChild(overlay); overlay.querySelector('.close').onclick = () => overlay.remove(); overlay.onclick = event => { if (event.target === overlay) overlay.remove(); }; if (after) after(overlay);
+    return overlay;
   }
+  function productDetails(index) { const item = products[index]; openModal(item[0], `<div class="product-detail"><div class="pic">${item[2]}</div><h3>${item[0]}</h3><p class="price">${money(item[1])}</p><p>★ ${item[4]} — Alaab tayo leh oo laga heli karo WaHeN.</p><div class="modal-actions"><button class="primary" data-modal-add="${index}">Cart ku dar</button><button class="primary" data-modal-buy="${index}">Hadda iibso</button></div></div>`, modal => { modal.querySelector('[data-modal-add]').onclick = () => { addToCart(index); modal.remove(); }; modal.querySelector('[data-modal-buy]').onclick = () => { addToCart(index); modal.remove(); showCheckout(); }; }); }
+  function addToCart(index) { const item = products[index]; const found = state.cart.find(cartItem => cartItem.name === item[0]); found ? found.qty++ : state.cart.push({ name:item[0], price:item[1], icon:item[2], qty:1 }); updateCart(); }
+  function showCart() { const total = state.cart.reduce((sum,item) => sum + item.price * item.qty, 0); const body = state.cart.length ? state.cart.map((item,index) => `<div class="checkout-row"><span>${item.icon} ${item.name} × ${item.qty}</span><strong>${money(item.price * item.qty)}</strong><button class="text-btn" data-remove="${index}">Ka saar</button></div>`).join('') + `<div class="checkout-row"><strong>Wadarta</strong><strong>${money(total)}</strong></div><button class="primary" id="go-checkout">Checkout</button>` : '<p>Cart-kaagu waa madhan yahay.</p>'; const modal = openModal('Cart-kaaga', body); modal.querySelectorAll('[data-remove]').forEach(button => button.onclick = () => { state.cart.splice(Number(button.dataset.remove),1); modal.remove(); updateCart(); showCart(); }); modal.querySelector('#go-checkout')?.addEventListener('click', () => { modal.remove(); showCheckout(); }); }
+  function showCheckout() { if (!state.cart.length) return showCart(); const total = state.cart.reduce((sum,item) => sum + item.price * item.qty, 0); const modal = openModal('Checkout', `<form class="form" id="checkout-form"><label>Magacaaga<input required placeholder="Magaca oo buuxa"></label><label>Telefoon<input required type="tel" placeholder="+252..."></label><label>Goobta keenista<input required placeholder="Magaalada iyo cinwaanka"></label><label>Habka lacag bixinta<select><option>EVC Plus</option><option>Zaad</option><option>Cash on delivery</option></select></label><div class="checkout-row"><strong>Wadarta</strong><strong>${money(total)}</strong></div><button class="primary">Xaqiiji dalabka</button></form>`); modal.querySelector('#checkout-form').onsubmit = event => { event.preventDefault(); modal.remove(); state.cart = []; updateCart(); openModal('Dalabka waa la helay ✅', '<p>Waad ku mahadsan tahay. Lambarka dalabkaagu waa <strong>WH-2026-001</strong>.</p>'); }; }
+  function renderOrders() { $('#orders-list').innerHTML = orders.map(order => `<div class="order"><div><strong>${order[0]}</strong><small>${order[1]}</small></div><span class="status ${order[3]}">${order[2]}</span></div>`).join(''); $('#buyer-orders').innerHTML = orders.slice(0,2).map(order => `<div class="order"><div><strong>${order[0]}</strong><small>${order[1]}</small></div><span class="status ${order[3]}">${order[2]}</span></div>`).join(''); }
+  function loginModal() { openModal('Soo gal / Isdiiwaangeli', `<div class="form"><label>Email<input type="email" placeholder="email@example.com"></label><label>Password<input type="password" placeholder="••••••••"></label><button class="primary" id="login">Soo gal</button><button class="text-btn" id="signup">Account cusub samee</button></div>`, modal => { modal.querySelector('#login').onclick = () => { modal.remove(); openModal('Soo dhawoow 👋','Account-kaaga si guul leh ayaa loo furay.'); }; modal.querySelector('#signup').onclick = () => { modal.remove(); signupModal(); }; }); }
+  function signupModal() { openModal('Samee account', '<form class="form" id="signup-form"><label>Magac<input required></label><label>Email<input required type="email"></label><label>Dooro nooca account-ka<select><option>Buyer</option><option>Seller</option></select></label><label>Password<input required type="password"></label><button class="primary">Isdiiwaangeli</button></form>', modal => { modal.querySelector('form').onsubmit = e => { e.preventDefault(); modal.remove(); openModal('Waad ku mahadsan tahay ✅','Account-kaaga waa la sameeyay.'); }; }); }
 
-  function addToCart(card) {
-    const info = productInfo(card);
-    const existing = state.cart.find(item => item.name === info.name);
-
-    if (existing) {
-      existing.qty += 1;
-    } else {
-      state.cart.push({ ...info, qty: 1 });
-    }
-
-    updateCartBadge();
-    if (cartButton) {
-      cartButton.animate(
-        [{ transform: 'scale(1)' }, { transform: 'scale(1.14)' }, { transform: 'scale(1)' }],
-        { duration: 220, easing: 'ease-out' }
-      );
-    }
-  }
-
-  productCards.forEach(card => {
-    if (!card.querySelector('.favorite-btn')) {
-      const favBtn = document.createElement('button');
-      favBtn.type = 'button';
-      favBtn.className = 'favorite-btn';
-      favBtn.setAttribute('aria-label', 'Ku dar kuwa la jecel yahay');
-      favBtn.textContent = '♡';
-      favBtn.addEventListener('click', event => {
-        event.stopPropagation();
-        const name = productInfo(card).name;
-        if (state.favorites.has(name)) {
-          state.favorites.delete(name);
-          favBtn.textContent = '♡';
-        } else {
-          state.favorites.add(name);
-          favBtn.textContent = '♥';
-        }
-      });
-      card.appendChild(favBtn);
-    }
-
-    if (!card.querySelector('.product-cart-btn')) {
-      const addBtn = document.createElement('button');
-      addBtn.type = 'button';
-      addBtn.className = 'product-cart-btn';
-      addBtn.textContent = '🛒 Gaadhiga ku dar';
-      addBtn.addEventListener('click', event => {
-        event.stopPropagation();
-        addToCart(card);
-      });
-      const body = card.querySelector('.prod-body');
-      if (body) body.appendChild(addBtn);
-    }
+  document.addEventListener('click', event => {
+    const view = event.target.closest('[data-view]'); if (view) { event.preventDefault(); setPage(view.dataset.view); }
+    const add = event.target.closest('[data-add]'); if (add) { addToCart(Number(add.dataset.add)); return; }
+    const fav = event.target.closest('[data-favorite]'); if (fav) { const item = products[Number(fav.dataset.favorite)]; state.favorites.has(item[0]) ? state.favorites.delete(item[0]) : state.favorites.add(item[0]); renderProducts(); return; }
+    const card = event.target.closest('.product'); if (card && !event.target.closest('button')) productDetails(Number(card.dataset.product));
+    const category = event.target.closest('[data-category]'); if (category) { state.category = category.dataset.category; setPage('home'); renderProducts(); $('#products').scrollIntoView({behavior:'smooth'}); }
+    const action = event.target.closest('[data-action]')?.dataset.action; if (action === 'shop' || action === 'all-products') { state.category = 'all'; setPage('home'); renderProducts(); $('#products').scrollIntoView({behavior:'smooth'}); } else if (action === 'categories') $('#products').previousElementSibling?.scrollIntoView({behavior:'smooth'}); else if (action === 'favorites') openModal('Favorites', state.favorites.size ? [...state.favorites].join(', ') : 'Wax favorites ah ma jiraan.'); else if (action) openModal('WaHeN', 'Qaybtan maamulka waa diyaar in backend lagu xiro.');
   });
-
-  function showCart() {
-    const total = state.cart.reduce((sum, item) => sum + item.price * item.qty, 0);
-
-    const rows = state.cart.length
-      ? state.cart.map((item, index) => `
-          <div class="wh-row">
-            <span>${item.icon} ${item.name} × ${item.qty}</span>
-            <div style="display:flex;align-items:center;gap:10px;">
-              <strong>${money(item.price * item.qty)}</strong>
-              <button type="button" class="wh-remove" data-index="${index}">Remove</button>
-            </div>
-          </div>
-        `).join('')
-      : '<p class="wh-empty">Gaadhigu wuu madhan yahay.</p>';
-
-    const panel = injectPanel('Gaadhiga wax iibsiga', `
-      ${rows}
-      <div class="wh-row">
-        <strong>Wadarta</strong>
-        <strong>${money(total)}</strong>
-      </div>
-      ${state.cart.length ? `
-        <div class="wh-actions">
-          <button type="button" class="wh-btn wh-checkout">Checkout</button>
-          <button type="button" class="wh-btn secondary wh-track">Track order</button>
-        </div>
-      ` : ''}
-    `);
-
-    panel.querySelectorAll('.wh-remove').forEach(button => {
-      button.addEventListener('click', () => {
-        const idx = Number(button.dataset.index);
-        state.cart.splice(idx, 1);
-        panel.remove();
-        updateCartBadge();
-        showCart();
-      });
-    });
-
-    panel.querySelector('.wh-checkout')?.addEventListener('click', () => {
-      panel.remove();
-      injectPanel('Dalabka waa la helay ✅', '<p>Waad ku mahadsan tahay. Lambarka dalabkaagu waa <strong>WH-2026-001</strong>.</p><div class="wh-actions"><button type="button" class="wh-btn wh-track">Dabagalka dalabka</button></div>');
-      const nextPanel = document.body.lastElementChild;
-      nextPanel.querySelector('.wh-track')?.addEventListener('click', () => {
-        nextPanel.remove();
-        showTracking();
-      });
-    });
-
-    panel.querySelector('.wh-track')?.addEventListener('click', () => {
-      panel.remove();
-      showTracking();
-    });
-  }
-
-  function showTracking() {
-    injectPanel('Dabagalka dalabka', `
-      <p><strong>WH-2026-001</strong> · Darawal: Maxamed A. · ETA: 2 maalmood</p>
-      <div class="wh-choose">
-        <button type="button">✅ La soo saaray</button>
-        <button type="button">📦 La xajiray</button>
-        <button type="button">🚚 Jidka oo socota</button>
-        <button type="button">🏠 La keenay</button>
-      </div>
-    `);
-  }
-
-  function openMenu() {
-    const menuPanel = injectPanel('WaHeN Menu', `
-      <div class="wh-actions">
-        <button type="button" class="wh-btn secondary wh-account">Buyer account</button>
-        <button type="button" class="wh-btn secondary wh-orders">My orders</button>
-        <button type="button" class="wh-btn secondary wh-favorites">Favorites</button>
-      </div>
-    `);
-
-    menuPanel.querySelector('.wh-account')?.addEventListener('click', () => {
-      menuPanel.remove();
-      injectPanel('Account', '<p>Ma aha account-aday daqiiqad. Tan hadda waxaa lagu soo jeedin karaa xisaabintaaga.</p>');
-    });
-
-    menuPanel.querySelector('.wh-orders')?.addEventListener('click', () => {
-      menuPanel.remove();
-      showTracking();
-    });
-
-    menuPanel.querySelector('.wh-favorites')?.addEventListener('click', () => {
-      menuPanel.remove();
-      const items = state.favorites.size ? [...state.favorites].join(', ') : 'Waxba ma jecel tahay hada.';
-      injectPanel('Favorites', `<p>${items}</p>`);
-    });
-  }
-
-  productCards.forEach(card => {
-    card.addEventListener('click', event => {
-      if (event.target.closest('button')) return;
-
-      const info = productInfo(card);
-      const similar = productCards
-        .filter(item => item !== card && item.dataset.category === info.category)
-        .slice(0, 3)
-        .map(item => productInfo(item).name);
-
-      const detailPanel = injectPanel(info.name, `
-        <div class="wh-product">
-          <div class="wh-product-icon">${info.icon}</div>
-          <div class="wh-product-meta">
-            <h3>${info.name}</h3>
-            <div class="wh-price">${money(info.price)}</div>
-            <div class="wh-stars">★★★★★ ${info.ratingText}</div>
-            <p>${similar.length ? `Similar: ${similar.join(', ')}` : 'More items in this category.'}</p>
-          </div>
-        </div>
-        <div class="wh-actions">
-          <button type="button" class="wh-btn wh-add">Add to cart</button>
-          <button type="button" class="wh-btn secondary wh-buy">Buy now</button>
-          <button type="button" class="wh-btn secondary wh-share">Share</button>
-          <button type="button" class="wh-btn secondary wh-review">Review</button>
-        </div>
-      `);
-
-      detailPanel.querySelector('.wh-add')?.addEventListener('click', () => {
-        addToCart(card);
-        detailPanel.remove();
-      });
-
-      detailPanel.querySelector('.wh-buy')?.addEventListener('click', () => {
-        addToCart(card);
-        detailPanel.remove();
-        showCart();
-      });
-
-      detailPanel.querySelector('.wh-share')?.addEventListener('click', async () => {
-        try {
-          await navigator.clipboard.writeText(window.location.href);
-          alert('Linkiga waa la koobiyeeyay.');
-        } catch {
-          alert('Linkiga waan koobiyeeyay, laakiin browser-ka ma taageerto copy-to-clipboard.');
-        }
-      });
-
-      detailPanel.querySelector('.wh-review')?.addEventListener('click', () => {
-        alert('Mahadsanid! Qiimayntaada waa la kaydin doonaa marka aad gasho account-ka.');
-      });
-    });
-  });
-
-  searchInput?.addEventListener('input', event => {
-    state.query = event.target.value.toLowerCase().trim();
-    renderProducts();
-  });
-
-  categoryButtons.forEach(button => {
-    button.addEventListener('click', () => {
-      state.activeCategory = button.dataset.category || 'all';
-      syncCategoryButtons();
-      renderProducts();
-      productsSection?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    });
-  });
-
-  cartButton?.addEventListener('click', showCart);
-  menuButton?.addEventListener('click', openMenu);
-
-  navItems.forEach(item => {
-    item.addEventListener('click', () => {
-      const label = item.textContent.trim().toLowerCase();
-
-      if (label.includes('home')) {
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-      } else if (label.includes('categories')) {
-        categorySection?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      } else if (label.includes('cart')) {
-        showCart();
-      } else if (label.includes('orders')) {
-        showTracking();
-      } else if (label.includes('account')) {
-        openMenu();
-      }
-    });
-  });
-
-  heroCta?.addEventListener('click', () => {
-    productsSection?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  });
-
-  updateCartBadge();
-  syncCategoryButtons();
-  renderProducts();
+  $('#cart-button').onclick = showCart; $('#menu-button').onclick = loginModal; $('#product-search').oninput = event => { state.query = event.target.value.toLowerCase().trim(); renderProducts(); }; $('#search-form').onsubmit = event => event.preventDefault(); $('#theme-toggle').onclick = () => { state.dark = !state.dark; document.body.classList.toggle('dark', state.dark); localStorage.setItem('wahen-dark', state.dark ? '1' : '0'); };
+  renderProducts(); renderOrders(); updateCart();
 });

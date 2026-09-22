@@ -1,81 +1,1047 @@
 <!DOCTYPE html>
 <html lang="so">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
   <meta name="theme-color" content="#4338CA">
-  <meta name="description" content="WaHeN waa suuq dijitaal ah oo laga helo alaabooyin iyo dukaamo kala duwan.">
+  <meta
+    name="description"
+    content="WaHeN waa suuq dijitaal ah oo laga helo alaabooyin iyo dukaamo kala duwan."
+  >
+
   <title>WaHeN Marketplace</title>
+
   <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
+
   <div class="phone">
+
+    <!-- STATUS BAR -->
     <div class="statusbar" aria-label="Xogta telefoonka">
       <span>9:41</span>
       <span aria-hidden="true">📶 🔋</span>
     </div>
 
+
+    <!-- TOP BAR -->
     <header class="topbar">
-      <button class="icon-btn" type="button" aria-label="Fur menu-ga">☰</button>
-      <a class="brand" href="index.html" aria-label="WaHeN bogga hore">WaHeN</a>
-      <button class="icon-btn cart-button" type="button" aria-label="Fur gaadhiga wax iibsiga">🛒</button>
+
+      <button
+        class="icon-btn"
+        type="button"
+        aria-label="Fur menu-ga"
+      >
+        ☰
+      </button>
+
+      <a
+        class="brand"
+        href="index.html"
+        aria-label="WaHeN bogga hore"
+      >
+        WaHeN
+      </a>
+
+      <button
+        class="icon-btn cart-button"
+        type="button"
+        aria-label="Fur gaadhiga wax iibsiga"
+      >
+        🛒
+      </button>
+
     </header>
 
+
+    <!-- SEARCH -->
     <form class="search" role="search">
-      <label for="product-search" class="visually-hidden">Raadi alaab</label>
+
+      <label
+        for="product-search"
+        class="visually-hidden"
+      >
+        Raadi alaab
+      </label>
+
       <span aria-hidden="true">🔍</span>
-      <input id="product-search" type="search" placeholder="Search products..." autocomplete="off">
+
+      <input
+        id="product-search"
+        type="search"
+        placeholder="Search products..."
+        autocomplete="off"
+      >
+
     </form>
 
-    <section class="hero" aria-labelledby="hero-title">
+
+    <!-- HERO -->
+    <section
+      class="hero"
+      aria-labelledby="hero-title"
+    >
+
       <div class="hero-content">
+
         <div class="hero-copy">
-          <div class="hero-eyebrow">SUMMER SALE</div>
-          <h1 id="hero-title" class="hero-title">Up to 30% OFF</h1>
-          <p class="hero-sub">on all items</p>
-          <button class="hero-cta" type="button">Shop Now</button>
+
+          <div class="hero-eyebrow">
+            SUMMER SALE
+          </div>
+
+          <h1
+            id="hero-title"
+            class="hero-title"
+          >
+            Up to 30% OFF
+          </h1>
+
+          <p class="hero-sub">
+            on all items
+          </p>
+
+          <button
+            class="hero-cta"
+            type="button"
+          >
+            Shop Now
+          </button>
+
         </div>
-        <div class="hero-figure" aria-hidden="true">🧑🏾‍💼</div>
+
+        <div
+          class="hero-figure"
+          aria-hidden="true"
+        >
+          🧑🏾‍💼
+        </div>
+
       </div>
+
     </section>
 
-    <section class="section" aria-labelledby="categories-title">
+
+    <!-- CATEGORIES -->
+    <section
+      class="section"
+      aria-labelledby="categories-title"
+    >
+
       <div class="section-head">
-        <h2 id="categories-title">Categories</h2>
+
+        <h2 id="categories-title">
+          Categories
+        </h2>
+
+        <a href="#products">
+          See all
+        </a>
+
       </div>
+
+
       <div class="cat-grid">
-        <button class="cat category" type="button" data-category="ragga"><span class="cat-icon" aria-hidden="true">👔</span><span>Men</span></button>
-        <button class="cat category" type="button" data-category="haween"><span class="cat-icon" aria-hidden="true">👗</span><span>Women</span></button>
-        <button class="cat category" type="button" data-category="caruur"><span class="cat-icon" aria-hidden="true">🍼</span><span>Kids</span></button>
-        <button class="cat category" type="button" data-category="beauty"><span class="cat-icon" aria-hidden="true">🧴</span><span>Beauty</span></button>
-        <button class="cat category" type="button" data-category="cunto"><span class="cat-icon" aria-hidden="true">🍽️</span><span>Food</span></button>
-        <button class="cat category" type="button" data-category="electronics"><span class="cat-icon" aria-hidden="true">🔌</span><span>Electronics</span></button>
+
+        <button
+          class="cat category"
+          type="button"
+          data-category="ragga"
+        >
+          <span class="cat-icon" aria-hidden="true">👔</span>
+          <span>Men</span>
+        </button>
+
+
+        <button
+          class="cat category"
+          type="button"
+          data-category="haween"
+        >
+          <span class="cat-icon" aria-hidden="true">👗</span>
+          <span>Women</span>
+        </button>
+
+
+        <button
+          class="cat category"
+          type="button"
+          data-category="caruur"
+        >
+          <span class="cat-icon" aria-hidden="true">🍼</span>
+          <span>Kids</span>
+        </button>
+
+
+        <button
+          class="cat category"
+          type="button"
+          data-category="beauty"
+        >
+          <span class="cat-icon" aria-hidden="true">🧴</span>
+          <span>Beauty</span>
+        </button>
+
+
+        <button
+          class="cat category"
+          type="button"
+          data-category="cunto"
+        >
+          <span class="cat-icon" aria-hidden="true">🍽️</span>
+          <span>Food</span>
+        </button>
+
+
+        <button
+          class="cat category"
+          type="button"
+          data-category="electronics"
+        >
+          <span class="cat-icon" aria-hidden="true">🔌</span>
+          <span>Electronics</span>
+        </button>
+
+
+        <button
+          class="cat category"
+          type="button"
+          data-category="guri"
+        >
+          <span class="cat-icon" aria-hidden="true">🏠</span>
+          <span>Home</span>
+        </button>
+
+
+        <button
+          class="cat category"
+          type="button"
+          data-category="dhisme"
+        >
+          <span class="cat-icon" aria-hidden="true">🧱</span>
+          <span>Building</span>
+        </button>
+
       </div>
+
     </section>
 
-    <section class="section" aria-labelledby="popular-title">
+
+    <!-- BEST SELLING -->
+    <section
+      class="section"
+      aria-labelledby="popular-title"
+    >
+
       <div class="section-head">
-        <h2 id="popular-title">Best Selling</h2>
-        <a href="#products">See all</a>
+
+        <h2 id="popular-title">
+          Best Selling
+        </h2>
+
+        <a href="#products">
+          See all
+        </a>
+
       </div>
+
     </section>
 
-    <main id="products" class="prod-grid" aria-label="Alaabooyinka la heli karo">
-      <article class="prod-card" data-category="ragga"><div class="prod-image jacket" aria-hidden="true">🧥</div><div class="prod-body"><h3>Men's Drift</h3><div class="prod-price">$135.00</div><div class="prod-rating">★ 4.5</div></div></article>
-      <article class="prod-card" data-category="haween"><div class="prod-image blazer" aria-hidden="true">👚</div><div class="prod-body"><h3>Women's Dress</h3><div class="prod-price">$145.00</div><div class="prod-rating">★ 4.8</div></div></article>
-      <article class="prod-card" data-category="ragga"><div class="prod-image shoes" aria-hidden="true">👟</div><div class="prod-body"><h3>Boots</h3><div class="prod-price">$200.00</div><div class="prod-rating">★ 4.6</div></div></article>
+
+    <!-- PRODUCTS -->
+    <main
+      id="products"
+      class="prod-grid"
+      aria-label="Alaabooyinka la heli karo"
+    >
+
+
+      <!-- 1 -->
+      <article
+        class="prod-card"
+        data-category="ragga"
+      >
+
+        <div
+          class="prod-image jacket"
+          aria-hidden="true"
+        >
+          🧥
+        </div>
+
+        <div class="prod-body">
+
+          <h3>Men's Jacket</h3>
+
+          <div class="prod-price">
+            $135.00
+          </div>
+
+          <div class="prod-rating">
+            ★ 4.5
+          </div>
+
+        </div>
+
+      </article>
+
+
+      <!-- 2 -->
+      <article
+        class="prod-card"
+        data-category="haween"
+      >
+
+        <div
+          class="prod-image blazer"
+          aria-hidden="true"
+        >
+          👚
+        </div>
+
+        <div class="prod-body">
+
+          <h3>Women's Dress</h3>
+
+          <div class="prod-price">
+            $145.00
+          </div>
+
+          <div class="prod-rating">
+            ★ 4.8
+          </div>
+
+        </div>
+
+      </article>
+
+
+      <!-- 3 -->
+      <article
+        class="prod-card"
+        data-category="ragga"
+      >
+
+        <div
+          class="prod-image shoes"
+          aria-hidden="true"
+        >
+          👟
+        </div>
+
+        <div class="prod-body">
+
+          <h3>Sport Shoes</h3>
+
+          <div class="prod-price">
+            $200.00
+          </div>
+
+          <div class="prod-rating">
+            ★ 4.6
+          </div>
+
+        </div>
+
+      </article>
+
+
+      <!-- 4 -->
+      <article
+        class="prod-card"
+        data-category="ragga"
+      >
+
+        <div class="prod-image" aria-hidden="true">
+          👔
+        </div>
+
+        <div class="prod-body">
+
+          <h3>Men Shirt</h3>
+
+          <div class="prod-price">
+            $35.00
+          </div>
+
+          <div class="prod-rating">
+            ★ 4.5
+          </div>
+
+        </div>
+
+      </article>
+
+
+      <!-- 5 -->
+      <article
+        class="prod-card"
+        data-category="haween"
+      >
+
+        <div class="prod-image" aria-hidden="true">
+          👗
+        </div>
+
+        <div class="prod-body">
+
+          <h3>Elegant Dress</h3>
+
+          <div class="prod-price">
+            $75.00
+          </div>
+
+          <div class="prod-rating">
+            ★ 4.7
+          </div>
+
+        </div>
+
+      </article>
+
+
+      <!-- 6 -->
+      <article
+        class="prod-card"
+        data-category="caruur"
+      >
+
+        <div class="prod-image" aria-hidden="true">
+          🧸
+        </div>
+
+        <div class="prod-body">
+
+          <h3>Kids Toy</h3>
+
+          <div class="prod-price">
+            $18.00
+          </div>
+
+          <div class="prod-rating">
+            ★ 4.7
+          </div>
+
+        </div>
+
+      </article>
+
+
+      <!-- 7 -->
+      <article
+        class="prod-card"
+        data-category="caruur"
+      >
+
+        <div class="prod-image" aria-hidden="true">
+          👶
+        </div>
+
+        <div class="prod-body">
+
+          <h3>Baby Clothes</h3>
+
+          <div class="prod-price">
+            $22.00
+          </div>
+
+          <div class="prod-rating">
+            ★ 4.5
+          </div>
+
+        </div>
+
+      </article>
+
+
+      <!-- 8 -->
+      <article
+        class="prod-card"
+        data-category="beauty"
+      >
+
+        <div class="prod-image" aria-hidden="true">
+          🧴
+        </div>
+
+        <div class="prod-body">
+
+          <h3>Perfume</h3>
+
+          <div class="prod-price">
+            $28.00
+          </div>
+
+          <div class="prod-rating">
+            ★ 4.8
+          </div>
+
+        </div>
+
+      </article>
+
+
+      <!-- 9 -->
+      <article
+        class="prod-card"
+        data-category="beauty"
+      >
+
+        <div class="prod-image" aria-hidden="true">
+          💄
+        </div>
+
+        <div class="prod-body">
+
+          <h3>Beauty Kit</h3>
+
+          <div class="prod-price">
+            $40.00
+          </div>
+
+          <div class="prod-rating">
+            ★ 4.6
+          </div>
+
+        </div>
+
+      </article>
+
+
+      <!-- 10 -->
+      <article
+        class="prod-card"
+        data-category="cunto"
+      >
+
+        <div class="prod-image" aria-hidden="true">
+          🍚
+        </div>
+
+        <div class="prod-body">
+
+          <h3>Rice</h3>
+
+          <div class="prod-price">
+            $32.00
+          </div>
+
+          <div class="prod-rating">
+            ★ 4.4
+          </div>
+
+        </div>
+
+      </article>
+
+
+      <!-- 11 -->
+      <article
+        class="prod-card"
+        data-category="cunto"
+      >
+
+        <div class="prod-image" aria-hidden="true">
+          🍎
+        </div>
+
+        <div class="prod-body">
+
+          <h3>Fresh Fruits</h3>
+
+          <div class="prod-price">
+            $14.00
+          </div>
+
+          <div class="prod-rating">
+            ★ 4.6
+          </div>
+
+        </div>
+
+      </article>
+
+
+      <!-- 12 -->
+      <article
+        class="prod-card"
+        data-category="cunto"
+      >
+
+        <div class="prod-image" aria-hidden="true">
+          🥛
+        </div>
+
+        <div class="prod-body">
+
+          <h3>Fresh Milk</h3>
+
+          <div class="prod-price">
+            $8.00
+          </div>
+
+          <div class="prod-rating">
+            ★ 4.3
+          </div>
+
+        </div>
+
+      </article>
+
+
+      <!-- 13 -->
+      <article
+        class="prod-card"
+        data-category="electronics"
+      >
+
+        <div class="prod-image" aria-hidden="true">
+          📱
+        </div>
+
+        <div class="prod-body">
+
+          <h3>Smartphone</h3>
+
+          <div class="prod-price">
+            $180.00
+          </div>
+
+          <div class="prod-rating">
+            ★ 4.7
+          </div>
+
+        </div>
+
+      </article>
+
+
+      <!-- 14 -->
+      <article
+        class="prod-card"
+        data-category="electronics"
+      >
+
+        <div class="prod-image" aria-hidden="true">
+          🎧
+        </div>
+
+        <div class="prod-body">
+
+          <h3>Headphones</h3>
+
+          <div class="prod-price">
+            $35.00
+          </div>
+
+          <div class="prod-rating">
+            ★ 4.5
+          </div>
+
+        </div>
+
+      </article>
+
+
+      <!-- 15 -->
+      <article
+        class="prod-card"
+        data-category="electronics"
+      >
+
+        <div class="prod-image" aria-hidden="true">
+          ⌚
+        </div>
+
+        <div class="prod-body">
+
+          <h3>Smart Watch</h3>
+
+          <div class="prod-price">
+            $55.00
+          </div>
+
+          <div class="prod-rating">
+            ★ 4.4
+          </div>
+
+        </div>
+
+      </article>
+
+
+      <!-- 16 -->
+      <article
+        class="prod-card"
+        data-category="electronics"
+      >
+
+        <div class="prod-image" aria-hidden="true">
+          💻
+        </div>
+
+        <div class="prod-body">
+
+          <h3>Laptop</h3>
+
+          <div class="prod-price">
+            $450.00
+          </div>
+
+          <div class="prod-rating">
+            ★ 4.8
+          </div>
+
+        </div>
+
+      </article>
+
+
+      <!-- 17 -->
+      <article
+        class="prod-card"
+        data-category="guri"
+      >
+
+        <div class="prod-image" aria-hidden="true">
+          🛋️
+        </div>
+
+        <div class="prod-body">
+
+          <h3>Sofa</h3>
+
+          <div class="prod-price">
+            $250.00
+          </div>
+
+          <div class="prod-rating">
+            ★ 4.6
+          </div>
+
+        </div>
+
+      </article>
+
+
+      <!-- 18 -->
+      <article
+        class="prod-card"
+        data-category="guri"
+      >
+
+        <div class="prod-image" aria-hidden="true">
+          🪑
+        </div>
+
+        <div class="prod-body">
+
+          <h3>Chair</h3>
+
+          <div class="prod-price">
+            $35.00
+          </div>
+
+          <div class="prod-rating">
+            ★ 4.4
+          </div>
+
+        </div>
+
+      </article>
+
+
+      <!-- 19 -->
+      <article
+        class="prod-card"
+        data-category="guri"
+      >
+
+        <div class="prod-image" aria-hidden="true">
+          💡
+        </div>
+
+        <div class="prod-body">
+
+          <h3>Table Lamp</h3>
+
+          <div class="prod-price">
+            $15.00
+          </div>
+
+          <div class="prod-rating">
+            ★ 4.5
+          </div>
+
+        </div>
+
+      </article>
+
+
+      <!-- 20 -->
+      <article
+        class="prod-card"
+        data-category="guri"
+      >
+
+        <div class="prod-image" aria-hidden="true">
+          🧹
+        </div>
+
+        <div class="prod-body">
+
+          <h3>Home Tools</h3>
+
+          <div class="prod-price">
+            $25.00
+          </div>
+
+          <div class="prod-rating">
+            ★ 4.3
+          </div>
+
+        </div>
+
+      </article>
+
+
+      <!-- 21 -->
+      <article
+        class="prod-card"
+        data-category="dhisme"
+      >
+
+        <div class="prod-image" aria-hidden="true">
+          🧱
+        </div>
+
+        <div class="prod-body">
+
+          <h3>Building Material</h3>
+
+          <div class="prod-price">
+            $34.00
+          </div>
+
+          <div class="prod-rating">
+            ★ 4.4
+          </div>
+
+        </div>
+
+      </article>
+
+
+      <!-- 22 -->
+      <article
+        class="prod-card"
+        data-category="dhisme"
+      >
+
+        <div class="prod-image" aria-hidden="true">
+          🧰
+        </div>
+
+        <div class="prod-body">
+
+          <h3>Work Tools</h3>
+
+          <div class="prod-price">
+            $75.00
+          </div>
+
+          <div class="prod-rating">
+            ★ 4.6
+          </div>
+
+        </div>
+
+      </article>
+
+
+      <!-- 23 -->
+      <article
+        class="prod-card"
+        data-category="ragga"
+      >
+
+        <div class="prod-image" aria-hidden="true">
+          👞
+        </div>
+
+        <div class="prod-body">
+
+          <h3>Men Shoes</h3>
+
+          <div class="prod-price">
+            $48.00
+          </div>
+
+          <div class="prod-rating">
+            ★ 4.5
+          </div>
+
+        </div>
+
+      </article>
+
+
+      <!-- 24 -->
+      <article
+        class="prod-card"
+        data-category="haween"
+      >
+
+        <div class="prod-image" aria-hidden="true">
+          👜
+        </div>
+
+        <div class="prod-body">
+
+          <h3>Women's Bag</h3>
+
+          <div class="prod-price">
+            $40.00
+          </div>
+
+          <div class="prod-rating">
+            ★ 4.6
+          </div>
+
+        </div>
+
+      </article>
+
+
+      <!-- 25 -->
+      <article
+        class="prod-card"
+        data-category="beauty"
+      >
+
+        <div class="prod-image" aria-hidden="true">
+          🕶️
+        </div>
+
+        <div class="prod-body">
+
+          <h3>Fashion Glasses</h3>
+
+          <div class="prod-price">
+            $20.00
+          </div>
+
+          <div class="prod-rating">
+            ★ 4.5
+          </div>
+
+        </div>
+
+      </article>
+
     </main>
 
-    <nav class="bottom-nav" aria-label="Navigation-ka hoose">
-      <button class="nav-item active" type="button"><span class="n-icon" aria-hidden="true">🏠</span><span>Home</span></button>
-      <button class="nav-item" type="button"><span class="n-icon" aria-hidden="true">▦</span><span>Categories</span></button>
-      <button class="nav-item" type="button"><span class="n-icon" aria-hidden="true">🛒</span><span>Cart</span></button>
-      <button class="nav-item" type="button"><span class="n-icon" aria-hidden="true">📦</span><span>Orders</span></button>
-      <button class="nav-item" type="button"><span class="n-icon" aria-hidden="true">👤</span><span>Account</span></button>
+
+    <!-- BOTTOM NAVIGATION -->
+    <nav
+      class="bottom-nav"
+      aria-label="Navigation-ka hoose"
+    >
+
+      <button
+        class="nav-item active"
+        type="button"
+      >
+        <span
+          class="n-icon"
+          aria-hidden="true"
+        >
+          🏠
+        </span>
+
+        <span>
+          Home
+        </span>
+      </button>
+
+
+      <button
+        class="nav-item"
+        type="button"
+      >
+        <span
+          class="n-icon"
+          aria-hidden="true"
+        >
+          ▦
+        </span>
+
+        <span>
+          Categories
+        </span>
+      </button>
+
+
+      <button
+        class="nav-item"
+        type="button"
+      >
+        <span
+          class="n-icon"
+          aria-hidden="true"
+        >
+          🛒
+        </span>
+
+        <span>
+          Cart
+        </span>
+      </button>
+
+
+      <button
+        class="nav-item"
+        type="button"
+      >
+        <span
+          class="n-icon"
+          aria-hidden="true"
+        >
+          📦
+        </span>
+
+        <span>
+          Orders
+        </span>
+      </button>
+
+
+      <button
+        class="nav-item"
+        type="button"
+      >
+        <span
+          class="n-icon"
+          aria-hidden="true"
+        >
+          👤
+        </span>
+
+        <span>
+          Account
+        </span>
+      </button>
+
     </nav>
+
   </div>
 
+
+  <!-- JAVASCRIPT -->
   <script src="script.js"></script>
+
 </body>
-</html>
+  </html>

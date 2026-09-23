@@ -3055,20 +3055,51 @@ function openCompare() {
 }
 
 
-/* =========================================================
+
    41. AUTHENTICATION
 ========================================================= */
 
-async function openAuth() {
+async function openAuth(mode = "login") {
+
+  const isSignup =
+    mode === "signup";
 
   openModal(
-    "Soo gal WaHeN",
+    isSignup
+      ? "Samee Account-ka WaHeN"
+      : "Soo gal WaHeN",
 
     `
       <form
         id="auth-form"
         class="form-grid"
       >
+
+        ${
+          isSignup
+            ? `
+              <label>
+                Magaca oo dhan
+
+                <input
+                  name="full_name"
+                  type="text"
+                  required
+                >
+              </label>
+
+              <label>
+                Phone
+
+                <input
+                  name="phone"
+                  type="tel"
+                  required
+                >
+              </label>
+            `
+            : ""
+        }
 
         <label>
           Email
@@ -3086,6 +3117,7 @@ async function openAuth() {
           <input
             name="password"
             type="password"
+            minlength="6"
             required
           >
         </label>
@@ -3094,7 +3126,23 @@ async function openAuth() {
           class="primary-btn"
           type="submit"
         >
-          Soo gal
+          ${
+            isSignup
+              ? "Samee Account"
+              : "Soo gal"
+          }
+        </button>
+
+        <button
+          class="secondary-btn"
+          id="auth-switch"
+          type="button"
+        >
+          ${
+            isSignup
+              ? "Hore account ma u leedahay? Soo gal"
+              : "Account ma lihid? Samee account"
+          }
         </button>
 
       </form>
@@ -3102,11 +3150,31 @@ async function openAuth() {
 
     (modal) => {
 
-      modal
-        .querySelector(
+      const form =
+        modal.querySelector(
           "#auth-form"
-        )
-        .onsubmit =
+        );
+
+      const switchButton =
+        modal.querySelector(
+          "#auth-switch"
+        );
+
+      switchButton?.addEventListener(
+        "click",
+        () => {
+
+          modal.remove();
+
+          openAuth(
+            isSignup
+              ? "login"
+              : "signup"
+          );
+        }
+      );
+
+      form.onsubmit =
         async (event) => {
 
           event.preventDefault();
@@ -3117,16 +3185,85 @@ async function openAuth() {
             );
           }
 
-          const form =
+          const formData =
             new FormData(
               event.target
             );
 
           const email =
-            form.get("email");
+            String(
+              formData.get("email") || ""
+            ).trim();
 
           const password =
-            form.get("password");
+            String(
+              formData.get("password") || ""
+            );
+
+          if (isSignup) {
+
+            const fullName =
+              String(
+                formData.get("full_name") || ""
+              ).trim();
+
+            const phone =
+              String(
+                formData.get("phone") || ""
+              ).trim();
+
+            const {
+              data,
+              error
+            } =
+              await supabaseClient
+                .auth
+                .signUp({
+                  email,
+                  password,
+                  options: {
+                    data: {
+                      full_name:
+                        fullName,
+                      phone:
+                        phone,
+                      role:
+                        "customer"
+                    }
+                  }
+                });
+
+            if (error) {
+
+              console.error(
+                "Signup error:",
+                error
+              );
+
+              return toast(
+                error.message
+              );
+            }
+
+            if (!data?.user) {
+              return toast(
+                "Account lama samayn."
+              );
+            }
+
+            modal.remove();
+
+            await loadCurrentUser();
+
+            renderAccount();
+
+            notify(
+              "Account-ka WaHeN waa la sameeyay."
+            );
+
+            return;
+          }
+
 
           const {
             error
@@ -3160,9 +3297,6 @@ async function openAuth() {
     }
   );
 }
-
-
-/* =========================================================
    42. ACCOUNT VIEW
 ========================================================= */
 

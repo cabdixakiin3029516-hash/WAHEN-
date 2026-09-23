@@ -3297,7 +3297,7 @@ async function openAuth(mode = "login") {
     }
   );
 }
-  }
+  
 
 /* =========================================================
    42. ACCOUNT VIEW

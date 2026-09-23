@@ -3145,11 +3145,9 @@ function openCompare() {
   );
 }
 
-
 /* =========================================================
    41. AUTHENTICATION
 ========================================================= */
-
 async function openAuth(mode = "login") {
 
   const isSignup =

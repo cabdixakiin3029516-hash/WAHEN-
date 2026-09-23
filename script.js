@@ -2115,6 +2115,13 @@ function openModal(
   after
 ) {
 
+  // Ka saar modal hore haddii uu jiro
+  document
+    .querySelectorAll(".overlay")
+    .forEach((oldOverlay) => {
+      oldOverlay.remove();
+    });
+
   const overlay =
     document.createElement(
       "div"
@@ -2178,7 +2185,6 @@ function openModal(
 
   return overlay;
 }
-
 
 /* =========================================================
    36. CART MODAL

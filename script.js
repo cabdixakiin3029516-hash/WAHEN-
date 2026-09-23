@@ -4717,7 +4717,9 @@ async function action(name) {
     name === "account"
   ) {
 
-    setActiveView(
+  openProfile();
+  return;
+}  setActiveView(
       "account"
     );
 

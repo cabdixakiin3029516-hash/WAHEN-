@@ -1,15 +1,15 @@
 :root {
-  --sky-light: #d7b3ff;
-  --sky: #8a63ff;
-  --sky-deep: #5b3de6;
-  --green-bg: #f4ecff;
-  --green-soft: #f7f2ff;
-  --gold: #ffb86c;
-  --gold-soft: #ffe6bf;
-  --text: #2b2342;
-  --muted: #695f83;
+  --sky-light: #d7f0ff;
+  --sky: #6cc4ff;
+  --sky-deep: #1a8ef5;
+  --green-bg: #ebf9ff;
+  --green-soft: #f2fcff;
+  --gold: #ffd77a;
+  --gold-soft: #fff4c7;
+  --text: #123d57;
+  --muted: #4f6d7c;
   --panel: rgba(255, 255, 255, 0.82);
-  --shadow: rgba(56, 38, 97, 0.16);
+  --shadow: rgba(17, 78, 126, 0.12);
 }
 
 * { box-sizing: border-box; }
@@ -17,7 +17,7 @@ html, body { margin: 0; min-height: 100%; }
 
 body {
   min-height: 100vh;
-  background: linear-gradient(180deg, var(--green-bg) 0%, #e8dcff 100%);
+  background: linear-gradient(180deg, var(--green-bg) 0%, #d9f1ff 100%);
   color: var(--text);
   font-family: "Segoe UI", Arial, Helvetica, sans-serif;
   padding: 28px 18px;
@@ -55,7 +55,7 @@ a { color: inherit; }
   padding: 12px 18px;
   border-radius: 999px;
   background: linear-gradient(135deg, var(--sky-deep), var(--sky), var(--sky-light));
-  box-shadow: 0 18px 28px rgba(91, 61, 230, 0.35), inset 0 1px 2px rgba(255, 255, 255, 0.7);
+  box-shadow: 0 18px 28px rgba(26, 142, 245, 0.35), inset 0 1px 2px rgba(255, 255, 255, 0.7);
   position: relative;
   overflow: hidden;
   transition: transform 0.25s ease, box-shadow 0.25s ease;
@@ -64,7 +64,7 @@ a { color: inherit; }
 
 .logo:hover {
   transform: translateY(-2px) scale(1.02);
-  box-shadow: 0 22px 32px rgba(91, 61, 230, 0.42), inset 0 1px 2px rgba(255, 255, 255, 0.8);
+  box-shadow: 0 22px 32px rgba(26, 142, 245, 0.42), inset 0 1px 2px rgba(255, 255, 255, 0.8);
 }
 
 .logo::before {
@@ -98,12 +98,12 @@ a { color: inherit; }
 
 .logout {
   border: none;
-  background: linear-gradient(135deg, #fff7d9, var(--gold-soft));
+  background: linear-gradient(135deg, #fff9df, var(--gold-soft));
   color: var(--text);
   border-radius: 999px;
   padding: 11px 18px;
   font-weight: 700;
-  box-shadow: 0 10px 22px rgba(255, 184, 108, 0.28);
+  box-shadow: 0 10px 22px rgba(255, 215, 122, 0.28);
   cursor: pointer;
 }
 
@@ -117,8 +117,8 @@ a { color: inherit; }
 
 .eyebrow {
   display: inline-block;
-  background: rgba(138, 99, 255, 0.14);
-  color: #5b3de6;
+  background: rgba(26, 142, 245, 0.12);
+  color: #0f79d5;
   padding: 8px 12px;
   border-radius: 999px;
   font-size: 0.72rem;
@@ -154,7 +154,7 @@ a { color: inherit; }
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  box-shadow: 0 12px 20px rgba(47, 38, 70, 0.06);
+  box-shadow: 0 12px 20px rgba(22, 74, 117, 0.06);
 }
 
 .cards article span {
@@ -176,7 +176,7 @@ a { color: inherit; }
   border-radius: 30px;
   margin-top: 18px;
   padding: 18px 16px;
-  box-shadow: 0 10px 18px rgba(33, 23, 52, 0.05);
+  box-shadow: 0 10px 18px rgba(16, 62, 91, 0.05);
 }
 
 .panel h2 {
@@ -233,7 +233,7 @@ a { color: inherit; }
   border-radius: 999px;
   background: linear-gradient(135deg, var(--sky), var(--sky-light));
   color: #fff;
-  box-shadow: 0 14px 24px rgba(138, 99, 255, 0.26);
+  box-shadow: 0 14px 24px rgba(26, 142, 245, 0.24);
 }
 
 @keyframes floatLogo {

@@ -81,7 +81,7 @@ const state = {
   selectedProduct: null,
 
   cart: [],
-
+cartId: null,
   wishlist: new Set(),
 
   compare: new Set(),

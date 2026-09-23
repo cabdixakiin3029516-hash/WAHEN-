@@ -1,271 +1,1104 @@
 <!DOCTYPE html>
 <html lang="so">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#f8681d" />
-    <meta
-      name="description"
-      content="WaHeN marketplace, app-ka suuqda dijitaalka ah ee alaabaha iyo dukaamada."
-    />
-    <title>WaHeN Marketplace</title>
-    <link rel="stylesheet" href="style.css" />
-  </head>
-  <body>
-    <div class="app-shell">
-      <div class="phone">
-        <div class="statusbar" aria-label="Status bar">
-          <span>9:41</span>
-          <span aria-hidden="true">📶 🔋</span>
-        </div>
 
-        <header class="topbar">
-          <button class="icon-btn" type="button" id="menu-btn" aria-label="Fur menu">☰</button>
-          <a class="brand" href="#" data-view="home">WaHeN</a>
-          <button class="icon-btn cart-button" type="button" id="cart-btn" aria-label="Fur gaadhiga wax iibsiga">
-            🛒
-            <span id="cart-count" class="cart-count">0</span>
-          </button>
-        </header>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-        <form class="search" id="search-form" novalidate>
-          <span aria-hidden="true">🔍</span>
-          <input id="product-search" type="search" placeholder="Raadi alaab..." autocomplete="off" />
-        </form>
+  <meta
+    name="description"
+    content="WaHeN — Suuq dijitaal ah oo aad ka heli karto alaabo, adeegyo, jumlado iyo ganacsiyo."
+  >
 
-        <div class="screen-tabs" aria-label="Tab buttons">
-          <button class="tab active" data-view="home" type="button">Home</button>
-          <button class="tab" data-view="buyer" type="button">Buyer</button>
-          <button class="tab" data-view="seller" type="button">Seller</button>
-          <button class="tab" data-view="admin" type="button">Admin</button>
-        </div>
+  <title>WaHeN Marketplace</title>
 
-        <main class="page-stack">
-          <section class="view active" data-view="home">
-            <section class="hero" aria-labelledby="hero-title">
-              <div class="hero-copy">
-                <div class="hero-eyebrow">Summer Sale</div>
-                <h1 id="hero-title">Qiimo-dhimis<br />ilaa 30%</h1>
-                <p class="hero-sub">Alaabooyin tayo leh oo la xafidday.</p>
-                <button class="hero-cta" type="button" data-action="shop-now">Shop Now</button>
-              </div>
-              <div class="hero-figure" aria-hidden="true">🛍️</div>
-            </section>
+  <link rel="stylesheet" href="style.css">
+</head>
 
-            <div class="section-head">
-              <h2>Qaybaha</h2>
-              <button class="text-btn" type="button" data-action="show-all">Dhammaan</button>
-            </div>
+<body>
 
-            <div class="cat-grid" id="category-grid">
-              <button class="category" type="button" data-category="ragga"><span class="cat-icon">👔</span><span>Men</span></button>
-              <button class="category" type="button" data-category="haween"><span class="cat-icon">👗</span><span>Women</span></button>
-              <button class="category" type="button" data-category="caruur"><span class="cat-icon">🍼</span><span>Kids</span></button>
-              <button class="category" type="button" data-category="beauty"><span class="cat-icon">🧴</span><span>Beauty</span></button>
-              <button class="category" type="button" data-category="cunto"><span class="cat-icon">🍽️</span><span>Food</span></button>
-              <button class="category" type="button" data-category="electronics"><span class="cat-icon">🔌</span><span>Electronics</span></button>
-              <button class="category" type="button" data-category="guri"><span class="cat-icon">🏠</span><span>Home</span></button>
-              <button class="category" type="button" data-category="dhisme"><span class="cat-icon">🧱</span><span>Building</span></button>
-            </div>
+  <div class="app-shell">
 
-            <div class="section-head">
-              <h2>Alaabaka caanka ah</h2>
-              <button class="text-btn" type="button" data-action="show-all">Dhammaan</button>
-            </div>
+    <div class="phone">
 
-            <div class="prod-grid" id="product-grid" aria-live="polite"></div>
-          </section>
+      <!-- STATUS BAR -->
+      <div class="statusbar">
+        <span id="current-time">WaHeN</span>
 
-          <section class="view" data-view="buyer">
-            <div class="dashboard-header">
-              <h2>Buyer Dashboard</h2>
-              <span class="pill success">Active</span>
-            </div>
-
-            <div class="stats-grid three">
-              <div class="stat-card">
-                <small>Wallet</small>
-                <strong>$1,240</strong>
-              </div>
-              <div class="stat-card">
-                <small>Orders</small>
-                <strong>08</strong>
-              </div>
-              <div class="stat-card">
-                <small>Favorites</small>
-                <strong id="favorite-total">0</strong>
-              </div>
-            </div>
-
-            <div class="panel">
-              <div class="panel-head">
-                <h3>Dalabyadii ugu dambeeyay</h3>
-                <button class="text-btn" type="button" data-action="view-orders">Dhammaan</button>
-              </div>
-              <div class="order-list" id="buyer-order-list"></div>
-            </div>
-
-            <div class="panel">
-              <div class="panel-head">
-                <h3>Alaabta la keydiyay</h3>
-                <button class="text-btn" type="button" data-action="favorites">Fiiri</button>
-              </div>
-              <div class="chip-row">
-                <span class="chip">👔 Shirt</span>
-                <span class="chip">👗 Dress</span>
-                <span class="chip">🎧 Headphones</span>
-              </div>
-            </div>
-          </section>
-
-          <section class="view" data-view="seller">
-            <div class="dashboard-header">
-              <h2>Seller Dashboard</h2>
-              <button class="pill" type="button" data-action="store-profile">My Store</button>
-            </div>
-
-            <div class="stats-grid three">
-              <div class="stat-card">
-                <small>Sales</small>
-                <strong>$8,420</strong>
-              </div>
-              <div class="stat-card">
-                <small>Products</small>
-                <strong>48</strong>
-              </div>
-              <div class="stat-card">
-                <small>Rating</small>
-                <strong>4.8★</strong>
-              </div>
-            </div>
-
-            <div class="panel chart-panel">
-              <div class="panel-head">
-                <h3>Iibka toddobaadkan</h3>
-                <span class="pill success">+18.2%</span>
-              </div>
-
-              <div class="bars" aria-hidden="true">
-                <span style="--h: 38%"></span>
-                <span style="--h: 58%"></span>
-                <span style="--h: 48%"></span>
-                <span style="--h: 76%"></span>
-                <span style="--h: 62%"></span>
-                <span style="--h: 92%"></span>
-                <span style="--h: 70%"></span>
-              </div>
-
-              <div class="days-labels">
-                <span>Isniin</span>
-                <span>Talaado</span>
-                <span>Arbaco</span>
-                <span>Khamiis</span>
-                <span>Jimce</span>
-                <span>Sabti</span>
-                <span>Axad</span>
-              </div>
-            </div>
-
-            <div class="panel">
-              <div class="panel-head">
-                <h3>Maamulka dukaanka</h3>
-              </div>
-              <div class="action-grid">
-                <button type="button" data-action="add-product">➕ Ku dar alaab</button>
-                <button type="button" data-action="inventory">📦 Stock</button>
-                <button type="button" data-action="seller-orders">🧾 Dalabyada</button>
-                <button type="button" data-action="promotions">🏷️ Xayeysiin</button>
-              </div>
-            </div>
-          </section>
-
-          <section class="view" data-view="admin">
-            <div class="dashboard-header">
-              <h2>Admin Panel</h2>
-              <span class="pill">Control Center</span>
-            </div>
-
-            <div class="stats-grid two">
-              <div class="stat-card">
-                <small>Revenue</small>
-                <strong>$24.8K</strong>
-                <em>+18.2%</em>
-              </div>
-              <div class="stat-card">
-                <small>Orders</small>
-                <strong>1,284</strong>
-                <em>+214</em>
-              </div>
-              <div class="stat-card">
-                <small>Users</small>
-                <strong>9,410</strong>
-                <em>+9.4%</em>
-              </div>
-              <div class="stat-card">
-                <small>Returns</small>
-                <strong>42</strong>
-                <em>Low risk</em>
-              </div>
-            </div>
-
-            <div class="panel">
-              <div class="panel-head">
-                <h3>Quick Actions</h3>
-              </div>
-              <div class="action-grid">
-                <button type="button" data-action="manage-users">👥 Users</button>
-                <button type="button" data-action="manage-products">🛍️ Products</button>
-                <button type="button" data-action="manage-orders">📋 Orders</button>
-                <button type="button" data-action="settings">⚙️ Settings</button>
-              </div>
-            </div>
-
-            <div class="panel">
-              <div class="panel-head">
-                <h3>Top Selling</h3>
-                <button class="text-btn" type="button" data-action="export">Export</button>
-              </div>
-
-              <div class="sales-list">
-                <p><span>📱 Smartphone</span><b>184</b></p>
-                <p><span>👗 Women's Dress</span><b>142</b></p>
-                <p><span>💻 Laptop</span><b>96</b></p>
-                <p><span>🧰 Home Tools</span><b>87</b></p>
-              </div>
-            </div>
-          </section>
-        </main>
-
-        <nav class="bottom-nav" aria-label="Bottom navigation">
-          <button class="nav-item active" type="button" data-view="home">
-            <span class="nav-icon" aria-hidden="true">🏠</span>
-            <span>Home</span>
-          </button>
-          <button class="nav-item" type="button" data-action="categories">
-            <span class="nav-icon" aria-hidden="true">▦</span>
-            <span>Qaybaha</span>
-          </button>
-          <button class="nav-item" type="button" data-view="buyer">
-            <span class="nav-icon" aria-hidden="true">🛒</span>
-            <span>Buyer</span>
-          </button>
-          <button class="nav-item" type="button" data-view="seller">
-            <span class="nav-icon" aria-hidden="true">🏪</span>
-            <span>Seller</span>
-          </button>
-          <button class="nav-item" type="button" data-view="admin">
-            <span class="nav-icon" aria-hidden="true">⚙️</span>
-            <span>Admin</span>
-          </button>
-        </nav>
+        <span>
+          ● ● ●
+        </span>
       </div>
+
+
+      <!-- TOP BAR -->
+      <header class="topbar">
+
+        <button
+          class="icon-btn"
+          id="menu-btn"
+          type="button"
+          aria-label="Account"
+        >
+          👤
+        </button>
+
+        <a
+          href="#"
+          class="brand"
+          id="home-brand"
+        >
+          WaHeN
+        </a>
+
+        <button
+          class="icon-btn cart-button"
+          id="cart-btn"
+          type="button"
+          aria-label="Cart"
+        >
+          🛒
+          <span
+            class="cart-count"
+            id="cart-count"
+          >
+            0
+          </span>
+        </button>
+
+      </header>
+
+
+      <!-- SEARCH -->
+      <div class="search">
+
+        <span aria-hidden="true">🔍</span>
+
+        <input
+          id="product-search"
+          type="search"
+          placeholder="Raadi alaab, adeeg ama ganacsi..."
+          autocomplete="off"
+        >
+
+      </div>
+
+
+      <!-- MAIN CONTENT -->
+      <main class="page-stack">
+
+
+        <!-- =========================================
+             HOME
+        ========================================== -->
+        <section
+          class="view active"
+          data-view="home"
+          id="home-view"
+        >
+
+          <!-- HERO -->
+          <div class="hero">
+
+            <div class="hero-copy">
+
+              <div class="hero-eyebrow">
+                WAHEN MARKETPLACE
+              </div>
+
+              <h1>
+                Wax kasta<br>
+                hal meel ka hel
+              </h1>
+
+              <p class="hero-sub">
+                Alaabo, adeegyo, ganacsiyo iyo jumlado
+                meel keliya ka raadi.
+              </p>
+
+              <button
+                class="hero-cta"
+                type="button"
+                data-action="show-all"
+              >
+                Bilow Raadinta
+              </button>
+
+            </div>
+
+            <div
+              class="hero-figure"
+              aria-hidden="true"
+            >
+              🛍️
+            </div>
+
+          </div>
+
+
+          <!-- CATEGORIES PREVIEW -->
+          <div class="section-head">
+
+            <h2>Qaybaha</h2>
+
+            <button
+              class="text-btn"
+              type="button"
+              data-action="categories"
+            >
+              Dhammaan
+            </button>
+
+          </div>
+
+          <div
+            class="cat-grid"
+            id="home-categories"
+          >
+
+            <button
+              class="category active"
+              data-category="all"
+              type="button"
+            >
+              <span class="cat-icon">🛍️</span>
+              <span>Dhammaan</span>
+            </button>
+
+            <button
+              class="category"
+              data-category="fashion"
+              type="button"
+            >
+              <span class="cat-icon">👕</span>
+              <span>Dharka</span>
+            </button>
+
+            <button
+              class="category"
+              data-category="electronics"
+              type="button"
+            >
+              <span class="cat-icon">📱</span>
+              <span>Electronics</span>
+            </button>
+
+            <button
+              class="category"
+              data-category="home"
+              type="button"
+            >
+              <span class="cat-icon">🏠</span>
+              <span>Guriga</span>
+            </button>
+
+            <button
+              class="category"
+              data-category="beauty"
+              type="button"
+            >
+              <span class="cat-icon">💄</span>
+              <span>Beauty</span>
+            </button>
+
+            <button
+              class="category"
+              data-category="food"
+              type="button"
+            >
+              <span class="cat-icon">🍎</span>
+              <span>Raashin</span>
+            </button>
+
+            <button
+              class="category"
+              data-category="services"
+              type="button"
+            >
+              <span class="cat-icon">🛠️</span>
+              <span>Adeegyo</span>
+            </button>
+
+            <button
+              class="category"
+              data-category="business"
+              type="button"
+            >
+              <span class="cat-icon">🏪</span>
+              <span>Ganacsi</span>
+            </button>
+
+          </div>
+
+
+          <!-- PRODUCTS -->
+          <div class="section-head">
+
+            <h2>Alaabaha</h2>
+
+            <button
+              class="text-btn"
+              type="button"
+              data-action="show-all"
+            >
+              Dhammaan
+            </button>
+
+          </div>
+
+          <div
+            class="prod-grid"
+            id="product-grid"
+          >
+            <!-- script.js ayaa alaabaha halkan gelinaya -->
+          </div>
+
+        </section>
+
+
+
+        <!-- =========================================
+             CATEGORIES
+        ========================================== -->
+        <section
+          class="view"
+          data-view="categories"
+          id="categories-view"
+        >
+
+          <div class="section-head">
+
+            <h2>Qaybaha</h2>
+
+          </div>
+
+          <p class="empty-text">
+            Ka raadi qaybta aad u baahan tahay.
+            Qaybo cusub mustaqbalka waa lagu dari karaa.
+          </p>
+
+          <div
+            class="cat-grid"
+            id="all-categories"
+          >
+
+            <button class="category active" data-category="all" type="button">
+              <span class="cat-icon">🛍️</span>
+              <span>Dhammaan</span>
+            </button>
+
+            <button class="category" data-category="fashion" type="button">
+              <span class="cat-icon">👕</span>
+              <span>Dharka</span>
+            </button>
+
+            <button class="category" data-category="electronics" type="button">
+              <span class="cat-icon">📱</span>
+              <span>Electronics</span>
+            </button>
+
+            <button class="category" data-category="home" type="button">
+              <span class="cat-icon">🏠</span>
+              <span>Guriga</span>
+            </button>
+
+            <button class="category" data-category="beauty" type="button">
+              <span class="cat-icon">💄</span>
+              <span>Beauty</span>
+            </button>
+
+            <button class="category" data-category="food" type="button">
+              <span class="cat-icon">🍎</span>
+              <span>Raashin</span>
+            </button>
+
+            <button class="category" data-category="services" type="button">
+              <span class="cat-icon">🛠️</span>
+              <span>Adeegyo</span>
+            </button>
+
+            <button class="category" data-category="business" type="button">
+              <span class="cat-icon">🏪</span>
+              <span>Ganacsi</span>
+            </button>
+
+            <button class="category" data-category="wholesale" type="button">
+              <span class="cat-icon">📦</span>
+              <span>Jumlo</span>
+            </button>
+
+            <button class="category" data-category="phones" type="button">
+              <span class="cat-icon">📲</span>
+              <span>Phones</span>
+            </button>
+
+            <button class="category" data-category="shoes" type="button">
+              <span class="cat-icon">👟</span>
+              <span>Kabo</span>
+            </button>
+
+            <button class="category" data-category="furniture" type="button">
+              <span class="cat-icon">🛋️</span>
+              <span>Furniture</span>
+            </button>
+
+          </div>
+
+        </section>
+
+
+
+        <!-- =========================================
+             WHOLESALE
+        ========================================== -->
+        <section
+          class="view"
+          data-view="wholesale"
+          id="wholesale-view"
+        >
+
+          <div class="section-head">
+
+            <h2>Jumladaha</h2>
+
+          </div>
+
+          <div class="wholesale-card">
+
+            <h3>
+              📦 Alaab Jumlo ah
+            </h3>
+
+            <p>
+              Raadi alaab tiro badan lagu iibiyo,
+              qiimaha jumlada iyo ganacsatada.
+            </p>
+
+            <br>
+
+            <button
+              class="primary-blue"
+              type="button"
+              data-action="wholesale-search"
+            >
+              Raadi Jumlo
+            </button>
+
+          </div>
+
+
+          <div class="panel">
+
+            <div class="panel-head">
+              <h3>Waxyaabaha muhiimka ah</h3>
+            </div>
+
+            <div class="chip-row">
+
+              <span class="chip">Qiime Jumlo</span>
+              <span class="chip">Tiro Badan</span>
+              <span class="chip">Ganacsato</span>
+              <span class="chip">Dalabyo</span>
+
+            </div>
+
+          </div>
+
+          <div
+            class="prod-grid"
+            id="wholesale-products"
+          >
+            <!-- Wholesale products -->
+          </div>
+
+        </section>
+
+
+
+        <!-- =========================================
+             CHAT
+        ========================================== -->
+        <section
+          class="view"
+          data-view="chat"
+          id="chat-view"
+        >
+
+          <div class="section-head">
+
+            <h2>Chat</h2>
+
+            <span class="pill blue">
+              Live
+            </span>
+
+          </div>
+
+          <div class="panel">
+
+            <p class="empty-text">
+              Halkan waxaad kula xiriiri kartaa
+              iibiyaha, delivery-ga ama WaHeN Support.
+            </p>
+
+          </div>
+
+
+          <div class="chat-list">
+
+            <button
+              class="chat-item"
+              type="button"
+              data-chat="support"
+            >
+
+              <span class="chat-avatar">
+                💙
+              </span>
+
+              <span class="chat-info">
+
+                <strong>
+                  WaHeN Support
+                </strong>
+
+                <small>
+                  Sideen kuu caawin karnaa?
+                </small>
+
+              </span>
+
+              <span class="chat-time">
+                Hadda
+              </span>
+
+            </button>
+
+
+            <button
+              class="chat-item"
+              type="button"
+              data-chat="seller"
+            >
+
+              <span class="chat-avatar">
+                🏪
+              </span>
+
+              <span class="chat-info">
+
+                <strong>
+                  Seller
+                </strong>
+
+                <small>
+                  Su'aal ku saabsan alaabta?
+                </small>
+
+              </span>
+
+              <span class="chat-time">
+                —
+              </span>
+
+            </button>
+
+
+            <button
+              class="chat-item"
+              type="button"
+              data-chat="delivery"
+            >
+
+              <span class="chat-avatar">
+                🚚
+              </span>
+
+              <span class="chat-info">
+
+                <strong>
+                  Delivery
+                </strong>
+
+                <small>
+                  Xaaladda dalabkaaga
+                </small>
+
+              </span>
+
+              <span class="chat-time">
+                —
+              </span>
+
+            </button>
+
+          </div>
+
+        </section>
+
+
+
+        <!-- =========================================
+             OUR INFORMATION
+        ========================================== -->
+        <section
+          class="view"
+          data-view="info"
+          id="info-view"
+        >
+
+          <div class="section-head">
+
+            <h2>Xogteena</h2>
+
+          </div>
+
+
+          <div class="panel">
+
+            <div class="panel-head">
+              <h3>Ku saabsan WaHeN</h3>
+            </div>
+
+            <p class="empty-text">
+              WaHeN waa suuq dijitaal ah oo isku xira
+              macaamiisha, ganacsatada iyo adeegyada.
+              Ujeeddadu waa in wax iibsiga iyo helidda
+              adeegyada laga dhigo mid fudud, la isku
+              halayn karo, oo hal meel laga heli karo.
+            </p>
+
+          </div>
+
+
+          <div class="panel">
+
+            <div class="panel-head">
+              <h3>La xiriir WaHeN</h3>
+            </div>
+
+            <div class="account-menu">
+
+              <button
+                type="button"
+                data-action="contact"
+              >
+                📞
+                <span>Contact Us</span>
+              </button>
+
+              <button
+                type="button"
+                data-action="support"
+              >
+                🎧
+                <span>Customer Support</span>
+              </button>
+
+              <button
+                type="button"
+                data-action="whatsapp"
+              >
+                💬
+                <span>WhatsApp</span>
+              </button>
+
+            </div>
+
+          </div>
+
+        </section>
+
+
+
+        <!-- =========================================
+             ACCOUNT
+        ========================================== -->
+        <section
+          class="view"
+          data-view="account"
+          id="account-view"
+        >
+
+          <div class="section-head">
+
+            <h2>Account</h2>
+
+          </div>
+
+
+          <div
+            class="account-card"
+            id="account-card"
+          >
+
+            <div class="account-avatar">
+              👤
+            </div>
+
+            <div class="account-info">
+
+              <strong id="account-name">
+                Guest
+              </strong>
+
+              <small id="account-status">
+                Soo gal ama samee account
+              </small>
+
+            </div>
+
+          </div>
+
+
+          <!-- AUTH ACTIONS -->
+          <div
+            class="panel"
+            id="guest-account-panel"
+          >
+
+            <div class="panel-head">
+              <h3>Ku bilow WaHeN</h3>
+            </div>
+
+            <div class="account-menu">
+
+              <button
+                type="button"
+                data-action="login"
+              >
+                🔐
+                <span>Login</span>
+              </button>
+
+              <button
+                type="button"
+                data-action="create-account"
+              >
+                ✨
+                <span>Create Account</span>
+              </button>
+
+            </div>
+
+          </div>
+
+
+          <!-- CUSTOMER ACTIONS -->
+          <div
+            class="panel"
+            id="customer-account-panel"
+          >
+
+            <div class="panel-head">
+              <h3>Account-kayga</h3>
+            </div>
+
+            <div class="account-menu">
+
+              <button
+                type="button"
+                data-action="orders"
+              >
+                📦
+                <span>Dalabyadayda</span>
+              </button>
+
+              <button
+                type="button"
+                data-action="favorites"
+              >
+                ❤️
+                <span>Waxyaabaha aan jeclahay</span>
+              </button>
+
+              <button
+                type="button"
+                data-action="profile"
+              >
+                👤
+                <span>Profile</span>
+              </button>
+
+              <button
+                type="button"
+                data-action="become-seller"
+              >
+                🏪
+                <span>Noqo Seller</span>
+              </button>
+
+              <button
+                type="button"
+                data-action="logout"
+              >
+                🚪
+                <span>Logout</span>
+              </button>
+
+            </div>
+
+          </div>
+
+        </section>
+
+
+
+        <!-- =========================================
+             CUSTOMER DASHBOARD
+             Hidden from public navigation.
+             script.js / Supabase will control it.
+        ========================================== -->
+        <section
+          class="view"
+          data-view="customer"
+          id="customer-view"
+        >
+
+          <div class="dashboard-header">
+
+            <div>
+              <h2>Account-kayga</h2>
+              <p class="empty-text">
+                Soo dhawoow WaHeN.
+              </p>
+            </div>
+
+          </div>
+
+
+          <div class="stats-grid three">
+
+            <div class="stat-card">
+              <small>Dalabyo</small>
+              <strong>0</strong>
+            </div>
+
+            <div class="stat-card">
+              <small>Favorites</small>
+              <strong>0</strong>
+            </div>
+
+            <div class="stat-card">
+              <small>Wallet</small>
+              <strong>$0</strong>
+            </div>
+
+          </div>
+
+
+          <div class="panel">
+
+            <div class="panel-head">
+              <h3>Dalabyadii ugu dambeeyay</h3>
+            </div>
+
+            <div
+              class="order-list"
+              id="customer-orders"
+            >
+
+              <p class="empty-text">
+                Weli ma lihid dalab.
+              </p>
+
+            </div>
+
+          </div>
+
+        </section>
+
+
+
+        <!-- =========================================
+             SELLER DASHBOARD
+             NOT PUBLICLY SELECTABLE
+        ========================================== -->
+        <section
+          class="view"
+          data-view="seller"
+          id="seller-view"
+        >
+
+          <div class="dashboard-header">
+
+            <div>
+              <h2>Seller Dashboard</h2>
+              <p class="empty-text">
+                Maamulka ganacsigaaga.
+              </p>
+            </div>
+
+            <span class="pill success">
+              Seller
+            </span>
+
+          </div>
+
+
+          <div class="stats-grid three">
+
+            <div class="stat-card">
+              <small>Iib</small>
+              <strong>$0</strong>
+            </div>
+
+            <div class="stat-card">
+              <small>Orders</small>
+              <strong>0</strong>
+            </div>
+
+            <div class="stat-card">
+              <small>Products</small>
+              <strong>0</strong>
+            </div>
+
+          </div>
+
+
+          <div class="panel">
+
+            <div class="panel-head">
+              <h3>Maamulka Shop-ka</h3>
+            </div>
+
+            <div class="action-grid">
+
+              <button
+                type="button"
+                data-seller-action="add-product"
+              >
+                ➕ Alaab
+              </button>
+
+              <button
+                type="button"
+                data-seller-action="products"
+              >
+                📦 Alaabahayga
+              </button>
+
+              <button
+                type="button"
+                data-seller-action="orders"
+              >
+                🛒 Orders
+              </button>
+
+              <button
+                type="button"
+                data-seller-action="shop"
+              >
+                🏪 Shop-kayga
+              </button>
+
+            </div>
+
+          </div>
+
+        </section>
+
+
+
+        <!-- =========================================
+             ADMIN PANEL
+             NOT PUBLICLY SELECTABLE
+        ========================================== -->
+        <section
+          class="view"
+          data-view="admin"
+          id="admin-view"
+        >
+
+          <div class="dashboard-header">
+
+            <div>
+              <h2>Admin Panel</h2>
+              <p class="empty-text">
+                Maamulka guud ee WaHeN.
+              </p>
+            </div>
+
+            <span class="pill blue">
+              Admin
+            </span>
+
+          </div>
+
+
+          <div class="stats-grid two">
+
+            <div class="stat-card">
+              <small>Users</small>
+              <strong>0</strong>
+            </div>
+
+            <div class="stat-card">
+              <small>Shops</small>
+              <strong>0</strong>
+            </div>
+
+            <div class="stat-card">
+              <small>Orders</small>
+              <strong>0</strong>
+            </div>
+
+            <div class="stat-card">
+              <small>Revenue</small>
+              <strong>$0</strong>
+            </div>
+
+          </div>
+
+
+          <div class="panel">
+
+            <div class="panel-head">
+              <h3>Admin Actions</h3>
+            </div>
+
+            <div class="action-grid">
+
+              <button
+                type="button"
+                data-admin-action="users"
+              >
+                👥 Users
+              </button>
+
+              <button
+                type="button"
+                data-admin-action="shops"
+              >
+                🏪 Shops
+              </button>
+
+              <button
+                type="button"
+                data-admin-action="products"
+              >
+                📦 Products
+              </button>
+
+              <button
+                type="button"
+                data-admin-action="orders"
+              >
+                🛒 Orders
+              </button>
+
+              <button
+                type="button"
+                data-admin-action="payments"
+              >
+                💳 Payments
+              </button>
+
+              <button
+                type="button"
+                data-admin-action="settings"
+              >
+                ⚙️ Settings
+              </button>
+
+            </div>
+
+          </div>
+
+        </section>
+
+      </main>
+
+
+
+      <!-- =========================================
+           BOTTOM NAVIGATION
+      ========================================== -->
+      <nav
+        class="bottom-nav"
+        aria-label="WaHeN navigation"
+      >
+
+        <button
+          class="nav-item active"
+          type="button"
+          data-view="home"
+        >
+          <span class="nav-icon">🏠</span>
+          <span>Home</span>
+        </button>
+
+
+        <button
+          class="nav-item"
+          type="button"
+          data-view="categories"
+        >
+          <span class="nav-icon">▦</span>
+          <span>Qaybaha</span>
+        </button>
+
+
+        <button
+          class="nav-item"
+          type="button"
+          data-view="wholesale"
+        >
+          <span class="nav-icon">📦</span>
+          <span>Jumlo</span>
+        </button>
+
+
+        <button
+          class="nav-item"
+          type="button"
+          data-view="chat"
+        >
+          <span class="nav-icon">💬</span>
+          <span>Chat</span>
+        </button>
+
+
+        <button
+          class="nav-item"
+          type="button"
+          data-view="account"
+        >
+          <span class="nav-icon">👤</span>
+          <span>Account</span>
+        </button>
+
+      </nav>
+
+
+
+      <!-- DARK MODE -->
+      <button
+        class="theme-toggle"
+        id="theme-toggle"
+        type="button"
+        aria-label="Bedel muuqaalka"
+      >
+        🌙
+      </button>
+
+
+      <!-- TOAST -->
+      <div
+        class="toast"
+        id="toast"
+        role="status"
+        aria-live="polite"
+      ></div>
+
     </div>
 
-    <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Beddel muuqaalka">🌙</button>
-    <div id="toast" class="toast" aria-live="polite"></div>
-
-    <script src="script.js"></script>
-  </body>
-</html>
+  </div>
 
 
+  <!-- JAVASCRIPT -->
+  <script src="script.js"></script>
+
+</body>
+
+  </html>            

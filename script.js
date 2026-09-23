@@ -601,16 +601,89 @@ async function loadManufacturers() {
 
 
 /* =========================================================
-   15. LOAD CART
+15. LOAD CART
 ========================================================= */
 
-async function loadCart() {
+async function getOrCreateCart() {
+
   if (!supabaseClient || !state.user.id) {
+    return null;
+  }
+
+  try {
+
+    const { data: carts, error } =
+      await supabaseClient
+        .from("carts")
+        .select("*")
+        .eq("user_id", state.user.id)
+        .order("created_at", { ascending: false })
+        .limit(1);
+
+    if (error) {
+      throw error;
+    }
+
+    let cart = carts?.[0] || null;
+
+    if (!cart) {
+
+      const result =
+        await supabaseClient
+          .from("carts")
+          .insert({
+            user_id: state.user.id,
+            status: "active"
+          })
+          .select()
+          .single();
+
+      if (result.error) {
+        throw result.error;
+      }
+
+      cart = result.data;
+    }
+
+    state.cartId = cart.id;
+
+    return cart;
+
+  } catch (error) {
+
+    console.error(
+      "Cart create/load error:",
+      error
+    );
+
+    state.cartId = null;
+
+    return null;
+  }
+}
+
+
+async function loadCart() {
+
+  if (!supabaseClient || !state.user.id) {
+
     state.cart = [];
+    state.cartId = null;
+
     return;
   }
 
   try {
+
+    const cart =
+      await getOrCreateCart();
+
+    if (!cart) {
+
+      state.cart = [];
+
+      return;
+    }
 
     const {
       data,
@@ -618,38 +691,35 @@ async function loadCart() {
     } =
       await supabaseClient
         .from("cart_items")
-        .select("*")
+        .select(`
+          id,
+          cart_id,
+          product_id,
+          quantity
+        `)
         .eq(
-          "user_id",
-          state.user.id
+          "cart_id",
+          cart.id
         );
 
     if (error) {
-      console.error(
-        "Cart load error:",
-        error
-      );
-
-      state.cart = [];
-      return;
+      throw error;
     }
 
     state.cart =
       Array.isArray(data)
         ? data.map((item) => ({
-            id:
-              item.product_id,
-            qty:
-              Number(
-                item.quantity || 1
-              )
+            id: item.product_id,
+            qty: Number(
+              item.quantity || 1
+            )
           }))
         : [];
 
   } catch (error) {
 
     console.error(
-      "Cart error:",
+      "Cart load error:",
       error
     );
 

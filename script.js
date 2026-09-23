@@ -3155,10 +3155,15 @@ async function openAuth(mode = "login") {
   const isSignup =
     mode === "signup";
 
+  const isForgot =
+    mode === "forgot";
+
   openModal(
     isSignup
       ? "Samee Account-ka WaHeN"
-      : "Soo gal WaHeN",
+      : isForgot
+        ? "Password-ka dib u samee"
+        : "Soo gal WaHeN",
 
     `
       <form
@@ -3202,16 +3207,28 @@ async function openAuth(mode = "login") {
           >
         </label>
 
-        <label>
-          Password
+        ${
+          !isForgot
+            ? `
+              <label>
+                Password
 
-          <input
-            name="password"
-            type="password"
-            minlength="6"
-            required
-          >
-        </label>
+                <input
+                  name="password"
+                  type="password"
+                  minlength="6"
+                  required
+                >
+              </label>
+            `
+            : `
+              <p class="empty-text">
+                Geli email-ka account-kaaga.
+                Waxaan kuu diraynaa link aad
+                password-ka ku cusboonaysiin karto.
+              </p>
+            `
+        }
 
         <button
           class="primary-btn"
@@ -3220,9 +3237,25 @@ async function openAuth(mode = "login") {
           ${
             isSignup
               ? "Samee Account"
-              : "Soo gal"
+              : isForgot
+                ? "Ii soo dir link-ga"
+                : "Soo gal"
           }
         </button>
+
+        ${
+          !isSignup && !isForgot
+            ? `
+              <button
+                class="secondary-btn"
+                id="forgot-password"
+                type="button"
+              >
+                Password-ka ma illowday?
+              </button>
+            `
+            : ""
+        }
 
         <button
           class="secondary-btn"
@@ -3232,7 +3265,9 @@ async function openAuth(mode = "login") {
           ${
             isSignup
               ? "Hore account ma u leedahay? Soo gal"
-              : "Account ma lihid? Samee account"
+              : isForgot
+                ? "Ku noqo Login"
+                : "Account ma lihid? Samee account"
           }
         </button>
 
@@ -3251,6 +3286,12 @@ async function openAuth(mode = "login") {
           "#auth-switch"
         );
 
+      const forgotButton =
+        modal.querySelector(
+          "#forgot-password"
+        );
+
+
       switchButton?.addEventListener(
         "click",
         () => {
@@ -3258,12 +3299,26 @@ async function openAuth(mode = "login") {
           modal.remove();
 
           openAuth(
-            isSignup
+            isSignup || isForgot
               ? "login"
               : "signup"
           );
         }
       );
+
+
+      forgotButton?.addEventListener(
+        "click",
+        () => {
+
+          modal.remove();
+
+          openAuth(
+            "forgot"
+          );
+        }
+      );
+
 
       form.onsubmit =
         async (event) => {
@@ -3276,6 +3331,7 @@ async function openAuth(mode = "login") {
             );
           }
 
+
           const formData =
             new FormData(
               event.target
@@ -3286,10 +3342,77 @@ async function openAuth(mode = "login") {
               formData.get("email") || ""
             ).trim();
 
+
+          /* =================================================
+             FORGOT PASSWORD
+          ================================================= */
+
+          if (isForgot) {
+
+            if (!email) {
+              return toast(
+                "Fadlan geli email-kaaga."
+              );
+            }
+
+            try {
+
+              const {
+                error
+              } =
+                await supabaseClient
+                  .auth
+                  .resetPasswordForEmail(
+                    email,
+                    {
+                      redirectTo:
+                        "https://cabdixakiin3029516-hash.github.io/WAHEN-/"
+                    }
+                  );
+
+              if (error) {
+
+                console.error(
+                  "Password reset error:",
+                  error
+                );
+
+                return toast(
+                  error.message
+                );
+              }
+
+              modal.remove();
+
+              notify(
+                "Link-ga password reset-ka email-kaaga ayaa loo diray."
+              );
+
+            } catch (error) {
+
+              console.error(
+                "Password reset failed:",
+                error
+              );
+
+              toast(
+                "Password reset lama diri karin."
+              );
+            }
+
+            return;
+          }
+
+
           const password =
             String(
               formData.get("password") || ""
             );
+
+
+          /* =================================================
+             SIGN UP
+          ================================================= */
 
           if (isSignup) {
 
@@ -3302,6 +3425,7 @@ async function openAuth(mode = "login") {
               String(
                 formData.get("phone") || ""
               ).trim();
+
 
             const {
               data,
@@ -3316,13 +3440,16 @@ async function openAuth(mode = "login") {
                     data: {
                       full_name:
                         fullName,
+
                       phone:
                         phone,
+
                       role:
                         "customer"
                     }
                   }
                 });
+
 
             if (error) {
 
@@ -3336,11 +3463,14 @@ async function openAuth(mode = "login") {
               );
             }
 
+
             if (!data?.user) {
+
               return toast(
                 "Account lama samayn."
               );
             }
+
 
             modal.remove();
 
@@ -3356,6 +3486,10 @@ async function openAuth(mode = "login") {
           }
 
 
+          /* =================================================
+             LOGIN
+          ================================================= */
+
           const {
             error
           } =
@@ -3366,12 +3500,14 @@ async function openAuth(mode = "login") {
                 password
               });
 
+
           if (error) {
 
             return toast(
               error.message
             );
           }
+
 
           modal.remove();
 

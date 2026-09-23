@@ -10,7 +10,7 @@ if (!window.supabase) {
 
 window.WAHEN_SUPABASE_CLIENT = window.supabase.createClient(
   window.WAHEN_SUPABASE.url,
-  window.WAHEN_SUPABASE.key
+  window.WAHEN_SUPABASE.anonKey
 );
 
 console.log("✅ WaHeN Supabase Client waa diyaar.");

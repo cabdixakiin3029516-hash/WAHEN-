@@ -891,6 +891,8 @@ async function loadAppData() {
 
   await loadCurrentUser();
 
+  await loadProfile();
+
   await Promise.all([
     loadSellers(),
     loadProducts(),
@@ -904,7 +906,6 @@ async function loadAppData() {
     loadOrders()
   ]);
 }
-
 
 /* =========================================================
    19. THEME

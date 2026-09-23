@@ -2450,8 +2450,8 @@ function openCart() {
                           item.qty
                       })
                       .eq(
-                        "user_id",
-                        state.user.id
+                        "cart_id",
+                        state.cartId
                       )
                       .eq(
                         "product_id",
@@ -2466,8 +2466,8 @@ function openCart() {
                       )
                       .delete()
                       .eq(
-                        "user_id",
-                        state.user.id
+                        "cart_id",
+                        state.cartId
                       )
                       .eq(
                         "product_id",
@@ -2560,7 +2560,6 @@ function openCart() {
     }
   );
 }
-
 
 /* =========================================================
    37. CHECKOUT

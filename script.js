@@ -1015,7 +1015,7 @@ function cartTotals() {
 
 
 /* =========================================================
-   22. ADD TO CART
+22. ADD TO CART
 ========================================================= */
 
 async function addToCart(id) {
@@ -1041,6 +1041,17 @@ async function addToCart(id) {
     );
   }
 
+  const cart =
+    state.cartId
+      ? { id: state.cartId }
+      : await getOrCreateCart();
+
+  if (!cart) {
+    return toast(
+      "Cart-ka lama diyaarin."
+    );
+  }
+
   const existing =
     state.cart.find(
       (item) =>
@@ -1059,62 +1070,67 @@ async function addToCart(id) {
     );
   }
 
-  if (existing) {
-    existing.qty =
-      newQty;
-  } else {
-    state.cart.push({
-      id:
-        product.id,
-      qty: 1
-    });
-  }
+  try {
 
-  updateCartCount();
+    const {
+      error
+    } =
+      await supabaseClient
+        .from("cart_items")
+        .upsert(
+          {
+            cart_id:
+              cart.id,
 
-  if (supabaseClient) {
+            product_id:
+              product.id,
 
-    try {
-
-      const {
-        error
-      } =
-        await supabaseClient
-          .from("cart_items")
-          .upsert(
-            {
-              user_id:
-                state.user.id,
-              product_id:
-                product.id,
-              quantity:
-                newQty
-            },
-            {
-              onConflict:
-                "user_id,product_id"
-            }
-          );
-
-      if (error) {
-        console.error(
-          "Cart save error:",
-          error
+            quantity:
+              newQty
+          },
+          {
+            onConflict:
+              "cart_id,product_id"
+          }
         );
-      }
 
-    } catch (error) {
-
-      console.error(
-        "Cart save error:",
-        error
-      );
+    if (error) {
+      throw error;
     }
-  }
 
-  toast(
-    `${product.name} ayaa lagu daray cart-ka.`
-  );
+    if (existing) {
+
+      existing.qty =
+        newQty;
+
+    } else {
+
+      state.cart.push({
+        id:
+          product.id,
+
+        qty:
+          newQty
+      });
+    }
+
+    updateCartCount();
+
+    toast(
+      `${product.name} ayaa lagu daray cart-ka.`
+    );
+
+  } catch (error) {
+
+    console.error(
+      "Cart save error:",
+      error
+    );
+
+    toast(
+      "Alaabta Cart-ka laguma darin."
+    );
+  }
 }
 
 

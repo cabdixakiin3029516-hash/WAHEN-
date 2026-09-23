@@ -1,12 +1,7 @@
 /* =========================================================
    WaHeN Marketplace
-   STEP 3 — Main JavaScript
-   Local Demo / Prototype
-
-   IMPORTANT:
-   This is still local demo logic.
-   Authentication, payments, roles, permissions and
-   permanent database storage should later move to Supabase.
+   MAIN JAVASCRIPT
+   Production Structure — Supabase Ready
 ========================================================= */
 
 
@@ -41,291 +36,25 @@ const ORDER_STATES = [
 
 
 /* =========================================================
-   2. DEMO SELLERS
+   2. SUPABASE
 ========================================================= */
 
-const sellers = [
-  {
-    id: "s1",
-    name: "Hargeisa Mobile Center",
-    owner: "Mohamed Ali",
-    city: "Hargeisa",
-    category: "Electronics",
-    verified: true,
-    rating: 4.7
-  },
-  {
-    id: "s2",
-    name: "Hargeisa Fashion House",
-    owner: "Amina Mohamed",
-    city: "Hargeisa",
-    category: "Fashion",
-    verified: true,
-    rating: 4.8
-  },
-  {
-    id: "s3",
-    name: "Somaliland Home & Furniture",
-    owner: "Abdi Hassan",
-    city: "Hargeisa",
-    category: "Home & Furniture",
-    verified: true,
-    rating: 4.6
-  }
-];
+const supabaseClient =
+  window.WAHEN_SUPABASE_CLIENT || null;
 
 
 /* =========================================================
-   3. DEMO PRODUCTS
+   3. APPLICATION DATA
 ========================================================= */
 
-const products = [
-  {
-    id: 1,
-    name: "Samsung Galaxy A15",
-    price: 180,
-    stock: 12,
-    category: "electronics",
-    subcategory: "Phones",
-    rating: 4.6,
-    sellerId: "s1",
-    icon: "📱",
-    specs: "128GB · 4GB RAM",
-    condition: "New"
-  },
-  {
-    id: 2,
-    name: "Redmi Note 13",
-    price: 195,
-    stock: 8,
-    category: "electronics",
-    subcategory: "Phones",
-    rating: 4.5,
-    sellerId: "s1",
-    icon: "📱",
-    specs: "128GB · AMOLED",
-    condition: "New"
-  },
-  {
-    id: 3,
-    name: "Oraimo Power Bank 20,000mAh",
-    price: 25,
-    stock: 30,
-    category: "electronics",
-    subcategory: "Accessories",
-    rating: 4.4,
-    sellerId: "s1",
-    icon: "🔋",
-    specs: "20,000mAh · USB-C",
-    condition: "New"
-  },
-  {
-    id: 4,
-    name: "Type-C Fast Charger",
-    price: 12,
-    stock: 50,
-    category: "electronics",
-    subcategory: "Accessories",
-    rating: 4.3,
-    sellerId: "s1",
-    icon: "🔌",
-    specs: "25W fast charge",
-    condition: "New"
-  },
-  {
-    id: 5,
-    name: "Men's Formal Suit",
-    price: 85,
-    stock: 15,
-    category: "men",
-    subcategory: "Fashion",
-    rating: 4.5,
-    sellerId: "s2",
-    icon: "🕴️",
-    specs: "Formal · Premium fabric",
-    condition: "New"
-  },
-  {
-    id: 6,
-    name: "Women's Abaya",
-    price: 35,
-    stock: 25,
-    category: "women",
-    subcategory: "Fashion",
-    rating: 4.7,
-    sellerId: "s2",
-    icon: "👗",
-    specs: "Modest · Black",
-    condition: "New"
-  },
-  {
-    id: 7,
-    name: "Men's Shoes",
-    price: 30,
-    stock: 20,
-    category: "men",
-    subcategory: "Shoes",
-    rating: 4.4,
-    sellerId: "s2",
-    icon: "👞",
-    specs: "Leather · Sizes 40-45",
-    condition: "New"
-  },
-  {
-    id: 8,
-    name: "Women's Handbag",
-    price: 28,
-    stock: 18,
-    category: "women",
-    subcategory: "Fashion",
-    rating: 4.5,
-    sellerId: "s2",
-    icon: "👜",
-    specs: "Leather finish",
-    condition: "New"
-  },
-  {
-    id: 9,
-    name: "Men's Shirt",
-    price: 18,
-    stock: 35,
-    category: "men",
-    subcategory: "Fashion",
-    rating: 4.3,
-    sellerId: "s2",
-    icon: "👔",
-    specs: "Cotton · Multiple sizes",
-    condition: "New"
-  },
-  {
-    id: 10,
-    name: "Sofa Set",
-    price: 450,
-    stock: 5,
-    category: "others",
-    subcategory: "Home & Furniture",
-    rating: 4.6,
-    sellerId: "s3",
-    icon: "🛋️",
-    specs: "7 seats · Modern design",
-    condition: "New"
-  },
-  {
-    id: 11,
-    name: "Office Chair",
-    price: 75,
-    stock: 15,
-    category: "others",
-    subcategory: "Home & Furniture",
-    rating: 4.4,
-    sellerId: "s3",
-    icon: "🪑",
-    specs: "Ergonomic · Adjustable",
-    condition: "New"
-  },
-  {
-    id: 12,
-    name: "Dining Table",
-    price: 220,
-    stock: 7,
-    category: "others",
-    subcategory: "Home & Furniture",
-    rating: 4.5,
-    sellerId: "s3",
-    icon: "🪵",
-    specs: "6 seats · Wood",
-    condition: "New"
-  },
-  {
-    id: 13,
-    name: "Bed",
-    price: 300,
-    stock: 6,
-    category: "others",
-    subcategory: "Home & Furniture",
-    rating: 4.4,
-    sellerId: "s3",
-    icon: "🛏️",
-    specs: "King size",
-    condition: "New"
-  },
-  {
-    id: 14,
-    name: "Carpet",
-    price: 60,
-    stock: 20,
-    category: "others",
-    subcategory: "Home & Furniture",
-    rating: 4.2,
-    sellerId: "s3",
-    icon: "🧶",
-    specs: "3×4m · Washable",
-    condition: "New"
-  }
-];
+let sellers = [];
+let products = [];
+let brands = [];
+let manufacturers = [];
 
 
 /* =========================================================
-   4. DEMO BRAND / FACTORY DATA
-========================================================= */
-
-const brands = [
-  {
-    id: "samsung",
-    name: "Samsung",
-    icon: "📱",
-    description: "Samsung electronics"
-  },
-  {
-    id: "apple",
-    name: "Apple",
-    icon: "🍎",
-    description: "Apple products"
-  },
-  {
-    id: "xiaomi",
-    name: "Xiaomi",
-    icon: "📱",
-    description: "Xiaomi devices"
-  },
-  {
-    id: "oraimo",
-    name: "Oraimo",
-    icon: "🔋",
-    description: "Accessories"
-  }
-];
-
-const manufacturers = [
-  {
-    id: "samsung-factory",
-    name: "Samsung",
-    icon: "🏭",
-    description: "Electronics manufacturer"
-  },
-  {
-    id: "xiaomi-factory",
-    name: "Xiaomi",
-    icon: "🏭",
-    description: "Technology manufacturer"
-  },
-  {
-    id: "oraimo-factory",
-    name: "Oraimo",
-    icon: "🏭",
-    description: "Accessories manufacturer"
-  },
-  {
-    id: "local-factory",
-    name: "Local Manufacturers",
-    icon: "🏭",
-    description: "Local Somaliland businesses"
-  }
-];
-
-
-/* =========================================================
-   5. CATEGORY INFORMATION
+   4. CATEGORY INFORMATION
 ========================================================= */
 
 const categoryNames = {
@@ -342,20 +71,7 @@ const categoryNames = {
 
 
 /* =========================================================
-   6. LOCAL STORAGE
-========================================================= */
-
-const read = (key, fallback) => {
-  try {
-    return JSON.parse(localStorage.getItem(key)) ?? fallback;
-  } catch {
-    return fallback;
-  }
-};
-
-
-/* =========================================================
-   7. APPLICATION STATE
+   5. APPLICATION STATE
 ========================================================= */
 
 const state = {
@@ -364,41 +80,34 @@ const state = {
   query: "",
   selectedProduct: null,
 
-  cart: read("wahen-cart", []),
+  cart: [],
 
-  wishlist: new Set(
-    read("wahen-wishlist", [])
-  ),
+  wishlist: new Set(),
 
-  compare: new Set(
-    read("wahen-compare", [])
-  ),
+  compare: new Set(),
 
-  orders: read("wahen-orders", []),
+  orders: [],
 
-  notifications: read(
-    "wahen-notifications",
-    []
-  ),
+  notifications: [],
 
   dark:
     localStorage.getItem("wahen-theme") === "dark",
 
-  user: read("wahen-user", {
-    id: "buyer-1",
-    name: "Ahmed Hassan",
-    phone: "+252 63 7000000",
-    city: "Hargeisa",
-    address: "Jigjiga Yar, Hargeisa",
-    role: "customer"
-  }),
+  user: {
+    id: null,
+    name: "",
+    phone: "",
+    city: "",
+    address: "",
+    role: null
+  },
 
   coupon: null
 };
 
 
 /* =========================================================
-   8. HELPERS
+   6. HELPERS
 ========================================================= */
 
 const $ = (selector) =>
@@ -410,57 +119,41 @@ const $$ = (selector) =>
 const money = (value) =>
   `$${Number(value || 0).toFixed(2)}`;
 
-const sellerOf = (product) =>
-  sellers.find(
-    (seller) => seller.id === product?.sellerId
-  );
+function sellerOf(product) {
+  if (!product) {
+    return null;
+  }
 
-function getProduct(id) {
-  return products.find(
-    (product) => product.id === Number(id)
+  return sellers.find(
+    (seller) =>
+      String(seller.id) ===
+      String(product.sellerId)
   );
 }
 
-function save() {
-  localStorage.setItem(
-    "wahen-cart",
-    JSON.stringify(state.cart)
-  );
-
-  localStorage.setItem(
-    "wahen-wishlist",
-    JSON.stringify([...state.wishlist])
-  );
-
-  localStorage.setItem(
-    "wahen-compare",
-    JSON.stringify([...state.compare])
-  );
-
-  localStorage.setItem(
-    "wahen-orders",
-    JSON.stringify(state.orders)
-  );
-
-  localStorage.setItem(
-    "wahen-notifications",
-    JSON.stringify(state.notifications)
-  );
-
-  localStorage.setItem(
-    "wahen-theme",
-    state.dark ? "dark" : "light"
-  );
-
-  localStorage.setItem(
-    "wahen-user",
-    JSON.stringify(state.user)
+function getProduct(id) {
+  return products.find(
+    (product) =>
+      String(product.id) ===
+      String(id)
   );
 }
 
 
 /* =========================================================
-   9. NOTIFICATION / TOAST
+   7. LOCAL SETTINGS ONLY
+========================================================= */
+
+function saveLocalSettings() {
+  localStorage.setItem(
+    "wahen-theme",
+    state.dark ? "dark" : "light"
+  );
+}
+
+
+/* =========================================================
+   8. NOTIFICATION / TOAST
 ========================================================= */
 
 function toast(message) {
@@ -489,37 +182,653 @@ function notify(message, type = "info") {
     time: new Date().toLocaleString()
   });
 
-  save();
   toast(message);
 }
 
 
 /* =========================================================
-   10. THEME
+   9. SUPABASE CONNECTION TEST
+========================================================= */
+
+async function testSupabaseConnection() {
+  try {
+    if (!supabaseClient) {
+      throw new Error(
+        "Supabase Client lama helin."
+      );
+    }
+
+    const {
+      data,
+      error
+    } =
+      await supabaseClient
+        .auth
+        .getSession();
+
+    if (error) {
+      throw error;
+    }
+
+    console.log(
+      "WaHeN Supabase connection: OK"
+    );
+
+    console.log(
+      "Session:",
+      data?.session
+        ? "User session ayaa jirta."
+        : "Connection waa shaqaynaysaa."
+    );
+
+    return true;
+
+  } catch (error) {
+
+    console.error(
+      "WaHeN Supabase Connection Error:",
+      error
+    );
+
+    return false;
+  }
+}
+
+
+/* =========================================================
+   10. LOAD CURRENT USER
+========================================================= */
+
+async function loadCurrentUser() {
+  if (!supabaseClient) {
+    return;
+  }
+
+  try {
+    const {
+      data,
+      error
+    } =
+      await supabaseClient
+        .auth
+        .getUser();
+
+    if (error) {
+      return;
+    }
+
+    if (!data?.user) {
+      state.user = {
+        id: null,
+        name: "",
+        phone: "",
+        city: "",
+        address: "",
+        role: null
+      };
+
+      return;
+    }
+
+    const user =
+      data.user;
+
+    state.user = {
+      id: user.id,
+      name:
+        user.user_metadata?.full_name ||
+        user.email ||
+        "",
+      phone:
+        user.user_metadata?.phone ||
+        "",
+      city:
+        user.user_metadata?.city ||
+        "",
+      address:
+        user.user_metadata?.address ||
+        "",
+      role:
+        user.user_metadata?.role ||
+        "customer"
+    };
+
+  } catch (error) {
+
+    console.error(
+      "User load error:",
+      error
+    );
+  }
+}
+
+
+/* =========================================================
+   11. LOAD SELLERS
+========================================================= */
+
+async function loadSellers() {
+  if (!supabaseClient) {
+    sellers = [];
+    return;
+  }
+
+  try {
+
+    const {
+      data,
+      error
+    } =
+      await supabaseClient
+        .from("sellers")
+        .select("*")
+        .order("created_at", {
+          ascending: false
+        });
+
+    if (error) {
+      console.error(
+        "Sellers load error:",
+        error
+      );
+
+      sellers = [];
+      return;
+    }
+
+    sellers =
+      Array.isArray(data)
+        ? data.map((seller) => ({
+            id: seller.id,
+            name:
+              seller.name ||
+              seller.store_name ||
+              "Seller",
+            owner:
+              seller.owner ||
+              "",
+            city:
+              seller.city ||
+              "",
+            category:
+              seller.category ||
+              "",
+            verified:
+              Boolean(
+                seller.verified
+              ),
+            rating:
+              Number(
+                seller.rating || 0
+              )
+          }))
+        : [];
+
+  } catch (error) {
+
+    console.error(
+      "Sellers error:",
+      error
+    );
+
+    sellers = [];
+  }
+}
+
+
+/* =========================================================
+   12. LOAD PRODUCTS
+========================================================= */
+
+async function loadProducts() {
+  if (!supabaseClient) {
+    products = [];
+    return;
+  }
+
+  try {
+
+    const {
+      data,
+      error
+    } =
+      await supabaseClient
+        .from("products")
+        .select("*")
+        .order("created_at", {
+          ascending: false
+        });
+
+    if (error) {
+      console.error(
+        "Products load error:",
+        error
+      );
+
+      products = [];
+      return;
+    }
+
+    products =
+      Array.isArray(data)
+        ? data.map((product) => ({
+            id:
+              product.id,
+
+            name:
+              product.name ||
+              "",
+
+            price:
+              Number(
+                product.price || 0
+              ),
+
+            stock:
+              Number(
+                product.stock || 0
+              ),
+
+            category:
+              product.category ||
+              "others",
+
+            subcategory:
+              product.subcategory ||
+              "",
+
+            rating:
+              Number(
+                product.rating || 0
+              ),
+
+            sellerId:
+              product.seller_id ||
+              product.sellerId,
+
+            icon:
+              product.icon ||
+              "📦",
+
+            image:
+              product.image ||
+              product.image_url ||
+              "",
+
+            specs:
+              product.specs ||
+              product.description ||
+              "",
+
+            description:
+              product.description ||
+              "",
+
+            condition:
+              product.condition ||
+              "New"
+          }))
+        : [];
+
+  } catch (error) {
+
+    console.error(
+      "Products error:",
+      error
+    );
+
+    products = [];
+  }
+}
+
+
+/* =========================================================
+   13. LOAD BRANDS
+========================================================= */
+
+async function loadBrands() {
+  if (!supabaseClient) {
+    brands = [];
+    return;
+  }
+
+  try {
+
+    const {
+      data,
+      error
+    } =
+      await supabaseClient
+        .from("brands")
+        .select("*")
+        .order("name");
+
+    if (error) {
+      console.error(
+        "Brands load error:",
+        error
+      );
+
+      brands = [];
+      return;
+    }
+
+    brands =
+      Array.isArray(data)
+        ? data.map((brand) => ({
+            id: brand.id,
+            name:
+              brand.name ||
+              "",
+            icon:
+              brand.icon ||
+              "🏷️",
+            description:
+              brand.description ||
+              ""
+          }))
+        : [];
+
+  } catch (error) {
+
+    console.error(
+      "Brands error:",
+      error
+    );
+
+    brands = [];
+  }
+}
+
+
+/* =========================================================
+   14. LOAD MANUFACTURERS
+========================================================= */
+
+async function loadManufacturers() {
+  if (!supabaseClient) {
+    manufacturers = [];
+    return;
+  }
+
+  try {
+
+    const {
+      data,
+      error
+    } =
+      await supabaseClient
+        .from("manufacturers")
+        .select("*")
+        .order("name");
+
+    if (error) {
+      console.error(
+        "Manufacturers load error:",
+        error
+      );
+
+      manufacturers = [];
+      return;
+    }
+
+    manufacturers =
+      Array.isArray(data)
+        ? data.map((factory) => ({
+            id: factory.id,
+            name:
+              factory.name ||
+              "",
+            icon:
+              factory.icon ||
+              "🏭",
+            description:
+              factory.description ||
+              ""
+          }))
+        : [];
+
+  } catch (error) {
+
+    console.error(
+      "Manufacturers error:",
+      error
+    );
+
+    manufacturers = [];
+  }
+}
+
+
+/* =========================================================
+   15. LOAD CART
+========================================================= */
+
+async function loadCart() {
+  if (!supabaseClient || !state.user.id) {
+    state.cart = [];
+    return;
+  }
+
+  try {
+
+    const {
+      data,
+      error
+    } =
+      await supabaseClient
+        .from("cart_items")
+        .select("*")
+        .eq(
+          "user_id",
+          state.user.id
+        );
+
+    if (error) {
+      console.error(
+        "Cart load error:",
+        error
+      );
+
+      state.cart = [];
+      return;
+    }
+
+    state.cart =
+      Array.isArray(data)
+        ? data.map((item) => ({
+            id:
+              item.product_id,
+            qty:
+              Number(
+                item.quantity || 1
+              )
+          }))
+        : [];
+
+  } catch (error) {
+
+    console.error(
+      "Cart error:",
+      error
+    );
+
+    state.cart = [];
+  }
+}
+
+
+/* =========================================================
+   16. LOAD WISHLIST
+========================================================= */
+
+async function loadWishlist() {
+  if (!supabaseClient || !state.user.id) {
+    state.wishlist = new Set();
+    return;
+  }
+
+  try {
+
+    const {
+      data,
+      error
+    } =
+      await supabaseClient
+        .from("wishlists")
+        .select("product_id")
+        .eq(
+          "user_id",
+          state.user.id
+        );
+
+    if (error) {
+      console.error(
+        "Wishlist load error:",
+        error
+      );
+
+      state.wishlist =
+        new Set();
+
+      return;
+    }
+
+    state.wishlist =
+      new Set(
+        (data || []).map(
+          (item) =>
+            item.product_id
+        )
+      );
+
+  } catch (error) {
+
+    console.error(
+      "Wishlist error:",
+      error
+    );
+
+    state.wishlist =
+      new Set();
+  }
+}
+
+
+/* =========================================================
+   17. LOAD ORDERS
+========================================================= */
+
+async function loadOrders() {
+  if (!supabaseClient || !state.user.id) {
+    state.orders = [];
+    return;
+  }
+
+  try {
+
+    const {
+      data,
+      error
+    } =
+      await supabaseClient
+        .from("orders")
+        .select(`
+          *,
+          order_items (*)
+        `)
+        .eq(
+          "buyer_id",
+          state.user.id
+        )
+        .order(
+          "created_at",
+          {
+            ascending: false
+          }
+        );
+
+    if (error) {
+      console.error(
+        "Orders load error:",
+        error
+      );
+
+      state.orders = [];
+      return;
+    }
+
+    state.orders =
+      Array.isArray(data)
+        ? data
+        : [];
+
+  } catch (error) {
+
+    console.error(
+      "Orders error:",
+      error
+    );
+
+    state.orders = [];
+  }
+}
+
+
+/* =========================================================
+   18. LOAD ALL DATA
+========================================================= */
+
+async function loadAppData() {
+
+  await loadCurrentUser();
+
+  await Promise.all([
+    loadSellers(),
+    loadProducts(),
+    loadBrands(),
+    loadManufacturers()
+  ]);
+
+  await Promise.all([
+    loadCart(),
+    loadWishlist(),
+    loadOrders()
+  ]);
+}
+
+
+/* =========================================================
+   19. THEME
 ========================================================= */
 
 function updateTheme() {
+
   document.body.classList.toggle(
     "dark",
     state.dark
   );
 
-  const button = $("#theme-toggle");
+  const button =
+    $("#theme-toggle");
 
   if (button) {
     button.textContent =
-      state.dark ? "☀️" : "🌙";
+      state.dark
+        ? "☀️"
+        : "🌙";
   }
 
-  save();
+  saveLocalSettings();
 }
 
 
 /* =========================================================
-   11. VIEW NAVIGATION
+   20. VIEW NAVIGATION
 ========================================================= */
 
 function setActiveView(view) {
+
   const target =
     document.querySelector(
       `.view[data-view="${view}"]`
@@ -529,21 +838,30 @@ function setActiveView(view) {
     return;
   }
 
-  state.activeView = view;
+  state.activeView =
+    view;
 
-  $$(".view").forEach((element) => {
-    element.classList.toggle(
-      "active",
-      element.dataset.view === view
-    );
-  });
+  $$(".view").forEach(
+    (element) => {
 
-  $$(".tab, .nav-item").forEach((button) => {
-    button.classList.toggle(
-      "active",
-      button.dataset.view === view
-    );
-  });
+      element.classList.toggle(
+        "active",
+        element.dataset.view ===
+          view
+      );
+    }
+  );
+
+  $$(".tab, .nav-item").forEach(
+    (button) => {
+
+      button.classList.toggle(
+        "active",
+        button.dataset.view ===
+          view
+      );
+    }
+  );
 
   window.scrollTo({
     top: 0,
@@ -553,42 +871,58 @@ function setActiveView(view) {
 
 
 /* =========================================================
-   12. CART
+   21. CART TOTALS
 ========================================================= */
 
 function updateCartCount() {
-  const element = $("#cart-count");
+
+  const element =
+    $("#cart-count");
 
   if (!element) {
     return;
   }
 
-  const count = state.cart.reduce(
-    (total, item) => total + item.qty,
-    0
-  );
+  const count =
+    state.cart.reduce(
+      (total, item) =>
+        total +
+        Number(item.qty || 0),
+      0
+    );
 
-  element.textContent = count;
+  element.textContent =
+    count;
 }
 
 function cartTotals() {
-  const subtotal =
-    state.cart.reduce((total, item) => {
-      const product = getProduct(item.id);
 
-      return (
-        total +
-        (product?.price || 0) * item.qty
-      );
-    }, 0);
+  const subtotal =
+    state.cart.reduce(
+      (total, item) => {
+
+        const product =
+          getProduct(item.id);
+
+        return (
+          total +
+          (product?.price || 0) *
+            Number(item.qty || 0)
+        );
+
+      },
+      0
+    );
 
   const discount =
     state.coupon &&
-    subtotal >= state.coupon.minimum
+    subtotal >=
+      state.coupon.minimum
       ? Math.min(
-          (subtotal *
-            state.coupon.percent) /
-            100,
+          (
+            subtotal *
+            state.coupon.percent
+          ) / 100,
           state.coupon.maximum
         )
       : 0;
@@ -609,44 +943,104 @@ function cartTotals() {
   };
 }
 
-function addToCart(id) {
-  const product = getProduct(id);
+
+/* =========================================================
+   22. ADD TO CART
+========================================================= */
+
+async function addToCart(id) {
+
+  const product =
+    getProduct(id);
 
   if (!product) {
-    return;
+    return toast(
+      "Alaabta lama helin."
+    );
   }
 
   if (product.stock < 1) {
     return toast(
-      "Alaabtan hadda stock ma hayso."
+      "Alaabtan stock ma hayso."
     );
   }
 
-  const item = state.cart.find(
-    (cartItem) =>
-      cartItem.id === product.id
-  );
-
-  if (
-    item &&
-    item.qty >= product.stock
-  ) {
+  if (!state.user.id) {
     return toast(
-      `Stock-ka ${product.name} intii uu hayay ayaa la gaadhay.`
+      "Fadlan marka hore account samee ama soo gal."
     );
   }
 
-  if (item) {
-    item.qty++;
+  const existing =
+    state.cart.find(
+      (item) =>
+        String(item.id) ===
+        String(product.id)
+    );
+
+  const newQty =
+    existing
+      ? Number(existing.qty) + 1
+      : 1;
+
+  if (newQty > product.stock) {
+    return toast(
+      "Stock-ka intii uu hayay ayaa la gaadhay."
+    );
+  }
+
+  if (existing) {
+    existing.qty =
+      newQty;
   } else {
     state.cart.push({
-      id: product.id,
+      id:
+        product.id,
       qty: 1
     });
   }
 
-  save();
   updateCartCount();
+
+  if (supabaseClient) {
+
+    try {
+
+      const {
+        error
+      } =
+        await supabaseClient
+          .from("cart_items")
+          .upsert(
+            {
+              user_id:
+                state.user.id,
+              product_id:
+                product.id,
+              quantity:
+                newQty
+            },
+            {
+              onConflict:
+                "user_id,product_id"
+            }
+          );
+
+      if (error) {
+        console.error(
+          "Cart save error:",
+          error
+        );
+      }
+
+    } catch (error) {
+
+      console.error(
+        "Cart save error:",
+        error
+      );
+    }
+  }
 
   toast(
     `${product.name} ayaa lagu daray cart-ka.`
@@ -655,27 +1049,36 @@ function addToCart(id) {
 
 
 /* =========================================================
-   13. PRODUCT CARD
+   23. PRODUCT CARD
 ========================================================= */
 
 function productCard(product) {
-  const seller = sellerOf(product);
+
+  const seller =
+    sellerOf(product);
 
   const liked =
-    state.wishlist.has(product.id);
+    state.wishlist.has(
+      product.id
+    );
 
   const compared =
-    state.compare.has(product.id);
+    state.compare.has(
+      product.id
+    );
+
+  const image =
+    product.image;
 
   return `
     <article
       class="product-card"
-      data-product-id="${product.id}"
+      data-product-id="${escapeHTML(product.id)}"
     >
 
       <button
         class="favorite-btn ${liked ? "liked" : ""}"
-        data-favorite="${product.id}"
+        data-favorite="${escapeHTML(product.id)}"
         type="button"
         aria-label="Wishlist"
       >
@@ -683,13 +1086,27 @@ function productCard(product) {
       </button>
 
       <div class="product-figure">
-        ${product.icon}
+
+        ${
+          image
+            ? `
+              <img
+                src="${escapeHTML(image)}"
+                alt="${escapeHTML(product.name)}"
+                loading="lazy"
+              >
+            `
+            : `
+              ${product.icon || "📦"}
+            `
+        }
+
       </div>
 
       <div class="product-body">
 
         <h3 class="product-name">
-          ${product.name}
+          ${escapeHTML(product.name)}
         </h3>
 
         <div class="product-price">
@@ -697,7 +1114,7 @@ function productCard(product) {
         </div>
 
         <div class="product-rating">
-          ★ ${product.rating}
+          ★ ${product.rating || 0}
           ·
           ${
             product.stock
@@ -707,15 +1124,27 @@ function productCard(product) {
         </div>
 
         <small>
-          ${seller?.name || "Seller"}
-          ${seller?.verified ? " ✓" : ""}
+          ${escapeHTML(
+            seller?.name ||
+            "Seller"
+          )}
+
+          ${
+            seller?.verified
+              ? " ✓"
+              : ""
+          }
         </small>
 
         <button
           class="product-add"
-          data-add="${product.id}"
+          data-add="${escapeHTML(product.id)}"
           type="button"
-          ${product.stock < 1 ? "disabled" : ""}
+          ${
+            product.stock < 1
+              ? "disabled"
+              : ""
+          }
         >
           ${
             product.stock
@@ -726,7 +1155,7 @@ function productCard(product) {
 
         <button
           class="text-btn"
-          data-compare="${product.id}"
+          data-compare="${escapeHTML(product.id)}"
           type="button"
         >
           ${
@@ -744,55 +1173,63 @@ function productCard(product) {
 
 
 /* =========================================================
-   14. PRODUCT FILTERING
+   24. PRODUCT FILTERING
 ========================================================= */
 
 function filteredProducts() {
+
   const query =
     state.query
       .toLowerCase()
       .trim();
 
-  return products.filter((product) => {
-    const seller =
-      sellerOf(product);
+  return products.filter(
+    (product) => {
 
-    const searchable = `
-      ${product.name}
-      ${product.subcategory}
-      ${product.specs}
-      ${seller?.name || ""}
-      ${seller?.city || ""}
-      ${categoryNames[product.category] || ""}
-    `.toLowerCase();
+      const seller =
+        sellerOf(product);
 
-    const queryMatch =
-      !query ||
-      searchable.includes(query) ||
-      (
-        query === "phone" &&
-        product.subcategory === "Phones"
+      const searchable = `
+        ${product.name}
+        ${product.subcategory}
+        ${product.specs}
+        ${product.description}
+        ${seller?.name || ""}
+        ${seller?.city || ""}
+        ${categoryNames[
+          product.category
+        ] || ""}
+      `.toLowerCase();
+
+      const queryMatch =
+        !query ||
+        searchable.includes(
+          query
+        );
+
+      const categoryMatch =
+        state.activeCategory ===
+          "all" ||
+        product.category ===
+          state.activeCategory;
+
+      return (
+        queryMatch &&
+        categoryMatch
       );
-
-    const categoryMatch =
-      state.activeCategory === "all" ||
-      product.category ===
-        state.activeCategory;
-
-    return (
-      queryMatch &&
-      categoryMatch
-    );
-  });
+    }
+  );
 }
 
 
 /* =========================================================
-   15. RENDER HOME PRODUCTS
+   25. RENDER PRODUCTS
 ========================================================= */
 
 function renderProducts() {
-  const grid = $("#product-grid");
+
+  const grid =
+    $("#product-grid");
 
   if (!grid) {
     return;
@@ -803,23 +1240,30 @@ function renderProducts() {
 
   grid.innerHTML =
     filtered.length
-      ? filtered.map(productCard).join("")
+      ? filtered
+          .map(productCard)
+          .join("")
       : `
         <div
           class="empty-text"
           style="grid-column:1/-1"
         >
-          Alaab lama helin.
+          ${
+            products.length
+              ? "Alaab lama helin."
+              : "Alaabooyin weli lama gelin."
+          }
         </div>
       `;
 }
 
 
 /* =========================================================
-   16. RENDER ALL PRODUCTS
+   26. RENDER ALL PRODUCTS
 ========================================================= */
 
 function renderAllProducts() {
+
   const container =
     $("#all-products");
 
@@ -834,23 +1278,30 @@ function renderAllProducts() {
 
   container.innerHTML =
     list.length
-      ? list.map(productCard).join("")
+      ? list
+          .map(productCard)
+          .join("")
       : `
         <div
           class="empty-text"
           style="grid-column:1/-1"
         >
-          Alaab lama helin.
+          ${
+            products.length
+              ? "Alaab lama helin."
+              : "Alaabooyin weli lama gelin."
+          }
         </div>
       `;
 }
 
 
 /* =========================================================
-   17. RENDER WHOLESALE
+   27. WHOLESALE
 ========================================================= */
 
 function renderWholesale() {
+
   const container =
     $("#wholesale-products");
 
@@ -861,21 +1312,29 @@ function renderWholesale() {
   const wholesaleProducts =
     products.filter(
       (product) =>
-        product.stock >= 10
+        Number(product.stock) >=
+        10
     );
 
   container.innerHTML =
-    wholesaleProducts
-      .map(productCard)
-      .join("");
+    wholesaleProducts.length
+      ? wholesaleProducts
+          .map(productCard)
+          .join("")
+      : `
+        <p class="empty-text">
+          Alaab jumlo ah weli lama hayo.
+        </p>
+      `;
 }
 
 
 /* =========================================================
-   18. RENDER BRANDS
+   28. BRANDS
 ========================================================= */
 
 function renderBrands() {
+
   const container =
     $("#brand-list");
 
@@ -884,28 +1343,47 @@ function renderBrands() {
   }
 
   container.innerHTML =
-    brands.map((brand) => `
-      <button
-        class="brand-card"
-        type="button"
-        data-brand="${brand.id}"
-      >
-        <span>
-          ${brand.icon}
-        </span>
+    brands.length
+      ? brands
+          .map(
+            (brand) => `
+              <button
+                class="brand-card"
+                type="button"
+                data-brand="${escapeHTML(brand.id)}"
+              >
 
-        <strong>
-          ${brand.name}
-        </strong>
+                <span>
+                  ${brand.icon || "🏷️"}
+                </span>
 
-        <small>
-          ${brand.description}
-        </small>
-      </button>
-    `).join("");
+                <strong>
+                  ${escapeHTML(brand.name)}
+                </strong>
+
+                <small>
+                  ${escapeHTML(
+                    brand.description ||
+                    ""
+                  )}
+                </small>
+
+              </button>
+            `
+          )
+          .join("")
+      : `
+        <p class="empty-text">
+          Brands weli lama gelin.
+        </p>
+      `;
 }
 
-function showBrandProducts(brandId) {
+
+function showBrandProducts(
+  brandId
+) {
+
   const container =
     $("#brand-products");
 
@@ -915,52 +1393,38 @@ function showBrandProducts(brandId) {
 
   const brand =
     brands.find(
-      (item) => item.id === brandId
+      (item) =>
+        String(item.id) ===
+        String(brandId)
     );
 
   if (!brand) {
     return;
   }
 
-  let brandProducts = [];
+  const brandProducts =
+    products.filter(
+      (product) => {
 
-  if (brandId === "samsung") {
-    brandProducts =
-      products.filter(
-        (p) =>
-          p.name
-            .toLowerCase()
-            .includes("samsung")
-      );
-  }
+        const text =
+          `
+            ${product.name}
+            ${product.brand || ""}
+          `.toLowerCase();
 
-  if (brandId === "xiaomi") {
-    brandProducts =
-      products.filter(
-        (p) =>
-          p.name
-            .toLowerCase()
-            .includes("redmi")
-      );
-  }
-
-  if (brandId === "oraimo") {
-    brandProducts =
-      products.filter(
-        (p) =>
-          p.name
-            .toLowerCase()
-            .includes("oraimo")
-      );
-  }
-
-  if (brandId === "apple") {
-    brandProducts = [];
-  }
+        return text.includes(
+          brand.name.toLowerCase()
+        );
+      }
+    );
 
   container.innerHTML = `
     <div class="section-head">
-      <h3>${brand.name}</h3>
+
+      <h3>
+        ${escapeHTML(brand.name)}
+      </h3>
+
       <button
         class="text-btn"
         data-view="brands"
@@ -968,6 +1432,7 @@ function showBrandProducts(brandId) {
       >
         Back
       </button>
+
     </div>
 
     ${
@@ -977,7 +1442,9 @@ function showBrandProducts(brandId) {
             .join("")
         : `
           <p class="empty-text">
-            Alaab ${brand.name}
+            Alaab ${escapeHTML(
+              brand.name
+            )}
             hadda lama hayo.
           </p>
         `
@@ -987,10 +1454,11 @@ function showBrandProducts(brandId) {
 
 
 /* =========================================================
-   19. RENDER MANUFACTURERS
+   29. MANUFACTURERS
 ========================================================= */
 
 function renderManufacturers() {
+
   const container =
     $("#manufacturer-list");
 
@@ -999,28 +1467,45 @@ function renderManufacturers() {
   }
 
   container.innerHTML =
-    manufacturers.map((factory) => `
-      <button
-        class="manufacturer-card"
-        type="button"
-        data-manufacturer="${factory.id}"
-      >
-        <span>
-          ${factory.icon}
-        </span>
+    manufacturers.length
+      ? manufacturers
+          .map(
+            (factory) => `
+              <button
+                class="manufacturer-card"
+                type="button"
+                data-manufacturer="${escapeHTML(factory.id)}"
+              >
 
-        <strong>
-          ${factory.name}
-        </strong>
+                <span>
+                  ${factory.icon || "🏭"}
+                </span>
 
-        <small>
-          ${factory.description}
-        </small>
-      </button>
-    `).join("");
+                <strong>
+                  ${escapeHTML(factory.name)}
+                </strong>
+
+                <small>
+                  ${escapeHTML(
+                    factory.description ||
+                    ""
+                  )}
+                </small>
+
+              </button>
+            `
+          )
+          .join("")
+      : `
+        <p class="empty-text">
+          Warshado weli lama gelin.
+        </p>
+      `;
 }
 
+
 function showManufacturer(id) {
+
   const container =
     $("#manufacturer-products");
 
@@ -1030,7 +1515,9 @@ function showManufacturer(id) {
 
   const factory =
     manufacturers.find(
-      (item) => item.id === id
+      (item) =>
+        String(item.id) ===
+        String(id)
     );
 
   if (!factory) {
@@ -1039,38 +1526,41 @@ function showManufacturer(id) {
 
   container.innerHTML = `
     <div class="section-head">
-      <h3>${factory.name}</h3>
+
+      <h3>
+        ${escapeHTML(factory.name)}
+      </h3>
+
     </div>
 
     <div class="info-card">
+
       <div class="info-icon">
-        🏭
+        ${factory.icon || "🏭"}
       </div>
 
       <h3>
-        ${factory.name}
+        ${escapeHTML(factory.name)}
       </h3>
 
       <p>
-        ${factory.description}
+        ${escapeHTML(
+          factory.description ||
+          ""
+        )}
       </p>
 
-      <p>
-        Warshadaha iyo shirkadaha
-        lagu daro WaHeN waxaa lagu
-        maamuli doonaa xog rasmi ah
-        marka backend-ka la xiro.
-      </p>
     </div>
   `;
 }
 
 
 /* =========================================================
-   20. PRODUCT DETAIL
+   30. PRODUCT DETAIL
 ========================================================= */
 
 function openProduct(id) {
+
   const product =
     getProduct(id);
 
@@ -1088,7 +1578,9 @@ function openProduct(id) {
   );
 }
 
+
 function renderProductDetail() {
+
   const container =
     $("#product-detail");
 
@@ -1097,7 +1589,10 @@ function renderProductDetail() {
       state.selectedProduct
     );
 
-  if (!container || !product) {
+  if (
+    !container ||
+    !product
+  ) {
     return;
   }
 
@@ -1108,17 +1603,36 @@ function renderProductDetail() {
     <div class="product-detail-card">
 
       <div class="product-detail-icon">
-        ${product.icon}
+
+        ${
+          product.image
+            ? `
+              <img
+                src="${escapeHTML(product.image)}"
+                alt="${escapeHTML(product.name)}"
+              >
+            `
+            : (
+                product.icon ||
+                "📦"
+              )
+        }
+
       </div>
 
       <div>
 
         <span class="eyebrow">
-          ${categoryNames[product.category] || "Product"}
+          ${
+            categoryNames[
+              product.category
+            ] ||
+            "Product"
+          }
         </span>
 
         <h2>
-          ${product.name}
+          ${escapeHTML(product.name)}
         </h2>
 
         <div class="product-price">
@@ -1126,16 +1640,25 @@ function renderProductDetail() {
         </div>
 
         <div class="product-rating">
-          ★ ${product.rating}
+          ★ ${product.rating || 0}
         </div>
 
         <p>
-          ${product.specs}
+          ${escapeHTML(
+            product.description ||
+            product.specs ||
+            ""
+          )}
         </p>
 
         <p>
           Xaalad:
-          <strong>${product.condition}</strong>
+          <strong>
+            ${escapeHTML(
+              product.condition ||
+              "New"
+            )}
+          </strong>
         </p>
 
         <p>
@@ -1148,21 +1671,32 @@ function renderProductDetail() {
         <p>
           Seller:
           <strong>
-            ${seller?.name || "Seller"}
+            ${escapeHTML(
+              seller?.name ||
+              "Seller"
+            )}
           </strong>
-          ${seller?.verified ? " ✓ Verified" : ""}
+
+          ${
+            seller?.verified
+              ? " ✓ Verified"
+              : ""
+          }
         </p>
 
         <p>
           Magaalada:
-          ${seller?.city || "Somaliland"}
+          ${escapeHTML(
+            seller?.city ||
+            "Somaliland"
+          )}
         </p>
 
         <div class="modal-actions">
 
           <button
             class="primary-btn"
-            data-add="${product.id}"
+            data-add="${escapeHTML(product.id)}"
             type="button"
           >
             🛒 Ku dar Cart
@@ -1170,7 +1704,7 @@ function renderProductDetail() {
 
           <button
             class="secondary-btn"
-            data-buy="${product.id}"
+            data-buy="${escapeHTML(product.id)}"
             type="button"
           >
             Iibso hadda
@@ -1178,11 +1712,13 @@ function renderProductDetail() {
 
           <button
             class="secondary-btn"
-            data-favorite="${product.id}"
+            data-favorite="${escapeHTML(product.id)}"
             type="button"
           >
             ${
-              state.wishlist.has(product.id)
+              state.wishlist.has(
+                product.id
+              )
                 ? "♥ Wishlist"
                 : "♡ Wishlist"
             }
@@ -1195,17 +1731,28 @@ function renderProductDetail() {
     </div>
   `;
 
-  renderRelatedProducts(product);
-  renderComplementaryProducts(product);
-  renderPriceComparison(product);
+  renderRelatedProducts(
+    product
+  );
+
+  renderComplementaryProducts(
+    product
+  );
+
+  renderPriceComparison(
+    product
+  );
 }
 
 
 /* =========================================================
-   21. RELATED PRODUCTS
+   31. RELATED PRODUCTS
 ========================================================= */
 
-function renderRelatedProducts(product) {
+function renderRelatedProducts(
+  product
+) {
+
   const container =
     $("#related-products");
 
@@ -1217,30 +1764,39 @@ function renderRelatedProducts(product) {
     products
       .filter(
         (item) =>
-          item.id !== product.id &&
+          item.id !==
+            product.id &&
           (
-            item.category === product.category ||
-            item.subcategory === product.subcategory
+            item.category ===
+              product.category ||
+            item.subcategory ===
+              product.subcategory
           )
       )
       .slice(0, 4);
 
   container.innerHTML =
     related.length
-      ? related.map(productCard).join("")
+      ? related
+          .map(productCard)
+          .join("")
       : `
         <p class="empty-text">
-          Alaabooyin la mid ah hadda lama hayo.
+          Alaabooyin la mid ah
+          hadda lama hayo.
         </p>
       `;
 }
 
 
 /* =========================================================
-   22. COMPLEMENTARY PRODUCTS
+   32. COMPLEMENTARY PRODUCTS
 ========================================================= */
 
-function renderComplementaryProducts(product) {
+function renderComplementaryProducts(
+  product
+) {
+
   const container =
     $("#complementary-products");
 
@@ -1248,44 +1804,49 @@ function renderComplementaryProducts(product) {
     return;
   }
 
-  let complementary = [];
+  let complementary =
+    products.filter(
+      (item) =>
+        item.id !==
+        product.id
+    );
 
   if (
-    product.subcategory === "Phones"
+    product.subcategory ===
+    "Phones"
   ) {
+
     complementary =
-      products.filter(
+      complementary.filter(
         (item) =>
           item.subcategory ===
           "Accessories"
       );
+
   } else if (
     product.subcategory ===
     "Accessories"
   ) {
+
     complementary =
-      products.filter(
+      complementary.filter(
         (item) =>
           item.subcategory ===
           "Phones"
       );
+
   } else {
+
     complementary =
-      products.filter(
+      complementary.filter(
         (item) =>
-          item.id !== product.id &&
           item.category ===
-            product.category
+          product.category
       );
   }
 
   complementary =
-    complementary
-      .filter(
-        (item) =>
-          item.id !== product.id
-      )
-      .slice(0, 4);
+    complementary.slice(0, 4);
 
   container.innerHTML =
     complementary.length
@@ -1302,69 +1863,13 @@ function renderComplementaryProducts(product) {
 
 
 /* =========================================================
-   23. PRICE COMPARISON
+   33. PRICE COMPARISON
 ========================================================= */
 
-/*
-   Demo comparison data.
-   Later this will come from Supabase:
-   product_offers / seller_products.
-*/
+function renderPriceComparison(
+  product
+) {
 
-const demoOffers = {
-  1: [
-    {
-      seller: "Hargeisa Mobile Center",
-      price: 180,
-      delivery: 5,
-      rating: 4.7
-    },
-    {
-      seller: "Somaliland Tech Store",
-      price: 185,
-      delivery: 4,
-      rating: 4.5
-    },
-    {
-      seller: "City Electronics",
-      price: 190,
-      delivery: 3,
-      rating: 4.4
-    }
-  ],
-
-  2: [
-    {
-      seller: "Hargeisa Mobile Center",
-      price: 195,
-      delivery: 5,
-      rating: 4.7
-    },
-    {
-      seller: "Somaliland Tech Store",
-      price: 200,
-      delivery: 4,
-      rating: 4.5
-    }
-  ],
-
-  3: [
-    {
-      seller: "Hargeisa Mobile Center",
-      price: 25,
-      delivery: 5,
-      rating: 4.7
-    },
-    {
-      seller: "City Electronics",
-      price: 28,
-      delivery: 3,
-      rating: 4.4
-    }
-  ]
-};
-
-function renderPriceComparison(product) {
   const container =
     $("#price-comparison");
 
@@ -1372,19 +1877,8 @@ function renderPriceComparison(product) {
     return;
   }
 
-  const offers =
-    demoOffers[product.id] || [
-      {
-        seller:
-          sellerOf(product)?.name ||
-          "Seller",
-        price: product.price,
-        delivery: DELIVERY_FEE,
-        rating:
-          sellerOf(product)?.rating ||
-          product.rating
-      }
-    ];
+  const seller =
+    sellerOf(product);
 
   container.innerHTML = `
     <div class="price-table">
@@ -1396,81 +1890,137 @@ function renderPriceComparison(product) {
         <span>Rating</span>
       </div>
 
-      ${offers.map((offer) => `
-        <div class="price-table-row">
+      <div class="price-table-row">
 
-          <strong>
-            ${offer.seller}
-          </strong>
+        <strong>
+          ${escapeHTML(
+            seller?.name ||
+            "Seller"
+          )}
+        </strong>
 
-          <span>
-            ${money(offer.price)}
-          </span>
+        <span>
+          ${money(product.price)}
+        </span>
 
-          <span>
-            ${money(offer.delivery)}
-          </span>
+        <span>
+          ${money(DELIVERY_FEE)}
+        </span>
 
-          <span>
-            ★ ${offer.rating}
-          </span>
+        <span>
+          ★ ${
+            seller?.rating ||
+            product.rating ||
+            0
+          }
+        </span>
 
-        </div>
-      `).join("")}
+      </div>
 
     </div>
-
-    <small class="muted">
-      Qiimayaasha kore waa demo data.
-      Production-ka waxaa si toos ah
-      looga soo qaadan doonaa sellers-ka
-      WaHeN.
-    </small>
   `;
 }
 
 
 /* =========================================================
-   24. WISHLIST
+   34. WISHLIST
 ========================================================= */
 
-function toggleWishlist(id) {
+async function toggleWishlist(
+  id
+) {
+
   const productId =
-    Number(id);
+    id;
+
+  if (!state.user.id) {
+    return toast(
+      "Fadlan marka hore soo gal."
+    );
+  }
 
   if (
-    state.wishlist.has(productId)
+    state.wishlist.has(
+      productId
+    )
   ) {
+
     state.wishlist.delete(
       productId
     );
 
+    if (supabaseClient) {
+
+      await supabaseClient
+        .from("wishlists")
+        .delete()
+        .eq(
+          "user_id",
+          state.user.id
+        )
+        .eq(
+          "product_id",
+          productId
+        );
+    }
+
     toast(
       "Wishlist ayaa laga saaray."
     );
+
   } else {
+
     state.wishlist.add(
       productId
     );
+
+    if (supabaseClient) {
+
+      const {
+        error
+      } =
+        await supabaseClient
+          .from("wishlists")
+          .upsert(
+            {
+              user_id:
+                state.user.id,
+              product_id:
+                productId
+            },
+            {
+              onConflict:
+                "user_id,product_id"
+            }
+          );
+
+      if (error) {
+        console.error(
+          "Wishlist save error:",
+          error
+        );
+      }
+    }
 
     toast(
       "Wishlist ayaa lagu daray."
     );
   }
 
-  save();
-
   renderProducts();
   renderAllProducts();
 
-  if (state.selectedProduct === productId) {
+  if (
+    state.selectedProduct ===
+    productId
+  ) {
     renderProductDetail();
   }
 }
 
 
 /* =========================================================
-   25. MODAL
+   35. MODAL
 ========================================================= */
 
 function openModal(
@@ -1478,8 +2028,11 @@ function openModal(
   body,
   after
 ) {
+
   const overlay =
-    document.createElement("div");
+    document.createElement(
+      "div"
+    );
 
   overlay.className =
     "overlay";
@@ -1518,17 +2071,22 @@ function openModal(
   );
 
   overlay
-    .querySelector(".modal-close")
+    .querySelector(
+      ".modal-close"
+    )
     .onclick = () =>
       overlay.remove();
 
-  overlay.onclick = (event) => {
-    if (
-      event.target === overlay
-    ) {
-      overlay.remove();
-    }
-  };
+  overlay.onclick =
+    (event) => {
+
+      if (
+        event.target ===
+        overlay
+      ) {
+        overlay.remove();
+      }
+    };
 
   after?.(overlay);
 
@@ -1537,61 +2095,86 @@ function openModal(
 
 
 /* =========================================================
-   26. CART MODAL
+   36. CART MODAL
 ========================================================= */
 
 function openCart() {
+
+  if (!state.user.id) {
+    return toast(
+      "Fadlan marka hore soo gal."
+    );
+  }
+
   const totals =
     cartTotals();
 
   const rows =
     state.cart.length
-      ? state.cart.map((item) => {
+      ? state.cart
+          .map((item) => {
 
-          const product =
-            getProduct(item.id);
+            const product =
+              getProduct(
+                item.id
+              );
 
-          return `
-            <div class="cart-row">
+            return `
+              <div class="cart-row">
 
-              <span>
-                ${product?.icon || "📦"}
-                ${product?.name || "Product"}
+                <span>
 
-                <br>
+                  ${
+                    product?.icon ||
+                    "📦"
+                  }
 
-                <small>
-                  ${money(product?.price)}
-                  ×
+                  ${escapeHTML(
+                    product?.name ||
+                    "Product"
+                  )}
 
-                  <button
-                    data-qty="${product?.id}"
-                    data-delta="-1"
-                  >
-                    −
-                  </button>
+                  <br>
 
-                  ${item.qty}
+                  <small>
 
-                  <button
-                    data-qty="${product?.id}"
-                    data-delta="1"
-                  >
-                    +
-                  </button>
-                </small>
-              </span>
+                    ${money(
+                      product?.price
+                    )}
 
-              <strong>
-                ${money(
-                  (product?.price || 0) *
-                  item.qty
-                )}
-              </strong>
+                    ×
 
-            </div>
-          `;
-        }).join("")
+                    <button
+                      data-qty="${escapeHTML(product?.id)}"
+                      data-delta="-1"
+                    >
+                      −
+                    </button>
+
+                    ${item.qty}
+
+                    <button
+                      data-qty="${escapeHTML(product?.id)}"
+                      data-delta="1"
+                    >
+                      +
+                    </button>
+
+                  </small>
+
+                </span>
+
+                <strong>
+                  ${money(
+                    (product?.price || 0) *
+                    item.qty
+                  )}
+                </strong>
+
+              </div>
+            `;
+          })
+          .join("")
       : `
         <p class="empty-text">
           Gaadhigu wuu madhan yahay.
@@ -1628,46 +2211,63 @@ function openCart() {
               >
                 Apply
               </button>
+
             </label>
 
             <div class="checkout-line">
+
               <span>
                 Subtotal
               </span>
 
               <strong>
-                ${money(totals.subtotal)}
+                ${money(
+                  totals.subtotal
+                )}
               </strong>
+
             </div>
 
             <div class="checkout-line">
+
               <span>
                 Discount
               </span>
 
               <strong>
-                -${money(totals.discount)}
+                -${money(
+                  totals.discount
+                )}
               </strong>
+
             </div>
 
             <div class="checkout-line">
+
               <span>
                 Delivery
               </span>
 
               <strong>
-                ${money(totals.delivery)}
+                ${money(
+                  totals.delivery
+                )}
               </strong>
+
             </div>
 
             <div class="checkout-line">
+
               <strong>
                 Total
               </strong>
 
               <strong>
-                ${money(totals.total)}
+                ${money(
+                  totals.total
+                )}
               </strong>
+
             </div>
 
             <div class="modal-actions">
@@ -1685,7 +2285,8 @@ function openCart() {
                 id="compare"
                 type="button"
               >
-                Compare (${state.compare.size})
+                Compare
+                (${state.compare.size})
               </button>
 
             </div>
@@ -1700,52 +2301,103 @@ function openCart() {
         .querySelectorAll(
           "[data-qty]"
         )
-        .forEach((button) => {
+        .forEach(
+          (button) => {
 
-          button.onclick = () => {
+            button.onclick =
+              async () => {
 
-            const item =
-              state.cart.find(
-                (cartItem) =>
-                  cartItem.id ===
-                  Number(
-                    button.dataset.qty
-                  )
-              );
+                const item =
+                  state.cart.find(
+                    (cartItem) =>
+                      String(
+                        cartItem.id
+                      ) ===
+                      String(
+                        button.dataset.qty
+                      )
+                  );
 
-            if (!item) {
-              return;
-            }
+                if (!item) {
+                  return;
+                }
 
-            const product =
-              getProduct(item.id);
+                const product =
+                  getProduct(
+                    item.id
+                  );
 
-            item.qty = Math.max(
-              0,
-              Math.min(
-                product.stock,
-                item.qty +
-                  Number(
-                    button.dataset.delta
-                  )
-              )
-            );
+                item.qty =
+                  Math.max(
+                    0,
+                    Math.min(
+                      product?.stock ||
+                        0,
+                      item.qty +
+                        Number(
+                          button.dataset
+                            .delta
+                        )
+                    )
+                  );
 
-            if (!item.qty) {
-              state.cart =
-                state.cart.filter(
-                  (cartItem) =>
-                    cartItem !== item
-                );
-            }
+                if (!item.qty) {
 
-            save();
-            updateCartCount();
+                  state.cart =
+                    state.cart.filter(
+                      (cartItem) =>
+                        cartItem !==
+                        item
+                    );
+                }
 
-            modal.remove();
-            openCart();
-          };
-        });
+                if (supabaseClient) {
+
+                  if (item.qty) {
+
+                    await supabaseClient
+                      .from(
+                        "cart_items"
+                      )
+                      .update({
+                        quantity:
+                          item.qty
+                      })
+                      .eq(
+                        "user_id",
+                        state.user.id
+                      )
+                      .eq(
+                        "product_id",
+                        item.id
+                      );
+
+                  } else {
+
+                    await supabaseClient
+                      .from(
+                        "cart_items"
+                      )
+                      .delete()
+                      .eq(
+                        "user_id",
+                        state.user.id
+                      )
+                      .eq(
+                        "product_id",
+                        item.id
+                      );
+                  }
+                }
+
+                updateCartCount();
+
+                modal.remove();
+
+                openCart();
+              };
+          }
+        );
 
       modal
         .querySelector(
@@ -1774,7 +2426,8 @@ function openCart() {
             }
 
             if (
-              cartTotals().subtotal <
+              cartTotals()
+                .subtotal <
               coupon.minimum
             ) {
               return toast(
@@ -1786,6 +2439,7 @@ function openCart() {
               coupon;
 
             modal.remove();
+
             openCart();
           }
         );
@@ -1797,7 +2451,9 @@ function openCart() {
         ?.addEventListener(
           "click",
           () => {
+
             modal.remove();
+
             openCheckout();
           }
         );
@@ -1809,7 +2465,9 @@ function openCart() {
         ?.addEventListener(
           "click",
           () => {
+
             modal.remove();
+
             openCompare();
           }
         );
@@ -1819,10 +2477,17 @@ function openCart() {
 
 
 /* =========================================================
-   27. CHECKOUT
+   37. CHECKOUT
 ========================================================= */
 
 function openCheckout() {
+
+  if (!state.user.id) {
+    return toast(
+      "Fadlan marka hore soo gal."
+    );
+  }
+
   if (!state.cart.length) {
     return toast(
       "Cart-ku waa madhan yahay."
@@ -1846,7 +2511,9 @@ function openCheckout() {
 
           <input
             name="name"
-            value="${state.user.name}"
+            value="${escapeHTML(
+              state.user.name
+            )}"
             required
           >
         </label>
@@ -1856,7 +2523,9 @@ function openCheckout() {
 
           <input
             name="phone"
-            value="${state.user.phone}"
+            value="${escapeHTML(
+              state.user.phone
+            )}"
             required
           >
         </label>
@@ -1866,7 +2535,9 @@ function openCheckout() {
 
           <input
             name="address"
-            value="${state.user.address}"
+            value="${escapeHTML(
+              state.user.address
+            )}"
             required
           >
         </label>
@@ -1876,14 +2547,32 @@ function openCheckout() {
 
           <select name="city">
 
-            <option>Hargeisa</option>
-            <option>Berbera</option>
-            <option>Borama</option>
-            <option>Burco</option>
-            <option>Ceerigaabo</option>
-            <option>Laascaanood</option>
+            <option>
+              Hargeisa
+            </option>
+
+            <option>
+              Berbera
+            </option>
+
+            <option>
+              Borama
+            </option>
+
+            <option>
+              Burco
+            </option>
+
+            <option>
+              Ceerigaabo
+            </option>
+
+            <option>
+              Laascaanood
+            </option>
 
           </select>
+
         </label>
 
         <label>
@@ -1892,14 +2581,15 @@ function openCheckout() {
           <select name="delivery">
 
             <option>
-              Standard Delivery — $5
+              Standard Delivery
             </option>
 
             <option>
-              Inter-city — calculated
+              Inter-city Delivery
             </option>
 
           </select>
+
         </label>
 
         <label>
@@ -1908,18 +2598,19 @@ function openCheckout() {
           <select name="payment">
 
             <option>
-              ZAAD Test Payment
+              ZAAD
             </option>
 
             <option>
-              E-Dahab Test Payment
+              E-Dahab
             </option>
 
             <option>
-              Premier Test Payment
+              Premier
             </option>
 
           </select>
+
         </label>
 
         <div class="checkout-line">
@@ -1929,7 +2620,9 @@ function openCheckout() {
           </strong>
 
           <strong>
-            ${money(totals.total)}
+            ${money(
+              totals.total
+            )}
           </strong>
 
         </div>
@@ -1938,7 +2631,7 @@ function openCheckout() {
           class="primary-btn"
           type="submit"
         >
-          Continue to secure test payment
+          Continue
         </button>
 
       </form>
@@ -1950,7 +2643,8 @@ function openCheckout() {
         .querySelector(
           "#checkout-form"
         )
-        .onsubmit = (event) => {
+        .onsubmit =
+        async (event) => {
 
           event.preventDefault();
 
@@ -1979,6 +2673,7 @@ function openCheckout() {
             );
 
           if (invalid) {
+
             return toast(
               "Qaar ka mid ah alaabtu stock ma hayso."
             );
@@ -1986,7 +2681,7 @@ function openCheckout() {
 
           modal.remove();
 
-          openPayment(
+          await createOrder(
             data,
             totals
           );
@@ -1997,242 +2692,170 @@ function openCheckout() {
 
 
 /* =========================================================
-   28. TEST PAYMENT
+   38. CREATE ORDER
 ========================================================= */
 
-function openPayment(
+async function createOrder(
   data,
   totals
 ) {
-  openModal(
-    "ZAAD Test Payment",
 
-    `
-      <p>
-        Payment-kan waa
-        <strong>MOCK / SANDBOX</strong>.
-        Lacag dhab ah lagama jarayo.
-      </p>
+  if (
+    !supabaseClient ||
+    !state.user.id
+  ) {
+    return toast(
+      "Account ama Supabase connection ayaa maqan."
+    );
+  }
 
-      <p>
-        Amount:
-        <strong>
-          ${money(totals.total)}
-        </strong>
-      </p>
+  const orderItems =
+    state.cart.map(
+      (item) => {
 
-      <p>
-        Transaction status:
-        <strong>
-          PENDING
-        </strong>
-      </p>
-
-      <div class="modal-actions">
-
-        <button
-          class="primary-btn"
-          id="pay-success"
-          type="button"
-        >
-          Simulate SUCCESS
-        </button>
-
-        <button
-          class="secondary-btn"
-          id="pay-fail"
-          type="button"
-        >
-          Simulate FAILED
-        </button>
-
-        <button
-          class="secondary-btn"
-          id="pay-timeout"
-          type="button"
-        >
-          Simulate TIMEOUT
-        </button>
-
-      </div>
-    `,
-
-    (modal) => {
-
-      modal
-        .querySelector(
-          "#pay-success"
-        )
-        .onclick = () => {
-
-          createOrder(
-            data,
-            totals,
-            "SUCCESS"
+        const product =
+          getProduct(
+            item.id
           );
 
-          modal.remove();
+        return {
+          product_id:
+            product.id,
+
+          seller_id:
+            product.sellerId,
+
+          quantity:
+            item.qty,
+
+          unit_price:
+            product.price
         };
-
-      modal
-        .querySelector(
-          "#pay-fail"
-        )
-        .onclick = () => {
-
-          notify(
-            "Payment failed. Order-ka lama xaqiijin.",
-            "error"
-          );
-
-          modal.remove();
-        };
-
-      modal
-        .querySelector(
-          "#pay-timeout"
-        )
-        .onclick = () => {
-
-          notify(
-            "Payment timeout. Fadlan mar kale isku day.",
-            "error"
-          );
-
-          modal.remove();
-        };
-    }
-  );
-}
-
-
-/* =========================================================
-   29. CREATE ORDER
-========================================================= */
-
-function createOrder(
-  data,
-  totals,
-  paymentStatus
-) {
-  const orderId =
-    `WH${10001 + state.orders.length}`;
-
-  const items =
-    state.cart.map((item) => {
-
-      const product =
-        getProduct(item.id);
-
-      return {
-        ...item,
-        name: product.name,
-        price: product.price,
-        sellerId: product.sellerId
-      };
-    });
-
-  items.forEach((item) => {
-
-    const product =
-      getProduct(item.id);
-
-    if (product) {
-      product.stock -=
-        item.qty;
-    }
-  });
-
-  const initialStatus =
-    paymentStatus === "SUCCESS"
-      ? "PAID"
-      : "PAYMENT_PENDING";
-
-  const order = {
-    id: orderId,
-
-    buyerId:
-      state.user.id,
-
-    buyer:
-      data.name,
-
-    phone:
-      data.phone,
-
-    address:
-      data.address,
-
-    city:
-      data.city,
-
-    items,
-
-    subtotal:
-      totals.subtotal,
-
-    discount:
-      totals.discount,
-
-    delivery:
-      totals.delivery,
-
-    total:
-      totals.total,
-
-    paymentStatus,
-
-    paymentId:
-      `TX-${Date.now()}`,
-
-    status:
-      initialStatus,
-
-    history: [
-      {
-        status:
-          initialStatus,
-
-        at:
-          new Date().toISOString()
       }
-    ],
+    );
 
-    sellerNotified: true,
+  try {
 
-    reviewed: false
-  };
+    const {
+      data: order,
+      error
+    } =
+      await supabaseClient
+        .from("orders")
+        .insert({
+          buyer_id:
+            state.user.id,
 
-  state.orders.unshift(
-    order
-  );
+          buyer_name:
+            data.name,
 
-  state.cart = [];
-  state.coupon = null;
+          phone:
+            data.phone,
 
-  save();
+          address:
+            data.address,
 
-  updateCartCount();
-  renderProducts();
-  renderAllProducts();
+          city:
+            data.city,
 
-  notify(
-    `Payment successful. Order ${orderId} ayaa la sameeyay.`
-  );
+          subtotal:
+            totals.subtotal,
 
-  openOrder(orderId);
+          discount:
+            totals.discount,
+
+          delivery_fee:
+            totals.delivery,
+
+          total:
+            totals.total,
+
+          payment_method:
+            data.payment,
+
+          payment_status:
+            "PENDING",
+
+          status:
+            "PENDING"
+        })
+        .select()
+        .single();
+
+    if (error) {
+      throw error;
+    }
+
+    const items =
+      orderItems.map(
+        (item) => ({
+          ...item,
+          order_id:
+            order.id
+        })
+      );
+
+    const {
+      error:
+        itemsError
+    } =
+      await supabaseClient
+        .from("order_items")
+        .insert(items);
+
+    if (itemsError) {
+      throw itemsError;
+    }
+
+    state.cart = [];
+
+    state.coupon = null;
+
+    await supabaseClient
+      .from("cart_items")
+      .delete()
+      .eq(
+        "user_id",
+        state.user.id
+      );
+
+    updateCartCount();
+
+    await loadOrders();
+
+    notify(
+      `Order ${order.id} waa la sameeyay.`
+    );
+
+    openOrder(
+      order.id
+    );
+
+  } catch (error) {
+
+    console.error(
+      "Create order error:",
+      error
+    );
+
+    toast(
+      "Order-ka lama samayn. Fadlan mar kale isku day."
+    );
+  }
 }
 
 
 /* =========================================================
-   30. ORDER TRACKING
+   39. ORDER TRACKING
 ========================================================= */
 
 function openOrder(id) {
+
   const order =
     state.orders.find(
       (item) =>
-        item.id === id
+        String(item.id) ===
+        String(id)
     );
 
   if (!order) {
@@ -2252,16 +2875,10 @@ function openOrder(id) {
       )
     ];
 
-  const canAdvance =
-    order.status !==
-      "REVIEWED" &&
-    order.status !==
-      "DELIVERED" &&
-    order.paymentStatus ===
-      "SUCCESS";
-
   openModal(
-    `Order ${order.id}`,
+    `Order ${escapeHTML(
+      order.id
+    )}`,
 
     `
       <p>
@@ -2270,7 +2887,10 @@ function openOrder(id) {
           Status:
         </strong>
 
-        ${order.status}
+        ${escapeHTML(
+          order.status ||
+          "PENDING"
+        )}
 
         <br>
 
@@ -2278,7 +2898,11 @@ function openOrder(id) {
           Payment:
         </strong>
 
-        ${order.paymentStatus}
+        ${escapeHTML(
+          order.payment_status ||
+          order.paymentStatus ||
+          "PENDING"
+        )}
 
         <br>
 
@@ -2286,8 +2910,14 @@ function openOrder(id) {
           Delivery:
         </strong>
 
-        ${order.address},
-        ${order.city}
+        ${escapeHTML(
+          order.address ||
+          ""
+        )},
+        ${escapeHTML(
+          order.city ||
+          ""
+        )}
 
         <br>
 
@@ -2295,53 +2925,15 @@ function openOrder(id) {
           Total:
         </strong>
 
-        ${money(order.total)}
+        ${money(
+          order.total
+        )}
 
       </p>
 
-      <div class="order-list">
-
-        ${order.history
-          .map(
-            (history) => `
-              <div class="order-item">
-
-                <span>
-                  ${history.status}
-                </span>
-
-                <small>
-                  ${new Date(
-                    history.at
-                  ).toLocaleString()}
-                </small>
-
-              </div>
-            `
-          )
-          .join("")}
-
-      </div>
-
-      ${
-        canAdvance
-          ? `
-            <button
-              class="primary-btn"
-              id="advance"
-              type="button"
-            >
-              Demo:
-              move to ${next}
-            </button>
-          `
-          : ""
-      }
-
       ${
         order.status ===
-          "DELIVERED" &&
-        !order.reviewed
+          "DELIVERED"
           ? `
             <button
               class="primary-btn"
@@ -2353,61 +2945,10 @@ function openOrder(id) {
           `
           : ""
       }
+
     `,
 
     (modal) => {
-
-      modal
-        .querySelector(
-          "#advance"
-        )
-        ?.addEventListener(
-          "click",
-          () => {
-
-            const index =
-              ORDER_STATES.indexOf(
-                order.status
-              );
-
-            order.status =
-              ORDER_STATES[
-                Math.min(
-                  index + 1,
-                  ORDER_STATES.length - 1
-                )
-              ];
-
-            order.history.push({
-              status:
-                order.status,
-
-              at:
-                new Date().toISOString()
-            });
-
-            if (
-              order.status ===
-              "DELIVERED"
-            ) {
-              settleWallet(
-                order
-              );
-            }
-
-            save();
-
-            notify(
-              `${order.id}: ${order.status}`
-            );
-
-            modal.remove();
-
-            openOrder(
-              order.id
-            );
-          }
-        );
 
       modal
         .querySelector(
@@ -2417,26 +2958,10 @@ function openOrder(id) {
           "click",
           () => {
 
-            order.reviewed =
-              true;
-
-            order.status =
-              "REVIEWED";
-
-            order.history.push({
-              status:
-                "REVIEWED",
-
-              at:
-                new Date().toISOString()
-            });
-
-            save();
-
             modal.remove();
 
-            notify(
-              "Review-ga waa la diray."
+            toast(
+              "Review system-ka waa la diyaarin doonaa."
             );
           }
         );
@@ -2446,47 +2971,11 @@ function openOrder(id) {
 
 
 /* =========================================================
-   31. SELLER COMMISSION DEMO
-========================================================= */
-
-function settleWallet(order) {
-
-  order.items.forEach(
-    (item) => {
-
-      const product =
-        getProduct(item.id);
-
-      const seller =
-        sellerOf(product);
-
-      if (!seller) {
-        return;
-      }
-
-      seller.wallet =
-        (seller.wallet || 0) +
-        item.price *
-          item.qty *
-          (1 - COMMISSION_RATE);
-    }
-  );
-
-  order.commission =
-    order.subtotal *
-    COMMISSION_RATE;
-
-  notify(
-    `Seller revenue iyo ${money(order.commission)} commission ayaa la diiwaangeliyay.`
-  );
-}
-
-
-/* =========================================================
-   32. COMPARE
+   40. COMPARE
 ========================================================= */
 
 function openCompare() {
+
   const list =
     [...state.compare]
       .map(getProduct)
@@ -2504,62 +2993,74 @@ function openCompare() {
     `
       <div class="compare-grid">
 
-        ${list.map(
-          (product) => `
-            <div>
+        ${list
+          .map(
+            (product) => `
+              <div>
 
-              <h3>
-                ${product.name}
-              </h3>
+                <h3>
+                  ${escapeHTML(
+                    product.name
+                  )}
+                </h3>
 
-              <p>
-                Price:
-                <strong>
-                  ${money(product.price)}
-                </strong>
-              </p>
+                <p>
+                  Price:
+                  <strong>
+                    ${money(
+                      product.price
+                    )}
+                  </strong>
+                </p>
 
-              <p>
-                Rating:
-                ★ ${product.rating}
-              </p>
+                <p>
+                  Rating:
+                  ★ ${
+                    product.rating ||
+                    0
+                  }
+                </p>
 
-              <p>
-                Stock:
-                ${product.stock}
-              </p>
+                <p>
+                  Stock:
+                  ${product.stock}
+                </p>
 
-              <p>
-                Seller:
-                ${sellerOf(product)?.name}
-              </p>
+                <p>
+                  Seller:
+                  ${escapeHTML(
+                    sellerOf(
+                      product
+                    )?.name ||
+                    ""
+                  )}
+                </p>
 
-              <p>
-                Specs:
-                ${product.specs}
-              </p>
+                <p>
+                  Specs:
+                  ${escapeHTML(
+                    product.specs ||
+                    ""
+                  )}
+                </p>
 
-            </div>
-          `
-        ).join("")}
+              </div>
+            `
+          )
+          .join("")}
 
       </div>
-
-      <p>
-        Comparison-ku wuxuu muujinayaa
-        xogta alaabta si loo fududeeyo
-        go'aanka macmiilka.
-      </p>
     `
   );
 }
 
 
 /* =========================================================
-   33. AUTH / ACCOUNT
+   41. AUTHENTICATION
 ========================================================= */
 
-function openAuth() {
+async function openAuth() {
+
   openModal(
     "Soo gal WaHeN",
 
@@ -2575,7 +3076,6 @@ function openAuth() {
           <input
             name="email"
             type="email"
-            value="ahmed.test@wahen.example"
             required
           >
         </label>
@@ -2598,11 +3098,6 @@ function openAuth() {
         </button>
 
       </form>
-
-      <p>
-        Demo account:
-        Ahmed Hassan
-      </p>
     `,
 
     (modal) => {
@@ -2611,24 +3106,56 @@ function openAuth() {
         .querySelector(
           "#auth-form"
         )
-        .onsubmit = (event) => {
+        .onsubmit =
+        async (event) => {
 
           event.preventDefault();
 
-          state.user = {
-            ...state.user,
-            role: "customer"
-          };
+          if (!supabaseClient) {
+            return toast(
+              "Supabase lama helin."
+            );
+          }
 
-          save();
+          const form =
+            new FormData(
+              event.target
+            );
+
+          const email =
+            form.get("email");
+
+          const password =
+            form.get("password");
+
+          const {
+            error
+          } =
+            await supabaseClient
+              .auth
+              .signInWithPassword({
+                email,
+                password
+              });
+
+          if (error) {
+
+            return toast(
+              error.message
+            );
+          }
 
           modal.remove();
+
+          await loadAppData();
+
+          renderAccount();
+
+          updateCartCount();
 
           notify(
             "WaHeN account-ka waa la soo galay."
           );
-
-          renderAccount();
         };
     }
   );
@@ -2636,15 +3163,18 @@ function openAuth() {
 
 
 /* =========================================================
-   34. ACCOUNT VIEW
+   42. ACCOUNT VIEW
 ========================================================= */
 
 function renderAccount() {
+
   const guest =
-    $("#account-guest");
+    $("#account-guest") ||
+    $("#guest-account-panel");
 
   const customer =
-    $("#account-customer");
+    $("#account-customer") ||
+    $("#customer-account-panel");
 
   if (!guest || !customer) {
     return;
@@ -2673,21 +3203,27 @@ function renderAccount() {
 
   if (name) {
     name.textContent =
-      state.user.name;
+      state.user.name ||
+      "Customer";
   }
 }
 
 
 /* =========================================================
-   35. CHAT
+   43. CHAT
 ========================================================= */
 
 function openChat(type) {
 
   const names = {
-    support: "WaHeN Support",
-    seller: "Seller",
-    delivery: "Delivery"
+    support:
+      "WaHeN Support",
+
+    seller:
+      "Seller",
+
+    delivery:
+      "Delivery"
   };
 
   const title =
@@ -2698,11 +3234,11 @@ function openChat(type) {
     title,
 
     `
-      <div
-        class="chat-box"
-      >
+      <div class="chat-box">
 
-        <div class="chat-message received">
+        <div
+          class="chat-message received"
+        >
           Salaan 👋
           Sideen kuu caawin karnaa?
         </div>
@@ -2765,22 +3301,13 @@ function openChat(type) {
 
           messages.innerHTML += `
             <div class="chat-message sent">
-              ${escapeHTML(message)}
+              ${escapeHTML(
+                message
+              )}
             </div>
           `;
 
           input.value = "";
-
-          setTimeout(() => {
-
-            messages.innerHTML += `
-              <div class="chat-message received">
-                Waad ku mahadsan tahay.
-                Fariintaada waa la helay.
-              </div>
-            `;
-
-          }, 500);
         };
     }
   );
@@ -2788,31 +3315,58 @@ function openChat(type) {
 
 
 /* =========================================================
-   36. HTML ESCAPE
+   44. HTML ESCAPE
 ========================================================= */
 
 function escapeHTML(value) {
-  return String(value)
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#039;");
+
+  return String(
+    value ?? ""
+  )
+    .replaceAll(
+      "&",
+      "&amp;"
+    )
+    .replaceAll(
+      "<",
+      "&lt;"
+    )
+    .replaceAll(
+      ">",
+      "&gt;"
+    )
+    .replaceAll(
+      '"',
+      "&quot;"
+    )
+    .replaceAll(
+      "'",
+      "&#039;"
+    );
 }
 
 
 /* =========================================================
-   37. SETTINGS
+   45. SETTINGS
 ========================================================= */
 
-function openSettingsAction(type) {
+function openSettingsAction(
+  type
+) {
 
   if (type === "account") {
-    setActiveView("account");
+
+    setActiveView(
+      "account"
+    );
+
+    renderAccount();
+
     return;
   }
 
   if (type === "theme") {
+
     state.dark =
       !state.dark;
 
@@ -2822,8 +3376,10 @@ function openSettingsAction(type) {
   }
 
   if (type === "language") {
+
     openModal(
       "Language",
+
       `
         <p>
           Af-Soomaali
@@ -2832,12 +3388,6 @@ function openSettingsAction(type) {
         <p>
           English
         </p>
-
-        <small>
-          Language selector-ka
-          production-ka waxaa lagu
-          xiri doonaa translation system.
-        </small>
       `
     );
 
@@ -2845,19 +3395,28 @@ function openSettingsAction(type) {
   }
 
   if (type === "notifications") {
+
     openModal(
       "Notifications",
+
       state.notifications.length
         ? state.notifications
             .map(
               (item) => `
                 <div class="order-item">
+
                   <span>
-                    ${item.message}
+                    ${escapeHTML(
+                      item.message
+                    )}
                   </span>
+
                   <small>
-                    ${item.time}
+                    ${escapeHTML(
+                      item.time
+                    )}
                   </small>
+
                 </div>
               `
             )
@@ -2873,18 +3432,21 @@ function openSettingsAction(type) {
   }
 
   if (type === "privacy") {
+
     openModal(
       "Privacy & Security",
+
       `
         <p>
-          WaHeN waxay u baahan tahay
-          authentication iyo RLS
-          marka Supabase lagu xiro.
+          Xogta muhiimka ah waxaa
+          lagu maamulaa Supabase.
         </p>
 
         <p>
-          Seller iyo Admin roles
-          waa in backend-ku maamulo.
+          Authentication iyo
+          Row Level Security (RLS)
+          ayaa backend-ka lagu
+          xoojin doonaa.
         </p>
       `
     );
@@ -2893,21 +3455,25 @@ function openSettingsAction(type) {
   }
 
   if (type === "support") {
-    openChat("support");
+
+    openChat(
+      "support"
+    );
   }
 }
 
 
 /* =========================================================
-   38. GENERAL ACTIONS
+   46. GENERAL ACTIONS
 ========================================================= */
 
-function action(name) {
+async function action(name) {
 
   if (
     name === "show-all" ||
     name === "shop-now"
   ) {
+
     state.activeCategory =
       "all";
 
@@ -2932,6 +3498,7 @@ function action(name) {
     name === "view-orders" ||
     name === "track"
   ) {
+
     const order =
       state.orders[0];
 
@@ -2941,11 +3508,17 @@ function action(name) {
       );
     }
 
-    openOrder(order.id);
+    openOrder(
+      order.id
+    );
+
     return;
   }
 
-  if (name === "favorites") {
+  if (
+    name === "favorites"
+  ) {
+
     const list =
       [...state.wishlist]
         .map(getProduct)
@@ -2971,6 +3544,7 @@ function action(name) {
   if (
     name === "categories"
   ) {
+
     setActiveView(
       "categories"
     );
@@ -2981,9 +3555,12 @@ function action(name) {
   if (
     name === "account"
   ) {
+
     setActiveView(
       "account"
     );
+
+    renderAccount();
 
     return;
   }
@@ -2991,19 +3568,21 @@ function action(name) {
   if (
     name === "become-seller"
   ) {
+
+    if (!state.user.id) {
+      return toast(
+        "Fadlan marka hore samee account."
+      );
+    }
+
     openModal(
       "Noqo Seller",
 
       `
         <p>
           Seller ahaan waxaad
-          marka hore sameysanaysaa
-          customer account.
-        </p>
-
-        <p>
-          Kadib waxaad diraysaa
-          codsiga shop-ka.
+          dirsan kartaa codsiga
+          shop-kaaga.
         </p>
 
         <button
@@ -3021,12 +3600,45 @@ function action(name) {
           .querySelector(
             "#seller-apply"
           )
-          .onclick = () => {
+          .onclick =
+          async () => {
+
+            if (!supabaseClient) {
+              return toast(
+                "Supabase connection ayaa maqan."
+              );
+            }
+
+            const {
+              error
+            } =
+              await supabaseClient
+                .from(
+                  "seller_applications"
+                )
+                .insert({
+                  user_id:
+                    state.user.id,
+
+                  status:
+                    "PENDING"
+                });
+
+            if (error) {
+
+              console.error(
+                error
+              );
+
+              return toast(
+                "Codsiga lama dirin."
+              );
+            }
 
             modal.remove();
 
             notify(
-              "Seller application demo ayaa la diray."
+              "Codsiga Seller-ka waa la diray."
             );
           };
       }
@@ -3038,16 +3650,31 @@ function action(name) {
   if (
     name === "logout"
   ) {
+
+    if (supabaseClient) {
+
+      await supabaseClient
+        .auth
+        .signOut();
+    }
+
     state.user = {
       id: null,
-      name: "Guest",
+      name: "",
       phone: "",
       city: "",
       address: "",
       role: null
     };
 
-    save();
+    state.cart = [];
+
+    state.wishlist =
+      new Set();
+
+    state.orders = [];
+
+    updateCartCount();
 
     renderAccount();
 
@@ -3070,25 +3697,22 @@ function action(name) {
   ];
 
   if (
-    dashboardActions.includes(name)
+    dashboardActions.includes(
+      name
+    )
   ) {
+
     openModal(
-      name.replaceAll("-", " "),
+      name.replaceAll(
+        "-",
+        " "
+      ),
 
       `
         <p>
-          Qaybtan waxay diyaar u tahay
-          backend-ka production.
-        </p>
-
-        <p>
-          Demo data:
-          ${state.orders.length}
-          orders,
-          ${products.length}
-          products,
-          ${state.notifications.length}
-          notifications.
+          Qaybtan waxay ku xirmi
+          doontaa dashboard-ka
+          backend-ka WaHeN.
         </p>
       `
     );
@@ -3097,22 +3721,27 @@ function action(name) {
 
 
 /* =========================================================
-   39. CATEGORY SELECTION
+   47. CATEGORY SELECTION
 ========================================================= */
 
-function selectCategory(category) {
+function selectCategory(
+  category
+) {
 
   state.activeCategory =
     category;
 
   state.query = "";
 
-  if ($("#product-search")) {
+  if (
+    $("#product-search")
+  ) {
     $("#product-search").value =
       "";
   }
 
   renderProducts();
+
   renderAllProducts();
 
   setActiveView(
@@ -3122,12 +3751,13 @@ function selectCategory(category) {
 
 
 /* =========================================================
-   40. GLOBAL EVENT BINDING
+   48. GLOBAL EVENT BINDING
 ========================================================= */
 
 function bind() {
 
   /* Theme */
+
   $("#theme-toggle")
     ?.addEventListener(
       "click",
@@ -3142,6 +3772,7 @@ function bind() {
 
 
   /* Cart */
+
   $("#cart-btn")
     ?.addEventListener(
       "click",
@@ -3149,7 +3780,8 @@ function bind() {
     );
 
 
-  /* Menu / Account */
+  /* Menu */
+
   $("#menu-btn")
     ?.addEventListener(
       "click",
@@ -3165,6 +3797,7 @@ function bind() {
 
 
   /* Search */
+
   $("#product-search")
     ?.addEventListener(
       "input",
@@ -3175,70 +3808,82 @@ function bind() {
             .trim();
 
         renderProducts();
+
         renderAllProducts();
       }
     );
 
 
-  /* Bottom navigation */
+  /* Navigation */
+
   $$(".tab, .nav-item[data-view]")
-    .forEach((button) => {
+    .forEach(
+      (button) => {
 
-      button.addEventListener(
-        "click",
-        () => {
+        button.addEventListener(
+          "click",
+          () => {
 
-          const view =
-            button.dataset.view;
+            const view =
+              button.dataset.view;
 
-          setActiveView(view);
+            setActiveView(
+              view
+            );
 
-          if (
-            view ===
-            "products"
-          ) {
-            renderAllProducts();
+            if (
+              view ===
+              "products"
+            ) {
+              renderAllProducts();
+            }
+
+            if (
+              view ===
+              "account"
+            ) {
+              renderAccount();
+            }
           }
-
-          if (
-            view ===
-            "account"
-          ) {
-            renderAccount();
-          }
-        }
-      );
-    });
+        );
+      }
+    );
 
 
   /* Categories */
+
   $$(".category")
-    .forEach((button) => {
+    .forEach(
+      (button) => {
 
-      button.addEventListener(
-        "click",
-        () => {
+        button.addEventListener(
+          "click",
+          () => {
 
-          selectCategory(
-            button.dataset.category
-          );
-        }
-      );
-    });
+            selectCategory(
+              button.dataset.category
+            );
+          }
+        );
+      }
+    );
 
 
   /* Global clicks */
+
   document.addEventListener(
     "click",
     (event) => {
 
-      /* Add to cart */
+      /* Add */
+
       const add =
         event.target.closest(
           "[data-add]"
         );
 
       if (add) {
+
         event.stopPropagation();
 
         addToCart(
@@ -3249,41 +3894,37 @@ function bind() {
       }
 
 
-      /* Buy now */
+      /* Buy */
+
       const buy =
         event.target.closest(
           "[data-buy]"
         );
 
       if (buy) {
+
         event.stopPropagation();
 
-        const product =
-          getProduct(
-            buy.dataset.buy
-          );
-
-        if (!product) {
-          return;
-        }
-
         addToCart(
-          product.id
+          buy.dataset.buy
+        ).then(
+          () =>
+            openCheckout()
         );
-
-        openCheckout();
 
         return;
       }
 
 
-      /* Wishlist */
+      /* Favorite */
+
       const favorite =
         event.target.closest(
           "[data-favorite]"
         );
 
       if (favorite) {
+
         event.stopPropagation();
 
         toggleWishlist(
@@ -3295,38 +3936,46 @@ function bind() {
 
 
       /* Compare */
+
       const compare =
         event.target.closest(
           "[data-compare]"
         );
 
       if (compare) {
+
         event.stopPropagation();
 
         const id =
-          Number(
-            compare.dataset.compare
-          );
+          compare.dataset.compare;
 
         if (
-          state.compare.has(id)
+          state.compare.has(
+            id
+          )
         ) {
-          state.compare.delete(id);
+
+          state.compare.delete(
+            id
+          );
 
           toast(
             "Compare laga saaray."
           );
+
         } else {
-          state.compare.add(id);
+
+          state.compare.add(
+            id
+          );
 
           toast(
             "Compare lagu daray."
           );
         }
 
-        save();
-
         renderProducts();
+
         renderAllProducts();
 
         if (
@@ -3341,6 +3990,7 @@ function bind() {
 
 
       /* Brand */
+
       const brand =
         event.target.closest(
           "[data-brand]"
@@ -3357,6 +4007,7 @@ function bind() {
 
 
       /* Manufacturer */
+
       const manufacturer =
         event.target.closest(
           "[data-manufacturer]"
@@ -3373,6 +4024,7 @@ function bind() {
 
 
       /* Chat */
+
       const chat =
         event.target.closest(
           "[data-chat]"
@@ -3389,6 +4041,7 @@ function bind() {
 
 
       /* Settings */
+
       const setting =
         event.target.closest(
           "[data-setting]"
@@ -3404,7 +4057,8 @@ function bind() {
       }
 
 
-      /* General actions */
+      /* Actions */
+
       const actionButton =
         event.target.closest(
           "[data-action]"
@@ -3420,7 +4074,8 @@ function bind() {
       }
 
 
-      /* Product card */
+      /* Product */
+
       const card =
         event.target.closest(
           ".product-card"
@@ -3445,12 +4100,18 @@ function bind() {
 
 
 /* =========================================================
-   41. INITIALIZATION
+   49. INITIALIZATION
 ========================================================= */
 
-function init() {
+async function init() {
 
   updateTheme();
+
+  bind();
+
+  await testSupabaseConnection();
+
+  await loadAppData();
 
   renderProducts();
 
@@ -3465,13 +4126,11 @@ function init() {
   renderAccount();
 
   updateCartCount();
-
-  bind();
 }
 
 
 /* =========================================================
-   42. START APP
+   50. START APP
 ========================================================= */
 
 init();

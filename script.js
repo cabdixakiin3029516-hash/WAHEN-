@@ -3148,6 +3148,7 @@ function openCompare() {
 /* =========================================================
    41. AUTHENTICATION
 ========================================================= */
+
 async function openAuth(mode = "login") {
 
   const isSignup =
@@ -3156,12 +3157,26 @@ async function openAuth(mode = "login") {
   const isForgot =
     mode === "forgot";
 
-  openModal(
+
+  /* =======================================================
+     MODAL TITLE
+  ======================================================= */
+
+  const modalTitle =
     isSignup
       ? "Samee Account-ka WaHeN"
       : isForgot
         ? "Password-ka dib u samee"
-        : "Soo gal WaHeN",
+        : "Soo gal WaHeN";
+
+
+  /* =======================================================
+     MODAL BODY
+  ======================================================= */
+
+  openModal(
+
+    modalTitle,
 
     `
       <form
@@ -3178,6 +3193,8 @@ async function openAuth(mode = "login") {
                 <input
                   name="full_name"
                   type="text"
+                  placeholder="Geli magacaaga"
+                  autocomplete="name"
                   required
                 >
               </label>
@@ -3188,6 +3205,8 @@ async function openAuth(mode = "login") {
                 <input
                   name="phone"
                   type="tel"
+                  placeholder="063xxxxxxx"
+                  autocomplete="tel"
                   required
                 >
               </label>
@@ -3195,19 +3214,31 @@ async function openAuth(mode = "login") {
             : ""
         }
 
+
         <label>
           Email
 
           <input
             name="email"
             type="email"
+            placeholder="example@email.com"
+            autocomplete="email"
             required
           >
         </label>
 
+
         ${
-          !isForgot
+          isForgot
             ? `
+              <p class="empty-text">
+                Geli email-ka aad ku samaysatay
+                account-ka WaHeN.
+                Waxaan kuu soo diri doonaa
+                link aad password-ka dib ugu samaysato.
+              </p>
+            `
+            : `
               <label>
                 Password
 
@@ -3215,18 +3246,18 @@ async function openAuth(mode = "login") {
                   name="password"
                   type="password"
                   minlength="6"
+                  placeholder="Geli password-kaaga"
+                  autocomplete="${
+                    isSignup
+                      ? "new-password"
+                      : "current-password"
+                  }"
                   required
                 >
               </label>
             `
-            : `
-              <p class="empty-text">
-                Geli email-ka account-kaaga.
-                Waxaan kuu diraynaa link aad
-                password-ka ku cusboonaysiin karto.
-              </p>
-            `
         }
+
 
         <button
           class="primary-btn"
@@ -3236,10 +3267,11 @@ async function openAuth(mode = "login") {
             isSignup
               ? "Samee Account"
               : isForgot
-                ? "Ii soo dir link-ga"
+                ? "Ii soo dir Link-ga"
                 : "Soo gal"
           }
         </button>
+
 
         ${
           !isSignup && !isForgot
@@ -3254,6 +3286,7 @@ async function openAuth(mode = "login") {
             `
             : ""
         }
+
 
         <button
           class="secondary-btn"
@@ -3271,6 +3304,11 @@ async function openAuth(mode = "login") {
 
       </form>
     `,
+
+
+    /* =====================================================
+       MODAL EVENTS
+    ===================================================== */
 
     (modal) => {
 
@@ -3290,20 +3328,38 @@ async function openAuth(mode = "login") {
         );
 
 
+      /* ===================================================
+         LOGIN ↔ SIGNUP ↔ FORGOT
+      =================================================== */
+
       switchButton?.addEventListener(
         "click",
         () => {
 
           modal.remove();
 
-          openAuth(
-            isSignup || isForgot
-              ? "login"
-              : "signup"
-          );
+          if (isForgot) {
+
+            openAuth("login");
+
+            return;
+          }
+
+          if (isSignup) {
+
+            openAuth("login");
+
+            return;
+          }
+
+          openAuth("signup");
         }
       );
 
+
+      /* ===================================================
+         FORGOT PASSWORD BUTTON
+      =================================================== */
 
       forgotButton?.addEventListener(
         "click",
@@ -3311,34 +3367,49 @@ async function openAuth(mode = "login") {
 
           modal.remove();
 
-          openAuth(
-            "forgot"
-          );
+          openAuth("forgot");
         }
       );
 
+
+      /* ===================================================
+         FORM SUBMIT
+      =================================================== */
 
       form.onsubmit =
         async (event) => {
 
           event.preventDefault();
 
+
+          /* -----------------------------------------------
+             CHECK SUPABASE
+          ----------------------------------------------- */
+
           if (!supabaseClient) {
+
             return toast(
               "Supabase lama helin."
             );
           }
 
 
+          /* -----------------------------------------------
+             FORM DATA
+          ----------------------------------------------- */
+
           const formData =
             new FormData(
               event.target
             );
 
+
           const email =
             String(
               formData.get("email") || ""
-            ).trim();
+            )
+              .trim()
+              .toLowerCase();
 
 
           /* =================================================
@@ -3348,10 +3419,12 @@ async function openAuth(mode = "login") {
           if (isForgot) {
 
             if (!email) {
+
               return toast(
                 "Fadlan geli email-kaaga."
               );
             }
+
 
             try {
 
@@ -3368,6 +3441,7 @@ async function openAuth(mode = "login") {
                     }
                   );
 
+
               if (error) {
 
                 console.error(
@@ -3380,11 +3454,14 @@ async function openAuth(mode = "login") {
                 );
               }
 
+
               modal.remove();
+
 
               notify(
                 "Link-ga password reset-ka email-kaaga ayaa loo diray."
               );
+
 
             } catch (error) {
 
@@ -3393,14 +3470,19 @@ async function openAuth(mode = "login") {
                 error
               );
 
-              toast(
+              return toast(
                 "Password reset lama diri karin."
               );
             }
 
+
             return;
           }
 
+
+          /* -----------------------------------------------
+             PASSWORD
+          ----------------------------------------------- */
 
           const password =
             String(
@@ -3419,66 +3501,118 @@ async function openAuth(mode = "login") {
                 formData.get("full_name") || ""
               ).trim();
 
+
             const phone =
               String(
                 formData.get("phone") || ""
               ).trim();
 
 
-            const {
-              data,
-              error
-            } =
-              await supabaseClient
-                .auth
-                .signUp({
-                  email,
-                  password,
-                  options: {
-                    data: {
-                      full_name:
-                        fullName,
+            if (!fullName) {
 
-                      phone:
-                        phone,
+              return toast(
+                "Fadlan geli magacaaga."
+              );
+            }
 
-                      role:
-                        "customer"
+
+            if (!phone) {
+
+              return toast(
+                "Fadlan geli telefoonkaaga."
+              );
+            }
+
+
+            if (password.length < 6) {
+
+              return toast(
+                "Password-ku waa inuu ugu yaraan yahay 6 xaraf."
+              );
+            }
+
+
+            try {
+
+              const {
+                data,
+                error
+              } =
+                await supabaseClient
+                  .auth
+                  .signUp({
+
+                    email,
+
+                    password,
+
+                    options: {
+
+                      data: {
+
+                        full_name:
+                          fullName,
+
+                        phone:
+                          phone,
+
+                        role:
+                          "customer"
+
+                      }
+
                     }
-                  }
-                });
+
+                  });
 
 
-            if (error) {
+              if (error) {
+
+                console.error(
+                  "Signup error:",
+                  error
+                );
+
+                return toast(
+                  error.message
+                );
+              }
+
+
+              if (!data?.user) {
+
+                return toast(
+                  "Account lama samayn."
+                );
+              }
+
+
+              modal.remove();
+
+
+              await loadCurrentUser();
+
+
+              renderAccount();
+
+
+              notify(
+                "Account-ka WaHeN waa la sameeyay."
+              );
+
+
+            } catch (error) {
 
               console.error(
-                "Signup error:",
+                "Signup failed:",
                 error
               );
 
               return toast(
-                error.message
+                "Account-ka lama samayn karin."
               );
             }
 
-
-            if (!data?.user) {
-
-              return toast(
-                "Account lama samayn."
-              );
-            }
-
-
-            modal.remove();
-
-            await loadCurrentUser();
-
-            renderAccount();
-
-            notify(
-              "Account-ka WaHeN waa la sameeyay."
-            );
 
             return;
           }
@@ -3488,42 +3622,83 @@ async function openAuth(mode = "login") {
              LOGIN
           ================================================= */
 
-          const {
-            error
-          } =
-            await supabaseClient
-              .auth
-              .signInWithPassword({
-                email,
-                password
-              });
-
-
-          if (error) {
+          if (!email) {
 
             return toast(
-              error.message
+              "Fadlan geli email-kaaga."
             );
           }
 
 
-          modal.remove();
+          if (!password) {
 
-          await loadAppData();
+            return toast(
+              "Fadlan geli password-kaaga."
+            );
+          }
 
-          renderAccount();
 
-          updateCartCount();
+          try {
 
-          notify(
-            "WaHeN account-ka waa la soo galay."
-          );
+            const {
+              error
+            } =
+              await supabaseClient
+                .auth
+                .signInWithPassword({
+
+                  email,
+
+                  password
+
+                });
+
+
+            if (error) {
+
+              console.error(
+                "Login error:",
+                error
+              );
+
+              return toast(
+                error.message
+              );
+            }
+
+
+            modal.remove();
+
+
+            await loadAppData();
+
+
+            renderAccount();
+
+
+            updateCartCount();
+
+
+            notify(
+              "WaHeN account-ka waa la soo galay."
+            );
+
+
+          } catch (error) {
+
+            console.error(
+              "Login failed:",
+              error
+            );
+
+            return toast(
+              "Login-ku wuu fashilmay."
+            );
+          }
         };
     }
   );
 }
-  
-
 /* =========================================================
    42. ACCOUNT VIEW
 ========================================================= */ 

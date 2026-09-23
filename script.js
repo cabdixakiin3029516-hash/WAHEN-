@@ -117,7 +117,7 @@ const $$ = (selector) =>
   [...document.querySelectorAll(selector)];
 
 const money = (value) =>
-  `$${Number(value || 0).toFixed(2)}`;
+  `$${Number(value || 0).toFixed(2)}`
 
 function sellerOf(product) {
   if (!product) {

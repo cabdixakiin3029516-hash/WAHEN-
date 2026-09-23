@@ -3605,7 +3605,15 @@ function openSettingsAction(
 
 async function action(name) {
 
-  if (
+  if if (name === "login") {
+  openAuth("login");
+  return;
+}
+
+if (name === "create-account") {
+  openAuth("signup");
+  return;
+}(
     name === "show-all" ||
     name === "shop-now"
   ) {

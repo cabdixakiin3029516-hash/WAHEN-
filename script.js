@@ -3738,9 +3738,11 @@ async function openAuth(mode = "login") {
     }
   );
 }
+
 /* =========================================================
    42. ACCOUNT VIEW
-========================================================= */ 
+========================================================= */
+
 function renderAccount() {
 
   const guest =
@@ -3762,28 +3764,600 @@ function renderAccount() {
     );
 
   guest.style.display =
-    loggedIn
-      ? "none"
-      : "";
+    loggedIn ? "none" : "";
 
   customer.style.display =
-    loggedIn
-      ? ""
-      : "none";
+    loggedIn ? "" : "none";
 
   const name =
     document.querySelector(
-      "[data-account-name]"
+      "#account-name"
+    );
+
+  const status =
+    document.querySelector(
+      "#account-status"
     );
 
   if (name) {
+
     name.textContent =
       state.user.name ||
       "Customer";
+
+  }
+
+  if (status) {
+
+    status.textContent =
+      loggedIn
+        ? (
+            state.user.phone ||
+            "Account-kaaga"
+          )
+        : "Soo gal ama samee account";
+
   }
 }
 
 
+/* =========================================================
+   42.1 PROFILE FORM
+========================================================= */
+
+async function openProfile() {
+
+  if (!state.user.id) {
+
+    showToast(
+      "Fadlan marka hore Login samee."
+    );
+
+    openAuth("login");
+
+    return;
+  }
+
+  let districts = [];
+
+  try {
+
+    const {
+      data,
+      error
+    } =
+      await supabaseClient
+        .from("districts")
+        .select(`
+          id,
+          name,
+          region_id
+        `)
+        .order(
+          "name",
+          {
+            ascending: true
+          }
+        );
+
+    if (error) {
+      console.error(
+        "Districts load error:",
+        error
+      );
+    } else {
+      districts = data || [];
+    }
+
+  } catch (error) {
+
+    console.error(
+      "Districts load failed:",
+      error
+    );
+
+  }
+
+
+  const profileHTML = `
+
+    <div class="profile-form">
+
+      <div class="form-group">
+
+        <label for="profile-name">
+          Magaca
+        </label>
+
+        <input
+          id="profile-name"
+          type="text"
+          value="${escapeHTML(
+            state.user.name || ""
+          )}"
+          placeholder="Geli magacaaga"
+        >
+
+      </div>
+
+
+      <div class="form-group">
+
+        <label for="profile-phone">
+          Telefoon
+        </label>
+
+        <input
+          id="profile-phone"
+          type="tel"
+          value="${escapeHTML(
+            state.user.phone || ""
+          )}"
+          placeholder="06xxxxxxxx"
+        >
+
+      </div>
+
+
+      <div class="form-group">
+
+        <label for="profile-region">
+          Gobol
+        </label>
+
+        <select id="profile-region">
+
+          <option value="">
+            Dooro gobolka
+          </option>
+
+          <option value="Saaxil"
+            ${
+              state.user.region === "Saaxil"
+                ? "selected"
+                : ""
+            }>
+            Saaxil
+          </option>
+
+          <option value="Maroodi Jeex"
+            ${
+              state.user.region === "Maroodi Jeex"
+                ? "selected"
+                : ""
+            }>
+            Maroodi Jeex
+          </option>
+
+          <option value="Awdal"
+            ${
+              state.user.region === "Awdal"
+                ? "selected"
+                : ""
+            }>
+            Awdal
+          </option>
+
+          <option value="Togdheer"
+            ${
+              state.user.region === "Togdheer"
+                ? "selected"
+                : ""
+            }>
+            Togdheer
+          </option>
+
+          <option value="Sanaag"
+            ${
+              state.user.region === "Sanaag"
+                ? "selected"
+                : ""
+            }>
+            Sanaag
+          </option>
+
+        </select>
+
+      </div>
+
+
+      <div class="form-group">
+
+        <label for="profile-district">
+          Degmo
+        </label>
+
+        <select id="profile-district">
+
+          <option value="">
+            Dooro degmada
+          </option>
+
+        </select>
+
+      </div>
+
+
+      <div class="form-group">
+
+        <label for="profile-landmark">
+          Goob caan ah oo kuu dhow
+        </label>
+
+        <input
+          id="profile-landmark"
+          type="text"
+          value="${escapeHTML(
+            state.user.landmark || ""
+          )}"
+          placeholder="Tusaale: Suuqa Waaheen"
+        >
+
+      </div>
+
+
+      <button
+        id="save-profile-btn"
+        class="primary-blue"
+        type="button"
+      >
+        💾 Kaydi Profile
+      </button>
+
+    </div>
+
+  `;
+
+
+  const modal =
+    openModal(
+      "Profile-kayga",
+      profileHTML
+    );
+
+
+  const regionSelect =
+    modal.querySelector(
+      "#profile-region"
+    );
+
+  const districtSelect =
+    modal.querySelector(
+      "#profile-district"
+    );
+
+  const saveButton =
+    modal.querySelector(
+      "#save-profile-btn"
+    );
+
+
+  function renderDistricts(
+    regionName
+  ) {
+
+    const filtered =
+      districts.filter(
+        (district) =>
+          district.region_name === regionName
+      );
+
+    districtSelect.innerHTML = `
+      <option value="">
+        Dooro degmada
+      </option>
+    `;
+
+    filtered.forEach(
+      (district) => {
+
+        const option =
+          document.createElement(
+            "option"
+          );
+
+        option.value =
+          district.name;
+
+        option.textContent =
+          district.name;
+
+        if (
+          district.name ===
+          state.user.district
+        ) {
+
+          option.selected =
+            true;
+
+        }
+
+        districtSelect.appendChild(
+          option
+        );
+
+      }
+    );
+
+  }
+
+
+  /*
+   * Waxaan marka hore si sax ah
+   * u helaynaa gobolka uu district-ku leeyahay.
+   */
+
+  async function loadDistrictsForRegion(
+    regionName
+  ) {
+
+    if (!regionName) {
+
+      districtSelect.innerHTML = `
+        <option value="">
+          Dooro degmada
+        </option>
+      `;
+
+      return;
+
+    }
+
+
+    const {
+      data,
+      error
+    } =
+      await supabaseClient
+        .from("districts")
+        .select(`
+          id,
+          name,
+          region_id,
+          regions (
+            name
+          )
+        `)
+        .order(
+          "name",
+          {
+            ascending: true
+          }
+        );
+
+
+    if (error) {
+
+      console.error(
+        "District load error:",
+        error
+      );
+
+      return;
+    }
+
+
+    districtSelect.innerHTML = `
+      <option value="">
+        Dooro degmada
+      </option>
+    `;
+
+
+    (data || [])
+      .filter(
+        (district) =>
+          district.regions?.name ===
+          regionName
+      )
+      .forEach(
+        (district) => {
+
+          const option =
+            document.createElement(
+              "option"
+            );
+
+          option.value =
+            district.name;
+
+          option.textContent =
+            district.name;
+
+          if (
+            district.name ===
+            state.user.district
+          ) {
+
+            option.selected =
+              true;
+
+          }
+
+          districtSelect.appendChild(
+            option
+          );
+
+        }
+      );
+
+  }
+
+
+  regionSelect.addEventListener(
+    "change",
+    async () => {
+
+      state.user.region =
+        regionSelect.value;
+
+      state.user.district =
+        "";
+
+      await loadDistrictsForRegion(
+        regionSelect.value
+      );
+
+    }
+  );
+
+
+  await loadDistrictsForRegion(
+    state.user.region
+  );
+
+
+  saveButton.addEventListener(
+    "click",
+    async () => {
+
+      const name =
+        modal.querySelector(
+          "#profile-name"
+        ).value.trim();
+
+      const phone =
+        modal.querySelector(
+          "#profile-phone"
+        ).value.trim();
+
+      const region =
+        regionSelect.value;
+
+      const district =
+        districtSelect.value;
+
+      const landmark =
+        modal.querySelector(
+          "#profile-landmark"
+        ).value.trim();
+
+
+      if (!name) {
+
+        showToast(
+          "Fadlan geli magaca."
+        );
+
+        return;
+      }
+
+
+      if (!phone) {
+
+        showToast(
+          "Fadlan geli telefoonka."
+        );
+
+        return;
+      }
+
+
+      if (!region) {
+
+        showToast(
+          "Fadlan dooro gobolka."
+        );
+
+        return;
+      }
+
+
+      if (!district) {
+
+        showToast(
+          "Fadlan dooro degmada."
+        );
+
+        return;
+      }
+
+
+      saveButton.disabled =
+        true;
+
+      saveButton.textContent =
+        "⏳ Kaydinaya...";
+
+
+      const {
+        error
+      } =
+        await supabaseClient
+          .from("profiles")
+          .update({
+
+            full_name:
+              name,
+
+            phone:
+              phone,
+
+            region:
+              region,
+
+            district:
+              district,
+
+            landmark:
+              landmark
+
+          })
+          .eq(
+            "id",
+            state.user.id
+          );
+
+
+      if (error) {
+
+        console.error(
+          "Profile save error:",
+          error
+        );
+
+        showToast(
+          "Profile-ka lama kaydin."
+        );
+
+        saveButton.disabled =
+          false;
+
+        saveButton.textContent =
+          "💾 Kaydi Profile";
+
+        return;
+      }
+
+
+      state.user.name =
+        name;
+
+      state.user.phone =
+        phone;
+
+      state.user.region =
+        region;
+
+      state.user.district =
+        district;
+
+      state.user.landmark =
+        landmark;
+
+
+      renderAccount();
+
+      showToast(
+        "Profile-ka waa la kaydiyey ✅"
+      );
+
+      modal.remove();
+
+    }
+  );
+
+}
 /* =========================================================
    43. CHAT
 ========================================================= */

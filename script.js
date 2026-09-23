@@ -236,72 +236,110 @@ async function testSupabaseConnection() {
 
 
 /* =========================================================
-   10. LOAD CURRENT USER
+   10.1. LOAD PROFILE
 ========================================================= */
 
-async function loadCurrentUser() {
-  if (!supabaseClient) {
+async function loadProfile() {
+
+  if (!supabaseClient || !state.user.id) {
     return;
   }
 
   try {
+
     const {
       data,
       error
     } =
       await supabaseClient
-        .auth
-        .getUser();
+        .from("profiles")
+        .select(`
+          id,
+          full_name,
+          phone,
+          city,
+          address,
+          role,
+          avatar_url,
+          is_active,
+          region,
+          district,
+          neighborhood,
+          landmark
+        `)
+        .eq(
+          "id",
+          state.user.id
+        )
+        .maybeSingle();
 
     if (error) {
+      console.error(
+        "Profile load error:",
+        error
+      );
       return;
     }
 
-    if (!data?.user) {
-      state.user = {
-        id: null,
-        name: "",
-        phone: "",
-        city: "",
-        address: "",
-        role: null
-      };
-
+    if (!data) {
       return;
     }
-
-    const user =
-      data.user;
 
     state.user = {
-      id: user.id,
+      ...state.user,
+
       name:
-        user.user_metadata?.full_name ||
-        user.email ||
+        data.full_name ||
+        state.user.name ||
         "",
+
       phone:
-        user.user_metadata?.phone ||
+        data.phone ||
+        state.user.phone ||
         "",
+
       city:
-        user.user_metadata?.city ||
+        data.city ||
         "",
+
       address:
-        user.user_metadata?.address ||
+        data.address ||
         "",
+
       role:
-        user.user_metadata?.role ||
-        "customer"
+        data.role ||
+        state.user.role ||
+        "customer",
+
+      region:
+        data.region ||
+        "",
+
+      district:
+        data.district ||
+        "",
+
+      neighborhood:
+        data.neighborhood ||
+        "",
+
+      landmark:
+        data.landmark ||
+        "",
+
+      avatar_url:
+        data.avatar_url ||
+        ""
     };
 
   } catch (error) {
 
     console.error(
-      "User load error:",
+      "Profile load failed:",
       error
     );
   }
 }
-
 
 /* =========================================================
    11. LOAD SELLERS

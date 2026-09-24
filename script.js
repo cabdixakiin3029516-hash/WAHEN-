@@ -4714,19 +4714,26 @@ async function action(name) {
   }
 
   if (
-    name === "account"
-  ) {
+  name === "account"
+) {
+
+  setActiveView(
+    "account"
+  );
+
+  renderAccount();
+
+  return;
+}
+
+if (
+  name === "profile"
+) {
 
   openProfile();
+
   return;
-}  setActiveView(
-      "account"
-    );
-
-    renderAccount();
-
-    return;
-  }
+}
 
   if (
     name === "become-seller"

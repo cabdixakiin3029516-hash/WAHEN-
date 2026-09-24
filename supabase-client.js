@@ -1,16 +1,52 @@
-// WaHeN - Supabase Client
+/* =========================================================
+   WAHEN SUPABASE CLIENT
+   ========================================================= */
 
-if (!window.WAHEN_SUPABASE) {
-  throw new Error("❌ WAHEN_SUPABASE configuration lama helin.");
-}
+(function () {
 
-if (!window.supabase) {
-  throw new Error("❌ Supabase library lama helin.");
-}
+  if (!window.supabase) {
+    console.error("Supabase library lama helin.");
+    return;
+  }
 
-window.WAHEN_SUPABASE_CLIENT = window.supabase.createClient(
-  window.WAHEN_SUPABASE.url,
-  window.WAHEN_SUPABASE.anonKey
-);
+  let url = null;
+  let key = null;
 
-console.log("✅ WaHeN Supabase Client waa diyaar.");
+  /*
+    Waxaan taageeraynaa magacyada caadiga ah ee
+    supabase-config.js isticmaali karo.
+  */
+
+  if (window.SUPABASE_URL) {
+    url = window.SUPABASE_URL;
+  }
+
+  if (window.SUPABASE_ANON_KEY) {
+    key = window.SUPABASE_ANON_KEY;
+  }
+
+  if (window.supabaseConfig) {
+    url =
+      url ||
+      window.supabaseConfig.url ||
+      window.supabaseConfig.SUPABASE_URL;
+
+    key =
+      key ||
+      window.supabaseConfig.key ||
+      window.supabaseConfig.anonKey ||
+      window.supabaseConfig.SUPABASE_ANON_KEY;
+  }
+
+  if (!url || !key) {
+    console.error(
+      "Supabase URL ama Publishable/Anon Key lama helin. Hubi supabase-config.js."
+    );
+    return;
+  }
+
+  window.wahenSupabase = window.supabase.createClient(url, key);
+
+  console.log("WaHeN Supabase Client: CONNECTED");
+
+})();

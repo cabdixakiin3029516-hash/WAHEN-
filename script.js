@@ -81,7 +81,7 @@ const state = {
   selectedProduct: null,
 
   cart: [],
-  cartId: null,
+cartId: null,
   wishlist: new Set(),
 
   compare: new Set(),
@@ -99,10 +99,6 @@ const state = {
     phone: "",
     city: "",
     address: "",
-    region: "",
-    district: "",
-    neighborhood: "",
-    landmark: "",
     role: null
   },
 
@@ -121,7 +117,7 @@ const $$ = (selector) =>
   [...document.querySelectorAll(selector)];
 
 const money = (value) =>
-  `$${Number(value || 0).toFixed(2)}`;
+  `$${Number(value || 0).toFixed(2)}`
 
 function sellerOf(product) {
   if (!product) {
@@ -235,36 +231,6 @@ async function testSupabaseConnection() {
     );
 
     return false;
-  }
-}
-
-
-/* =========================================================
-   10. LOAD CURRENT USER
-========================================================= */
-
-async function loadCurrentUser() {
-  if (!supabaseClient) {
-    state.user.id = null;
-    return;
-  }
-
-  try {
-    const { data: { session }, error } = await supabaseClient.auth.getSession();
-
-    if (error || !session) {
-      state.user.id = null;
-      return;
-    }
-
-    state.user.id = session.user.id;
-    state.user.name = session.user.user_metadata?.full_name || "";
-    state.user.phone = session.user.user_metadata?.phone || "";
-    state.user.role = session.user.user_metadata?.role || "customer";
-
-  } catch (error) {
-    console.error("Load current user error:", error);
-    state.user.id = null;
   }
 }
 
@@ -673,7 +639,7 @@ async function loadManufacturers() {
 
 
 /* =========================================================
-   15. LOAD CART
+15. LOAD CART
 ========================================================= */
 
 async function getOrCreateCart() {
@@ -1088,7 +1054,7 @@ function cartTotals() {
 
 
 /* =========================================================
-   22. ADD TO CART
+22. ADD TO CART
 ========================================================= */
 
 async function addToCart(id) {
@@ -2188,6 +2154,7 @@ function openModal(
   after
 ) {
 
+  // Ka saar modal hore haddii uu jiro
   document
     .querySelectorAll(".overlay")
     .forEach((oldOverlay) => {
@@ -3229,12 +3196,22 @@ async function openAuth(mode = "login") {
   const isForgot =
     mode === "forgot";
 
+
+  /* =======================================================
+     MODAL TITLE
+  ======================================================= */
+
   const modalTitle =
     isSignup
       ? "Samee Account-ka WaHeN"
       : isForgot
         ? "Password-ka dib u samee"
         : "Soo gal WaHeN";
+
+
+  /* =======================================================
+     MODAL BODY
+  ======================================================= */
 
   openModal(
 
@@ -3367,6 +3344,11 @@ async function openAuth(mode = "login") {
       </form>
     `,
 
+
+    /* =====================================================
+       MODAL EVENTS
+    ===================================================== */
+
     (modal) => {
 
       const form =
@@ -3383,6 +3365,11 @@ async function openAuth(mode = "login") {
         modal.querySelector(
           "#forgot-password"
         );
+
+
+      /* ===================================================
+         LOGIN ↔ SIGNUP ↔ FORGOT
+      =================================================== */
 
       switchButton?.addEventListener(
         "click",
@@ -3408,6 +3395,11 @@ async function openAuth(mode = "login") {
         }
       );
 
+
+      /* ===================================================
+         FORGOT PASSWORD BUTTON
+      =================================================== */
+
       forgotButton?.addEventListener(
         "click",
         () => {
@@ -3418,10 +3410,20 @@ async function openAuth(mode = "login") {
         }
       );
 
+
+      /* ===================================================
+         FORM SUBMIT
+      =================================================== */
+
       form.onsubmit =
         async (event) => {
 
           event.preventDefault();
+
+
+          /* -----------------------------------------------
+             CHECK SUPABASE
+          ----------------------------------------------- */
 
           if (!supabaseClient) {
 
@@ -3430,10 +3432,16 @@ async function openAuth(mode = "login") {
             );
           }
 
+
+          /* -----------------------------------------------
+             FORM DATA
+          ----------------------------------------------- */
+
           const formData =
             new FormData(
               event.target
             );
+
 
           const email =
             String(
@@ -3441,6 +3449,11 @@ async function openAuth(mode = "login") {
             )
               .trim()
               .toLowerCase();
+
+
+          /* =================================================
+             FORGOT PASSWORD
+          ================================================= */
 
           if (isForgot) {
 
@@ -3450,6 +3463,7 @@ async function openAuth(mode = "login") {
                 "Fadlan geli email-kaaga."
               );
             }
+
 
             try {
 
@@ -3466,6 +3480,7 @@ async function openAuth(mode = "login") {
                     }
                   );
 
+
               if (error) {
 
                 console.error(
@@ -3478,11 +3493,14 @@ async function openAuth(mode = "login") {
                 );
               }
 
+
               modal.remove();
+
 
               notify(
                 "Link-ga password reset-ka email-kaaga ayaa loo diray."
               );
+
 
             } catch (error) {
 
@@ -3496,13 +3514,24 @@ async function openAuth(mode = "login") {
               );
             }
 
+
             return;
           }
+
+
+          /* -----------------------------------------------
+             PASSWORD
+          ----------------------------------------------- */
 
           const password =
             String(
               formData.get("password") || ""
             );
+
+
+          /* =================================================
+             SIGN UP
+          ================================================= */
 
           if (isSignup) {
 
@@ -3511,10 +3540,12 @@ async function openAuth(mode = "login") {
                 formData.get("full_name") || ""
               ).trim();
 
+
             const phone =
               String(
                 formData.get("phone") || ""
               ).trim();
+
 
             if (!fullName) {
 
@@ -3523,6 +3554,7 @@ async function openAuth(mode = "login") {
               );
             }
 
+
             if (!phone) {
 
               return toast(
@@ -3530,12 +3562,14 @@ async function openAuth(mode = "login") {
               );
             }
 
+
             if (password.length < 6) {
 
               return toast(
                 "Password-ku waa inuu ugu yaraan yahay 6 xaraf."
               );
             }
+
 
             try {
 
@@ -3570,6 +3604,7 @@ async function openAuth(mode = "login") {
 
                   });
 
+
               if (error) {
 
                 console.error(
@@ -3582,6 +3617,7 @@ async function openAuth(mode = "login") {
                 );
               }
 
+
               if (!data?.user) {
 
                 return toast(
@@ -3589,15 +3625,20 @@ async function openAuth(mode = "login") {
                 );
               }
 
+
               modal.remove();
+
 
               await loadCurrentUser();
 
+
               renderAccount();
+
 
               notify(
                 "Account-ka WaHeN waa la sameeyay."
               );
+
 
             } catch (error) {
 
@@ -3611,8 +3652,14 @@ async function openAuth(mode = "login") {
               );
             }
 
+
             return;
           }
+
+
+          /* =================================================
+             LOGIN
+          ================================================= */
 
           if (!email) {
 
@@ -3621,12 +3668,14 @@ async function openAuth(mode = "login") {
             );
           }
 
+
           if (!password) {
 
             return toast(
               "Fadlan geli password-kaaga."
             );
           }
+
 
           try {
 
@@ -3643,6 +3692,7 @@ async function openAuth(mode = "login") {
 
                 });
 
+
             if (error) {
 
               console.error(
@@ -3655,17 +3705,23 @@ async function openAuth(mode = "login") {
               );
             }
 
+
             modal.remove();
+
 
             await loadAppData();
 
+
             renderAccount();
 
+
             updateCartCount();
+
 
             notify(
               "WaHeN account-ka waa la soo galay."
             );
+
 
           } catch (error) {
 
@@ -3685,49 +3741,6 @@ async function openAuth(mode = "login") {
 
 
 /* =========================================================
-   42. RENDER ACCOUNT VIEW
-========================================================= */
-
-function renderAccount() {
-  const container = $("#account-view") || $(".view[data-view='account']");
-  if (!container) return;
-
-  if (!state.user.id) {
-    container.innerHTML = `
-      <div class="account-card">
-        <h2>Ku soo dhawoow WaHeN Marketplace</h2>
-        <p>Soo gal ama samee account si aad u gashato dalabaadkaaga iyo profile-kaaga.</p>
-        <div class="modal-actions">
-          <button class="primary-btn" data-action="login" type="button">Soo Gal</button>
-          <button class="secondary-btn" data-action="create-account" type="button">Samee Account</button>
-        </div>
-      </div>
-    `;
-    return;
-  }
-
-  container.innerHTML = `
-    <div class="account-card">
-      <div class="user-info">
-        <h2>${escapeHTML(state.user.name || "Macaamiil")}</h2>
-        <p>📞 ${escapeHTML(state.user.phone || "Telefoon lama gelin")}</p>
-        <p>📍 ${escapeHTML(state.user.region || "")} ${state.user.district ? `, ${escapeHTML(state.user.district)}` : ""}</p>
-        <p>🏷️ Role: <strong>${escapeHTML(state.user.role || "customer")}</strong></p>
-      </div>
-
-      <div class="account-menu">
-        <button class="secondary-btn" data-action="profile" type="button">✏️ Wax ka bixi Profile-ka</button>
-        <button class="secondary-btn" data-action="favorites" type="button">♥ Waxyaabaha aan jeclahay</button>
-        <button class="secondary-btn" data-action="view-orders" type="button">📦 Dalabaadkayga (${state.orders.length})</button>
-        <button class="secondary-btn" data-action="become-seller" type="button">🏪 Noqo Seller</button>
-        <button class="primary-btn danger-btn" data-action="logout" type="button" style="margin-top: 15px;">🚪 Ka bax Account-ka</button>
-      </div>
-    </div>
-  `;
-}
-
-
-/* =========================================================
    42.1 PROFILE FORM
 ========================================================= */
 
@@ -3743,6 +3756,7 @@ async function openProfile() {
 
     return;
   }
+
 
   const profileHTML = `
 
@@ -3893,6 +3907,7 @@ async function openProfile() {
 
   `;
 
+
   openModal(
     "Profile-kayga",
     profileHTML,
@@ -3914,6 +3929,7 @@ async function openProfile() {
           "#save-profile-btn"
         );
 
+
       if (
         !regionSelect ||
         !districtSelect ||
@@ -3927,6 +3943,7 @@ async function openProfile() {
         return;
       }
 
+
       async function loadDistrictsForRegion(
         regionName
       ) {
@@ -3937,9 +3954,11 @@ async function openProfile() {
           </option>
         `;
 
+
         if (!regionName) {
           return;
         }
+
 
         if (!supabaseClient) {
 
@@ -3949,6 +3968,7 @@ async function openProfile() {
 
           return;
         }
+
 
         try {
 
@@ -3965,6 +3985,7 @@ async function openProfile() {
               )
               .maybeSingle();
 
+
           if (regionError) {
 
             console.error(
@@ -3979,6 +4000,7 @@ async function openProfile() {
             return;
           }
 
+
           if (!regionData) {
 
             console.error(
@@ -3988,6 +4010,7 @@ async function openProfile() {
 
             return;
           }
+
 
           const {
             data: districts,
@@ -4009,6 +4032,7 @@ async function openProfile() {
                 }
               );
 
+
           if (districtError) {
 
             console.error(
@@ -4022,6 +4046,7 @@ async function openProfile() {
 
             return;
           }
+
 
           (districts || [])
             .forEach(
@@ -4038,6 +4063,7 @@ async function openProfile() {
                 option.textContent =
                   district.name;
 
+
                 if (
                   district.name ===
                   state.user.district
@@ -4046,6 +4072,7 @@ async function openProfile() {
                   option.selected =
                     true;
                 }
+
 
                 districtSelect.appendChild(
                   option
@@ -4067,6 +4094,7 @@ async function openProfile() {
         }
       }
 
+
       regionSelect.addEventListener(
         "change",
         async () => {
@@ -4084,9 +4112,11 @@ async function openProfile() {
         }
       );
 
+
       await loadDistrictsForRegion(
         state.user.region || ""
       );
+
 
       saveButton.addEventListener(
         "click",
@@ -4097,21 +4127,26 @@ async function openProfile() {
               "#profile-name"
             ).value.trim();
 
+
           const phone =
             modal.querySelector(
               "#profile-phone"
             ).value.trim();
 
+
           const region =
             regionSelect.value;
 
+
           const district =
             districtSelect.value;
+
 
           const landmark =
             modal.querySelector(
               "#profile-landmark"
             ).value.trim();
+
 
           if (!name) {
 
@@ -4122,6 +4157,7 @@ async function openProfile() {
             return;
           }
 
+
           if (!phone) {
 
             toast(
@@ -4130,6 +4166,7 @@ async function openProfile() {
 
             return;
           }
+
 
           if (!region) {
 
@@ -4140,6 +4177,7 @@ async function openProfile() {
             return;
           }
 
+
           if (!district) {
 
             toast(
@@ -4149,11 +4187,13 @@ async function openProfile() {
             return;
           }
 
+
           saveButton.disabled =
             true;
 
           saveButton.textContent =
             "⏳ Kaydinaya...";
+
 
           try {
 
@@ -4185,6 +4225,7 @@ async function openProfile() {
                   state.user.id
                 );
 
+
             if (error) {
 
               console.error(
@@ -4205,6 +4246,7 @@ async function openProfile() {
               return;
             }
 
+
             state.user.name =
               name;
 
@@ -4220,11 +4262,14 @@ async function openProfile() {
             state.user.landmark =
               landmark;
 
+
             renderAccount();
+
 
             toast(
               "Profile-ka waa la kaydiyey ✅"
             );
+
 
             modal.remove();
 
@@ -4238,6 +4283,7 @@ async function openProfile() {
             toast(
               "Khalad ayaa dhacay markii Profile-ka la kaydinayay."
             );
+
 
             saveButton.disabled =
               false;
@@ -4693,10 +4739,6 @@ async function action(name) {
       phone: "",
       city: "",
       address: "",
-      region: "",
-      district: "",
-      neighborhood: "",
-      landmark: "",
       role: null
     };
 
@@ -4747,7 +4789,6 @@ async function action(name) {
     return;
   }
 }
-
 /* =========================================================
    47. CATEGORY SELECTION
 ========================================================= */
@@ -4844,8 +4885,43 @@ function bind() {
 
   /* Navigation */
 
-  $$(".tab, .nav-item[data-view]")     .forEach(       (button) => {          button.addEventListener(           "click",           () => {              const view =               button.dataset.view;              setActiveView(               view             );              if (               view ===               "products"             ) {               renderAllProducts();             }              if (               view ===               "account"             ) {               renderAccount();             }           }         );       }     );     /* Categories */    $$
-(".category")
+  $$(".tab, .nav-item[data-view]")
+    .forEach(
+      (button) => {
+
+        button.addEventListener(
+          "click",
+          () => {
+
+            const view =
+              button.dataset.view;
+
+            setActiveView(
+              view
+            );
+
+            if (
+              view ===
+              "products"
+            ) {
+              renderAllProducts();
+            }
+
+            if (
+              view ===
+              "account"
+            ) {
+              renderAccount();
+            }
+          }
+        );
+      }
+    );
+
+
+  /* Categories */
+
+  $$(".category")
     .forEach(
       (button) => {
 
@@ -5127,4 +5203,3 @@ async function init() {
 ========================================================= */
 
 init();
-

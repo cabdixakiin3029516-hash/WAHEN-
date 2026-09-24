@@ -4618,8 +4618,6 @@ function openSettingsAction(
 
 async function action(name) {
 
-  
-
   if (name === "login") {
     openAuth("login");
     return;
@@ -4635,22 +4633,17 @@ async function action(name) {
     name === "shop-now"
   ) {
 
-    state.activeCategory =
-      "all";
-
+    state.activeCategory = "all";
     state.query = "";
 
     if ($("#product-search")) {
-      $("#product-search").value =
-        "";
+      $("#product-search").value = "";
     }
 
     renderProducts();
     renderAllProducts();
 
-    setActiveView(
-      "products"
-    );
+    setActiveView("products");
 
     return;
   }
@@ -4660,8 +4653,7 @@ async function action(name) {
     name === "track"
   ) {
 
-    const order =
-      state.orders[0];
+    const order = state.orders[0];
 
     if (!order) {
       return toast(
@@ -4669,16 +4661,12 @@ async function action(name) {
       );
     }
 
-    openOrder(
-      order.id
-    );
+    openOrder(order.id);
 
     return;
   }
 
-  if (
-    name === "favorites"
-  ) {
+  if (name === "favorites") {
 
     const list =
       [...state.wishlist]
@@ -4702,42 +4690,30 @@ async function action(name) {
     return;
   }
 
-  if (
-    name === "categories"
-  ) {
+  if (name === "categories") {
 
-    setActiveView(
-      "categories"
-    );
+    setActiveView("categories");
 
     return;
   }
 
-  if (
-  name === "account"
-) {
+  if (name === "account") {
 
-  setActiveView(
-    "account"
-  );
+    setActiveView("account");
 
-  renderAccount();
+    renderAccount();
 
-  return;
-}
+    return;
+  }
 
-if (
-  name === "profile"
-) {
+  if (name === "profile") {
 
-  openProfile();
+    openProfile();
 
-  return;
-}
+    return;
+  }
 
-  if (
-    name === "become-seller"
-  ) {
+  if (name === "become-seller") {
 
     if (!state.user.id) {
       return toast(
@@ -4767,11 +4743,8 @@ if (
       (modal) => {
 
         modal
-          .querySelector(
-            "#seller-apply"
-          )
-          .onclick =
-          async () => {
+          .querySelector("#seller-apply")
+          .onclick = async () => {
 
             if (!supabaseClient) {
               return toast(
@@ -4779,26 +4752,17 @@ if (
               );
             }
 
-            const {
-              error
-            } =
+            const { error } =
               await supabaseClient
-                .from(
-                  "seller_applications"
-                )
+                .from("seller_applications")
                 .insert({
-                  user_id:
-                    state.user.id,
-
-                  status:
-                    "PENDING"
+                  user_id: state.user.id,
+                  status: "PENDING"
                 });
 
             if (error) {
 
-              console.error(
-                error
-              );
+              console.error(error);
 
               return toast(
                 "Codsiga lama dirin."
@@ -4817,9 +4781,7 @@ if (
     return;
   }
 
-  if (
-    name === "logout"
-  ) {
+  if (name === "logout") {
 
     if (supabaseClient) {
 
@@ -4839,8 +4801,7 @@ if (
 
     state.cart = [];
 
-    state.wishlist =
-      new Set();
+    state.wishlist = new Set();
 
     state.orders = [];
 
@@ -4867,16 +4828,11 @@ if (
   ];
 
   if (
-    dashboardActions.includes(
-      name
-    )
+    dashboardActions.includes(name)
   ) {
 
     openModal(
-      name.replaceAll(
-        "-",
-        " "
-      ),
+      name.replaceAll("-", " "),
 
       `
         <p>
@@ -4886,9 +4842,10 @@ if (
         </p>
       `
     );
+
+    return;
   }
 }
-
 
 /* =========================================================
    47. CATEGORY SELECTION

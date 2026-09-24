@@ -2,19 +2,10 @@
 <html lang="so">
 <head>
   <meta charset="UTF-8">
-  <meta
-    name="viewport"
-    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
-  >
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <meta name="theme-color" content="#0B2A5B">
-  <meta
-    name="description"
-    content="WaHeN Marketplace — Wax kasta hal meel ka hel."
-  >
-  <meta
-    name="keywords"
-    content="WaHeN, Marketplace, Somaliland, Shopping, Jumlo, Shops, Hargeysa"
-  >
+  <meta name="description" content="WaHeN Marketplace — Wax kasta hal meel ka hel.">
+  <meta name="keywords" content="WaHeN, Marketplace, Somaliland, Shopping, Jumlo, Shops">
 
   <title>WaHeN — Marketplace</title>
 
@@ -24,761 +15,536 @@
 
 <body>
 
-<!-- =========================================================
-     APP WRAPPER
-========================================================= -->
-
-<div id="app">
-
-  <!-- =======================================================
-       TOP ANNOUNCEMENT BAR
-  ======================================================== -->
-  <div class="announcement-bar">
-    <p>🚚 Delivery Bilaash ah oo Hargeysa oo dhan ah markaad iibsato $50+! <a href="#products">Eeg Hadda</a></p>
+<!-- TOP ANNOUNCEMENT BANNER -->
+<div class="top-banner">
+  <div class="top-banner-content">
+    <span>🚚 Delivery Bilaash ah amarrada ka badan $50!</span>
+    <div class="top-banner-actions">
+      <select id="currencySelect" aria-label="Doorada Lacagta">
+        <option value="USD">USD ($)</option>
+        <option value="SLSH">SLSH (SL Shilling)</option>
+      </select>
+      <select id="languageSelect" aria-label="Doorada Luqadda">
+        <option value="so">Soomaali</option>
+        <option value="en">English</option>
+      </select>
+    </div>
   </div>
+</div>
+
+<!-- =========================================================
+     APP MAIN CONTAINER
+========================================================= -->
+<div id="app">
 
   <!-- =======================================================
        TOP HEADER
   ======================================================== -->
-
   <header class="top-header">
-
     <div class="brand-area">
-
-      <button
-        id="menuBtn"
-        class="icon-btn"
-        type="button"
-        aria-label="Fur menu"
-      >
+      <button id="menuBtn" class="icon-btn" type="button" aria-label="Fur menu">
         ☰
       </button>
 
       <div class="brand">
-
-        <span class="brand-main">
-          WaHeN
-        </span>
-
-        <span class="brand-sub">
-          MARKETPLACE
-        </span>
-
+        <span class="brand-main">WaHeN</span>
+        <span class="brand-sub">MARKETPLACE</span>
       </div>
-
     </div>
 
-
     <div class="header-actions">
-
-      <button
-        id="wishlistBtn"
-        class="icon-btn"
-        type="button"
-        aria-label="Wishlist"
-      >
+      <button id="wishlistHeaderBtn" class="icon-btn" type="button" aria-label="Wishlist">
         ❤️
-        <span id="wishlistCount" class="badge">0</span>
+        <span id="wishlistCount" class="badge-count">0</span>
       </button>
 
-      <button
-        id="notificationBtn"
-        class="icon-btn"
-        type="button"
-        aria-label="Notifications"
-      >
+      <button id="notificationBtn" class="icon-btn" type="button" aria-label="Notifications">
         🔔
         <span class="notification-dot"></span>
       </button>
 
-      <button
-        id="cartBtn"
-        class="icon-btn cart-btn"
-        type="button"
-        aria-label="Cart"
-      >
+      <button id="cartBtn" class="icon-btn cart-btn" type="button" aria-label="Cart">
         🛒
-        <span
-          id="cartCount"
-          class="cart-count"
-        >
-          0
-        </span>
+        <span id="cartCount" class="cart-count">0</span>
       </button>
-
     </div>
-
   </header>
-
 
   <!-- =======================================================
        SEARCH SECTION
   ======================================================== -->
-
   <section class="search-section">
-
     <div class="search-box">
-
-      <span class="search-icon">
-        🔎
-      </span>
-
-      <input
-        id="searchInput"
-        type="search"
-        placeholder="Maxaad raadineysaa? (Tusaale: iPhone, Shaadh...)"
-        autocomplete="off"
-      >
-
-      <button
-        id="clearSearch"
-        class="clear-search"
-        type="button"
-        aria-label="Nadiifi raadinta"
-      >
-        ×
-      </button>
-
+      <span class="search-icon">🔎</span>
+      <input id="searchInput" type="search" placeholder="Maxaad raadineysaa? (mushaharka, dharka, elektaroonigga...)" autocomplete="off">
+      <button id="clearSearch" class="clear-search" type="button" aria-label="Nadiifi raadinta">×</button>
     </div>
 
-
-    <button
-      id="filterBtn"
-      class="filter-btn"
-      type="button"
-      aria-label="Filter"
-    >
+    <button id="filterBtn" class="filter-btn" type="button" aria-label="Filter">
       ⚙️
     </button>
-
   </section>
-
 
   <!-- =======================================================
        LOCATION BAR
   ======================================================== -->
-
   <section class="location-bar">
-
-    <div class="location-icon">
-      📍
-    </div>
-
+    <div class="location-icon">📍</div>
     <div class="location-info">
-
-      <small>
-        Goobta delivery-ga:
-      </small>
-
-      <strong id="userLocation">
-        Hargeysa, Somaliland
-      </strong>
-
+      <small>Goobta delivery-ga</small>
+      <strong id="userLocation">Hargeysa, Somaliland</strong>
     </div>
-
-    <button
-      id="changeLocation"
-      type="button"
-    >
-      Beddel
-    </button>
-
+    <button id="changeLocation" type="button">Beddel</button>
   </section>
-
 
   <!-- =======================================================
        MAIN CONTENT
   ======================================================== -->
-
   <main>
 
-
-    <!-- =====================================================
-         HERO SECTION
-    ====================================================== -->
-
+    <!-- HERO SECTION -->
     <section class="hero">
-
       <div class="hero-content">
-
-        <span class="hero-label">
-          ✦ WAHEN MARKETPLACE
-        </span>
-
+        <span class="hero-label">WAHEN MARKETPLACE</span>
         <h1>
-          Wax kasta oo aad u baahan tahay
+          Wax kasta
           <br>
-          <strong>
-            hal meel ka hel.
-          </strong>
+          <strong>hal meel ka hel.</strong>
         </h1>
-
-        <p>
-          Isbarbardhig alaabooyinka ganacsatada, ka hel qiimo jumlo ah,
-          kuna hel delivery degdeg ah.
-        </p>
-
+        <p>Alaabo, ganacsiyo, brands, jumlo iyo adeegyo meel keliya ka raadi.</p>
 
         <div class="hero-actions">
-
-          <button
-            id="heroShopBtn"
-            class="hero-button"
-            type="button"
-          >
-            Bilow Raadinta
-            <span>→</span>
+          <button id="heroShopBtn" class="hero-button" type="button">
+            Bilow Raadinta <span>→</span>
           </button>
-
-
-          <button
-            id="heroWholesaleBtn"
-            class="hero-secondary-button"
-            type="button"
-          >
-            Iibso Jumlo
+          <button id="heroWholesaleBtn" class="hero-secondary-button" type="button">
+            Jumlo
           </button>
-
         </div>
-
       </div>
-
 
       <div class="hero-art">
-
         <div class="hero-circle hero-circle-one"></div>
         <div class="hero-circle hero-circle-two"></div>
-
-        <div class="hero-shopping-bag">
-          🛍️
-        </div>
-
-        <div class="hero-product-card hero-card-one">
-          📱 <span>Tech</span>
-        </div>
-
-        <div class="hero-product-card hero-card-two">
-          👟 <span>Fashion</span>
-        </div>
-
-        <div class="hero-product-card hero-card-three">
-          💻 <span>Gadgets</span>
-        </div>
-
+        <div class="hero-shopping-bag">🛍️</div>
+        <div class="hero-product-card hero-card-one">📱</div>
+        <div class="hero-product-card hero-card-two">👟</div>
+        <div class="hero-product-card hero-card-three">💻</div>
       </div>
 
-
       <div class="hero-shape"></div>
-
     </section>
 
-
-    <!-- =====================================================
-         QUICK STATS & FEATURES
-    ====================================================== -->
-
+    <!-- QUICK STATS / FEATURES -->
     <section class="quick-stats">
-
       <div class="quick-stat">
         <span class="quick-stat-icon">🛍️</span>
         <div>
-          <strong>10,000+ Alaabo</strong>
-          <small>Xoog & Tayo leh</small>
+          <strong>Alaabooyin</strong>
+          <small>Libyo & Dhameystiran</small>
         </div>
       </div>
 
       <div class="quick-stat">
         <span class="quick-stat-icon">🏪</span>
         <div>
-          <strong>500+ Dukaamo</strong>
-          <small>Iibiyayaal lagu kalsoonyahay</small>
+          <strong>Ganacsiyo</strong>
+          <small>Iibiyayaal Baahsan</small>
         </div>
       </div>
 
       <div class="quick-stat">
         <span class="quick-stat-icon">🚚</span>
         <div>
-          <strong>Delivery Degdeg Ah</strong>
-          <small>Magaalooyinka Somaliland</small>
+          <strong>Delivery</strong>
+          <small>Magaalo kasta</small>
         </div>
       </div>
 
       <div class="quick-stat">
-        <span class="quick-stat-icon">🛡️</span>
+        <span class="quick-stat-icon">🔒</span>
         <div>
-          <strong>Iib Ammaan Ah</strong>
-          <small>Zaad, e-Dahab & Cash</small>
+          <strong>Dammaanad</strong>
+          <small>Lacag dib-u-soo-celin</small>
         </div>
-      </div>
-
-    </section>
-
-
-    <!-- =====================================================
-         FLASH SALES & COUNTDOWN
-    ====================================================== -->
-
-    <section class="section flash-sale-section">
-      <div class="section-header flash-header">
-        <div>
-          <span class="badge-flash">⚡ XADDIDAN</span>
-          <h2>Flash Sales</h2>
-        </div>
-        <div class="countdown-timer" id="flashCountdown">
-          <span>04</span>h : <span>25</span>m : <span>12</span>s
-        </div>
-      </div>
-
-      <div id="flashSaleGrid" class="product-grid horizontal-scroll">
-        <!-- Flash Sale items dynamically populated by JS -->
       </div>
     </section>
 
-
-    <!-- =====================================================
-         CATEGORIES
-    ====================================================== -->
-
+    <!-- CATEGORIES SECTION -->
     <section class="section">
-
       <div class="section-header">
-
         <div>
           <span class="section-label">RAADI</span>
-          <h2>Qaybaha Alaabooyinka</h2>
+          <h2>Qaybaha Alaabta</h2>
         </div>
-
-        <button id="allCategoriesBtn" class="see-all" type="button">
-          Dhammaan →
-        </button>
-
+        <button id="allCategoriesBtn" class="see-all" type="button">Dhammaan →</button>
       </div>
 
-
       <div id="categoryGrid" class="category-grid">
-
         <button class="category-card active" data-category="all" type="button">
           <span>✨</span>
           <strong>Dhammaan</strong>
           <small>All</small>
         </button>
-
         <button class="category-card" data-category="men" type="button">
           <span>👔</span>
           <strong>Ragga</strong>
           <small>Men's</small>
         </button>
-
         <button class="category-card" data-category="women" type="button">
           <span>👗</span>
-          <strong>Haweenka</strong>
+          <strong>Haween</strong>
           <small>Women's</small>
         </button>
-
         <button class="category-card" data-category="electronics" type="button">
           <span>📱</span>
           <strong>Electronics</strong>
           <small>Tech</small>
         </button>
-
         <button class="category-card" data-category="food" type="button">
           <span>🍎</span>
           <strong>Cunto</strong>
           <small>Food</small>
         </button>
-
         <button class="category-card" data-category="baby" type="button">
           <span>👶</span>
-          <strong>Caruurta</strong>
+          <strong>Caruur</strong>
           <small>Baby</small>
         </button>
-
         <button class="category-card" data-category="construction" type="button">
           <span>🧱</span>
           <strong>Dhismaha</strong>
-          <small>Tools</small>
+          <small>Construction</small>
         </button>
-
         <button class="category-card" data-category="transport" type="button">
           <span>🚗</span>
           <strong>Gaadiidka</strong>
-          <small>Auto</small>
+          <small>Transport</small>
         </button>
-
         <button class="category-card" data-category="beauty" type="button">
           <span>💄</span>
-          <strong>Quruxda</strong>
-          <small>Beauty</small>
+          <strong>Beauty</strong>
+          <small>Qurux</small>
         </button>
-
         <button class="category-card" data-category="home" type="button">
           <span>🏠</span>
           <strong>Guriga</strong>
           <small>Home</small>
         </button>
-
         <button class="category-card" data-category="sports" type="button">
           <span>⚽</span>
-          <strong>Ciyaaraha</strong>
-          <small>Sports</small>
+          <strong>Sports</strong>
+          <small>Ciyaaro</small>
         </button>
-
         <button class="category-card" data-category="other" type="button">
           <span>⋯</span>
-          <strong>Qaybo Kale</strong>
+          <strong>Kale</strong>
           <small>Others</small>
         </button>
-
       </div>
-
     </section>
 
-
-    <!-- =====================================================
-         GOLD OFFER BANNER
-    ====================================================== -->
-
-    <section class="offer-banner">
-
-      <div class="offer-content">
-
-        <span class="offer-label">✦ DALAB GAAR AH</span>
-
-        <h2>Ilaa <strong>30%</strong> dhimis ah</h2>
-
-        <p>Alaabooyin elektaroonig ah oo taysan oo qiimo dhimis weyni ku socoto.</p>
-
-        <button id="offerBtn" type="button">Eeg Hadda →</button>
-
+    <!-- FLASH SALES SECTION (CUSUB) -->
+    <section class="section flash-sales-section">
+      <div class="section-header">
+        <div>
+          <span class="section-label">XADDIDAN</span>
+          <h2>Flash Sales ⚡</h2>
+        </div>
+        <div class="flash-timer">
+          <span>Abaaro: </span>
+          <strong id="flashTimer">04:12:30</strong>
+        </div>
       </div>
 
+      <div id="flashSalesGrid" class="product-grid horizontal-scroll">
+        <!-- Dynamic content via JS -->
+      </div>
+    </section>
+
+    <!-- GOLD OFFER BANNER -->
+    <section class="offer-banner">
+      <div class="offer-content">
+        <span class="offer-label">✦ DALAB GAAR AH</span>
+        <h2>Ilaa <strong>30%</strong> dhimis</h2>
+        <p>Alaabooyin la doortay oo qiimo gaar ah leh.</p>
+        <button id="offerBtn" type="button">Eeg hadda →</button>
+      </div>
 
       <div class="offer-art">
-
         <div class="offer-circle"></div>
         <div class="offer-tag">🏷️</div>
         <div class="offer-percent">30%</div>
-
       </div>
-
     </section>
 
-
-    <!-- =====================================================
-         POPULAR PRODUCTS
-    ====================================================== -->
-
-    <section id="products" class="section">
-
+    <!-- FEATURED PRODUCTS -->
+    <section class="section">
       <div class="section-header">
-
         <div>
           <span class="section-label">WAHEN</span>
-          <h2>Alaabooyinka Ugu Iibsan</h2>
+          <h2>Ugu Iibsan</h2>
         </div>
-
-        <button id="allProductsBtn" class="see-all" type="button">
-          Dhammaan →
-        </button>
-
+        <button id="allProductsBtn" class="see-all" type="button">Dhammaan →</button>
       </div>
 
-
       <div id="productGrid" class="product-grid">
-
         <div class="loading-card">
           <div class="loading-spinner"></div>
           <p>Raadinaya alaabo...</p>
         </div>
-
       </div>
-
     </section>
 
+    <!-- RECENTLY VIEWED PRODUCTS (CUSUB) -->
+    <section id="recentlyViewedSection" class="section hidden">
+      <div class="section-header">
+        <div>
+          <span class="section-label">TAARIIXDAAGA</span>
+          <h2>Ugu Dambeyntii Aad Eegtay</h2>
+        </div>
+      </div>
+      <div id="recentlyViewedGrid" class="product-grid horizontal-scroll"></div>
+    </section>
 
-    <!-- =====================================================
-         SHOP DISCOVERY
-    ====================================================== -->
-
+    <!-- SHOP / SELLER DISCOVERY -->
     <section class="shop-discovery">
-
       <div class="shop-discovery-icon">🏪</div>
-
       <div class="shop-discovery-content">
-
-        <span class="section-label">GANACSATADA</span>
-
-        <h2>Dukaamada <strong>Ugu Caansan</strong></h2>
-
-        <p>Isbarbardhig dukaamada Hargeysa, Burco, Berbera iyo maagaalooyinka kale.</p>
-
+        <span class="section-label">GANACSI</span>
+        <h2>Ka hel <strong>Dukaamada</strong></h2>
+        <p>Isbarbar dhig alaabooyinka iyo qiimaha ganacsatada.</p>
       </div>
-
       <button id="shopsBtn" type="button">Dukaamo →</button>
-
     </section>
 
-
-    <!-- =====================================================
-         WHOLESALE SECTION
-    ====================================================== -->
-
+    <!-- WHOLESALE SECTION -->
     <section class="wholesale-section">
-
       <div class="wholesale-content">
-
-        <span class="section-label">GANACSATADA YARYAR</span>
-
-        <h2>Ma rabtaa <strong>Jumlo?</strong></h2>
-
-        <p>Ka hel alaabo tiro badan iyo qiimaha jumlada si toos ah warshadaha iyo importers-ka.</p>
-
+        <span class="section-label">GANACSIGA</span>
+        <h2>Ma rabtaa <br><strong>Jumlo?</strong></h2>
+        <p>Ka hel alaabo tiro badan iyo qiimaha jumlada ee ganacsatada.</p>
         <button id="wholesaleBtn" type="button">Raadi Jumlo →</button>
-
       </div>
-
 
       <div class="wholesale-art">
         <div class="box box-one">📦</div>
         <div class="box box-two">📦</div>
         <div class="box box-three">📦</div>
       </div>
-
     </section>
 
-
-    <!-- =====================================================
-         BRANDS CAROUSEL / GRID
-    ====================================================== -->
-
-    <section class="section">
-
+    <!-- MANUFACTURERS -->
+    <section class="section manufacturers-preview">
       <div class="section-header">
-
         <div>
-          <span class="section-label">BRANDS</span>
-          <h2>Shirkadaha Caanka Ah</h2>
+          <span class="section-label">WARSHADO</span>
+          <h2>Warshadaha & Soo Saarayaasha</h2>
         </div>
-
-        <button id="allBrandsBtn" class="see-all" type="button">
-          Dhammaan →
-        </button>
-
+        <button id="allManufacturersBtn" class="see-all" type="button">Dhammaan →</button>
       </div>
 
+      <div id="manufacturerGrid" class="manufacturer-grid">
+        <button class="manufacturer-card" data-manufacturer="local" type="button">
+          <span>🏭</span>
+          <strong>Warshado Dalka</strong>
+          <small>Soo saarayaal local ah</small>
+        </button>
+        <button class="manufacturer-card" data-manufacturer="importers" type="button">
+          <span>🚢</span>
+          <strong>Importers</strong>
+          <small>Alaab dibadda ka timaada</small>
+        </button>
+        <button class="manufacturer-card" data-manufacturer="suppliers" type="button">
+          <span>📦</span>
+          <strong>Suppliers</strong>
+          <small>Bixiyayaasha Wawaen</small>
+        </button>
+      </div>
+    </section>
+
+    <!-- BRANDS SECTION -->
+    <section class="section">
+      <div class="section-header">
+        <div>
+          <span class="section-label">BRANDS</span>
+          <h2>Brands-ka Caanka Ah</h2>
+        </div>
+        <button id="allBrandsBtn" class="see-all" type="button">Dhammaan →</button>
+      </div>
 
       <div id="brandGrid" class="brand-grid">
-
         <button class="brand-item" data-brand="Samsung" type="button">
           <span class="brand-symbol">S</span>
           <strong>SAMSUNG</strong>
         </button>
-
         <button class="brand-item" data-brand="Apple" type="button">
           <span class="brand-symbol"></span>
           <strong>APPLE</strong>
         </button>
-
         <button class="brand-item" data-brand="Xiaomi" type="button">
           <span class="brand-symbol">X</span>
           <strong>XIAOMI</strong>
         </button>
-
         <button class="brand-item" data-brand="Oraimo" type="button">
           <span class="brand-symbol">O</span>
           <strong>ORAIMO</strong>
         </button>
-
         <button class="brand-item" data-brand="Nike" type="button">
           <span class="brand-symbol">✓</span>
           <strong>NIKE</strong>
         </button>
-
         <button class="brand-item" data-brand="Adidas" type="button">
           <span class="brand-symbol">A</span>
           <strong>ADIDAS</strong>
         </button>
-
       </div>
-
     </section>
 
-
-    <!-- =====================================================
-         TESTIMONIALS / REVIEWS
-    ====================================================== -->
-
-    <section class="section testimonials-section">
-
+    <!-- CUSTOMER REVIEWS & TESTIMONIALS (CUSUB) -->
+    <section class="section reviews-section">
       <div class="section-header">
         <div>
-          <span class="section-label">FAALLOOYINKA</span>
-          <h2>Waxa Ay Nagu Leeyihiin</h2>
+          <span class="section-label">ARAGTIYAHA</span>
+          <h2>Kalsoonida Macaamiisha</h2>
         </div>
       </div>
-
-      <div class="testimonial-grid">
-
-        <div class="testimonial-card">
-          <div class="stars">★★★★★</div>
-          <p>"WaHeN waa madal iga caawisay inaan alaabta jumlada ah si degdeg ah uga raadsado magaalada Hargeysa."</p>
-          <strong>- Axmed Maxamed</strong>
+      <div class="reviews-grid">
+        <div class="review-card">
+          <div class="review-stars">⭐⭐⭐⭐⭐</div>
+          <p>"WaHeN waa madal iga caawisay inaan si fudud oo ammaan ah Hargeysa kaga dalbado alaabooyinka jumlada ah!"</p>
+          <strong>- Axmed Cali</strong>
         </div>
-
-        <div class="testimonial-card">
-          <div class="stars">★★★★★</div>
-          <p>"Delivery-ga ayaan aad uga helay! Dalabkaygii saacad gudaheed ayaa la igu soo gaadhsiiyay."</p>
-          <strong>- Amran Cumar</strong>
+        <div class="review-card">
+          <div class="review-stars">⭐⭐⭐⭐⭐</div>
+          <p>"Delivery mudo gaaban gudaheed ku yimid, qiimuhuna waa ka ugu wanaagsan dukaamada eile."</p>
+          <strong>- Saynab Maxamed</strong>
         </div>
-
-      </div>
-
-    </section>
-
-
-    <!-- =====================================================
-         NEWSLETTER / SUBSCRIPTION
-    ====================================================== -->
-
-    <section class="newsletter-section">
-      <div class="newsletter-content">
-        <h2>Hel Qiimo Dhimis Gaar Ah!</h2>
-        <p>Geli email-kaaga ama taleefankaaga si aad u hesho wararkii ugu dambeeyay ee alaabooyinka cusub.</p>
-        <form id="newsletterForm" class="newsletter-form">
-          <input type="text" placeholder="Email ama Taleefan..." required>
-          <button type="submit" class="primary-btn">Ku Biir</button>
-        </form>
       </div>
     </section>
 
-
-    <!-- =====================================================
-         PAYMENT METHODS
-    ====================================================== -->
-
+    <!-- PAYMENT METHODS -->
     <section class="payment-section">
-
       <div class="section-header">
         <div>
           <span class="section-label">PAYMENT</span>
-          <h2>Nidaamka Lacag-Bixinta</h2>
+          <h2>Nidaamka Lacag-bixinta</h2>
         </div>
       </div>
 
-
       <div class="payment-grid">
-
         <div class="payment-card">
           <span>💳</span>
           <strong>ZAAD</strong>
           <small>Telesom</small>
         </div>
-
         <div class="payment-card">
           <span>💰</span>
           <strong>E-Dahab</strong>
           <small>Somtel</small>
         </div>
-
         <div class="payment-card">
           <span>📱</span>
           <strong>EVC Plus</strong>
           <small>Hormuud</small>
         </div>
-
         <div class="payment-card">
-          <span>💵</span>
-          <strong>Cash on Delivery</strong>
-          <small>Gacanta ku bixi</small>
+          <span>🏦</span>
+          <strong>Bank Transfer</strong>
+          <small>Premier / Dahabshiil</small>
         </div>
-
       </div>
-
     </section>
 
+    <!-- TRUST & SECURITY -->
+    <section class="trust-section">
+      <div class="trust-title">
+        <span class="section-label">MAXAA LAGU KALSOON YAHAY?</span>
+        <h2>WaHeN waa <strong>fudeydiyahaaga.</strong></h2>
+        <p>Waxaan isku keenaynaa iibsadaha, iibiyaha iyo adeegga delivery-ga.</p>
+      </div>
 
-    <!-- =====================================================
-         FAQ SECTION
-    ====================================================== -->
-
-    <section class="section faq-section">
-
-      <div class="section-header">
-        <div>
-          <span class="section-label">CAAWIMAAD</span>
-          <h2>Su'aalaha Badanaa La Isweydiiyo</h2>
+      <div class="trust-grid">
+        <div class="trust-card">
+          <span>🛡️</span>
+          <strong>Ammaan</strong>
+          <p>Xogtaada iyo account-kaaga si ammaan ah ayaa loo ilaaliyaa.</p>
+        </div>
+        <div class="trust-card">
+          <span>⭐</span>
+          <strong>Qiimeyn</strong>
+          <p>Arag qiimeynta iyo reviews-ka alaabta iyo iibiyaha.</p>
+        </div>
+        <div class="trust-card">
+          <span>🚚</span>
+          <strong>Delivery</strong>
+          <p>Dalabkaaga waxaa laguugu keenayaa meesha aad doorato.</p>
+        </div>
+        <div class="trust-card">
+          <span>🔄</span>
+          <strong>Returns</strong>
+          <p>Nidaam cad oo loogu talagalay returns iyo refunds.</p>
+        </div>
+        <div class="trust-card">
+          <span>💬</span>
+          <strong>Support</strong>
+          <p>Customer Support ayaa kaa caawinaya markaad u baahato.</p>
+        </div>
+        <div class="trust-card">
+          <span>🔍</span>
+          <strong>Transparency</strong>
+          <p>Qiimo, sawir, description iyo seller si cad u arag.</p>
         </div>
       </div>
-
-      <div class="faq-accordion">
-
-        <details class="faq-item">
-          <summary>Sidee baan dalab u samayn karaa?</summary>
-          <p>Aad alaabta aad rabto, riix "Ku dar Cart-ka", ka dibna tag Cart-ka oo riix Checkout si aad u dhammaystirto dalabkaaga.</p>
-        </details>
-
-        <details class="faq-item">
-          <summary>Muddada intee le'eg ayaa delivery-gu qaataa?</summary>
-          <p>Magaalada Hargeysa dhexdeeda waxay qaadataa 1-3 saacadood. Magaalooyinka kale waxay qaadataa 24 saacadood.</p>
-        </details>
-
-        <details class="faq-item">
-          <summary>Ma soo celin karaa alaabta haddii ay xumaato?</summary>
-          <p>Haa, waxaad leedahay 3 cisho oo aad dib ugu soo celin karto alaab kasta oo cilladi ku timaado.</p>
-        </details>
-
-      </div>
-
     </section>
 
+    <!-- NEWSLETTER SUBSCRIPTION (CUSUB) -->
+    <section class="newsletter-section">
+      <div class="newsletter-content">
+        <h2>Kula xiriir Ogeysiisyada Cusub ✉️</h2>
+        <p>Qor email-kaaga si aad u hesho qiimo dhimisyada iyo alaabaha ugu cusub.</p>
+        <form id="newsletterForm" class="newsletter-form">
+          <input type="email" placeholder="Geli email-kaaga..." required>
+          <button type="submit" class="primary-btn">Saxeex</button>
+        </form>
+      </div>
+    </section>
 
-    <!-- =====================================================
-         SEARCH RESULTS SECTION (Hidden by default)
-    ====================================================== -->
+    <!-- CALL TO ACTION -->
+    <section class="cta-section">
+      <div class="cta-icon">✦</div>
+      <span>WAHEN MARKETPLACE</span>
+      <h2>Waxaad raadineysaa?<br><strong>Halkaan ka bilow.</strong></h2>
+      <p>Raadi alaabtaada, barbar dhig qiimaha, kadib dalbo.</p>
+      <button id="ctaSearchBtn" type="button">Raadi Alaab →</button>
+    </section>
 
-    <section
-      id="searchResultsSection"
-      class="section hidden"
-    >
-
+    <!-- SEARCH RESULTS CONTAINER -->
+    <section id="searchResultsSection" class="section hidden">
       <div class="section-header">
-
         <div>
-          <span class="section-label">NATIIJOOYINKA</span>
-          <h2>Raadintaada</h2>
+          <span class="section-label">SEARCH</span>
+          <h2>Natiijooyinka Raadinta</h2>
         </div>
-
-        <button id="closeSearchResults" class="see-all" type="button">
-          Xir
-        </button>
-
+        <button id="closeSearchResults" class="see-all" type="button">Xir</button>
       </div>
 
       <div id="searchResults" class="product-grid"></div>
-
     </section>
-
 
   </main>
 
-
   <!-- =======================================================
-       SIDE MENU (DRAWER)
+       SIDE MENU
   ======================================================== -->
-
   <aside id="sideMenu" class="side-menu">
-
     <div class="side-menu-header">
-
       <div class="brand">
         <span class="brand-main">WaHeN</span>
         <span class="brand-sub">MARKETPLACE</span>
       </div>
-
       <button id="closeMenu" class="icon-btn" type="button">×</button>
-
     </div>
-
 
     <!-- GUEST ACCOUNT -->
     <div id="menuGuest" class="menu-account">
@@ -790,85 +556,62 @@
       <button id="menuLoginBtn" type="button">Soo Gal</button>
     </div>
 
-
-    <!-- LOGGED USER ACCOUNT -->
+    <!-- LOGGED ACCOUNT -->
     <div id="menuUser" class="menu-account hidden">
       <div class="menu-avatar">👤</div>
       <div>
-        <strong id="menuUserName">User Name</strong>
+        <strong id="menuUserName">User</strong>
         <small id="menuUserEmail">user@example.com</small>
       </div>
     </div>
 
-
-    <!-- NAVIGATION LINKS -->
+    <!-- NAVIGATION -->
     <nav class="side-navigation">
       <button data-menu="home" type="button">🏠 <span>Home</span></button>
       <button data-menu="products" type="button">🛍️ <span>Alaabooyinka</span></button>
       <button data-menu="categories" type="button">📂 <span>Qaybaha</span></button>
       <button data-menu="wholesale" type="button">📦 <span>Jumlo</span></button>
       <button data-menu="brands" type="button">🏷️ <span>Brands</span></button>
+      <button data-menu="manufacturers" type="button">🏭 <span>Warshado</span></button>
       <button data-menu="shops" type="button">🏪 <span>Dukaamo</span></button>
       <button data-menu="orders" type="button">📋 <span>Dalabyadayda</span></button>
-      <button data-menu="favorites" type="button">❤️ <span>Waxaan Jeclahay</span></button>
-      <button data-menu="chat" type="button">💬 <span>Wada-hadal (Chat)</span></button>
+      <button data-menu="favorites" type="button">❤️ <span>Waxaan jeclahay</span></button>
+      <button data-menu="chat" type="button">💬 <span>Chat / Taageero</span></button>
+      <button data-menu="account" type="button">👤 <span>Account-kaaga</span></button>
     </nav>
 
-
+    <!-- MENU FOOTER -->
     <div class="side-menu-footer">
       <button data-menu="support" type="button">🎧 <span>Customer Support</span></button>
-      <button data-menu="contact" type="button">📞 <span>Naga la soo xiriir</span></button>
+      <button data-menu="contact" type="button">📞 <span>Contact Us</span></button>
       <button data-menu="settings" type="button">⚙️ <span>Settings</span></button>
       <button id="menuLogoutBtn" class="logout-menu-btn hidden" type="button">🚪 <span>Ka Bax</span></button>
     </div>
-
   </aside>
 
-
-  <!-- =======================================================
-       MODALS & OVERLAYS
-  ======================================================== -->
-
+  <!-- OVERLAY -->
   <div id="overlay" class="overlay"></div>
 
-
-  <!-- LOCATION CHANGE MODAL -->
-  <div id="locationModal" class="modal">
-    <div class="modal-content">
-      <button id="closeLocationModal" class="modal-close" type="button">×</button>
-      <h2>Doorashada Magaalada</h2>
-      <p>Dooro magaalada aad rabto in alaabta laguugu keeno:</p>
-      <select id="locationSelect" class="form-control">
-        <option value="Hargeysa, Somaliland">Hargeysa</option>
-        <option value="Burco, Somaliland">Burco</option>
-        <option value="Berbera, Somaliland">Berbera</option>
-        <option value="Borama, Somaliland">Borama</option>
-        <option value="Lasanod, Somaliland">Laascanood</option>
-        <option value="Erigavo, Somaliland">Ceerigaabo</option>
-      </select>
-      <button id="saveLocationBtn" class="primary-btn mt-3">Keydi Goobta</button>
-    </div>
-  </div>
-
+  <!-- =======================================================
+       MODALS SECTION
+  ======================================================== -->
 
   <!-- PRODUCT DETAIL MODAL -->
   <div id="productModal" class="modal" role="dialog" aria-modal="true">
     <div class="modal-content product-modal-content">
-      <button id="closeProductModal" class="modal-close" type="button">×</button>
+      <button id="closeProductModal" class="modal-close" type="button" aria-label="Xir">×</button>
       <div id="productDetail" class="product-detail"></div>
     </div>
   </div>
-
 
   <!-- CART MODAL -->
   <div id="cartModal" class="modal" role="dialog" aria-modal="true">
     <div class="modal-content cart-modal-content">
       <button id="closeCartModal" class="modal-close" type="button">×</button>
-
       <div class="modal-title">
         <span>🛒</span>
         <div>
-          <small>WAHEN MARKETPLACE</small>
+          <small>WAHEN</small>
           <h2>Cart-kaaga</h2>
         </div>
       </div>
@@ -876,32 +619,43 @@
       <div id="cartItems" class="cart-items"></div>
 
       <div class="cart-summary">
-        <div><span>Subtotal:</span><strong id="cartSubtotal">$0.00</strong></div>
-        <div><span>Delivery:</span><strong id="cartDelivery">$0.00</strong></div>
-        <div class="cart-total"><span>Wadarta:</span><strong id="cartTotal">$0.00</strong></div>
+        <div>
+          <span>Subtotal</span>
+          <strong id="cartSubtotal">$0.00</strong>
+        </div>
+        <div>
+          <span>Delivery Fee</span>
+          <strong id="cartDelivery">$0.00</strong>
+        </div>
+        <div class="cart-total">
+          <span>Wadarta</span>
+          <strong id="cartTotal">$0.00</strong>
+        </div>
         <button id="checkoutBtn" class="primary-btn" type="button">Checkout →</button>
       </div>
-
     </div>
   </div>
 
-
-  <!-- AUTH MODAL (LOGIN/SIGNUP) -->
+  <!-- AUTH MODAL -->
   <div id="authModal" class="modal" role="dialog" aria-modal="true">
     <div class="modal-content auth-content">
       <button id="closeAuthModal" class="modal-close" type="button">×</button>
-
       <div class="auth-logo"><span>W</span></div>
       <span class="auth-label">WAHEN MARKETPLACE</span>
+
       <h2 id="authTitle">Ku soo dhawoow WaHeN</h2>
       <p id="authDescription">Soo gal si aad u isticmaasho dhammaan adeegyada WaHeN.</p>
 
       <!-- LOGIN FORM -->
       <form id="loginForm" class="auth-form">
-        <label>Email <input id="loginEmail" type="email" required placeholder="email@example.com"></label>
-        <label>Password
+        <label>
+          Email
+          <input id="loginEmail" type="email" required placeholder="email@example.com" autocomplete="email">
+        </label>
+        <label>
+          Password
           <div class="password-field">
-            <input id="loginPassword" type="password" required placeholder="••••••••">
+            <input id="loginPassword" type="password" required placeholder="••••••••" autocomplete="current-password">
             <button type="button" data-toggle-password="loginPassword">👁️</button>
           </div>
         </label>
@@ -910,12 +664,22 @@
 
       <!-- SIGNUP FORM -->
       <form id="signupForm" class="auth-form hidden">
-        <label>Magaca oo buuxa <input id="signupName" type="text" required placeholder="Magacaaga"></label>
-        <label>Phone <input id="signupPhone" type="tel" required placeholder="63xxxxxxx"></label>
-        <label>Email <input id="signupEmail" type="email" required placeholder="email@example.com"></label>
-        <label>Password
+        <label>
+          Magaca oo buuxa
+          <input id="signupName" type="text" required placeholder="Magacaaga" autocomplete="name">
+        </label>
+        <label>
+          Phone
+          <input id="signupPhone" type="tel" required placeholder="63xxxxxxx" autocomplete="tel">
+        </label>
+        <label>
+          Email
+          <input id="signupEmail" type="email" required placeholder="email@example.com" autocomplete="email">
+        </label>
+        <label>
+          Password
           <div class="password-field">
-            <input id="signupPassword" type="password" required minlength="6" placeholder="••••••••">
+            <input id="signupPassword" type="password" required minlength="6" placeholder="••••••••" autocomplete="new-password">
             <button type="button" data-toggle-password="signupPassword">👁️</button>
           </div>
         </label>
@@ -926,11 +690,9 @@
         <span id="authSwitchText">Account ma lihid?</span>
         <button id="authSwitchBtn" type="button">Samee Account</button>
       </div>
-
       <p id="authMessage" class="auth-message"></p>
     </div>
   </div>
-
 
   <!-- FILTER MODAL -->
   <div id="filterModal" class="modal">
@@ -938,16 +700,19 @@
       <button id="closeFilterModal" class="modal-close" type="button">×</button>
       <div class="modal-title">
         <span>⚙️</span>
-        <div><small>WAHEN</small><h2>Filter</h2></div>
+        <div>
+          <small>WAHEN</small>
+          <h2>Filter Alaabta</h2>
+        </div>
       </div>
 
       <div class="filter-group">
-        <label>Qiimaha ugu yar ($)</label>
+        <label>Qiimaha ugu yar</label>
         <input id="minPrice" type="number" min="0" placeholder="$0">
       </div>
 
       <div class="filter-group">
-        <label>Qiimaha ugu badan ($)</label>
+        <label>Qiimaha ugu badan</label>
         <input id="maxPrice" type="number" min="0" placeholder="$1000">
       </div>
 
@@ -958,6 +723,7 @@
           <option value="newest">Ugu cusub</option>
           <option value="price-low">Qiimo hoose</option>
           <option value="price-high">Qiimo sare</option>
+          <option value="rating">Rating Sare</option>
         </select>
       </div>
 
@@ -965,13 +731,16 @@
     </div>
   </div>
 
-
-  <!-- NOTIFICATION PANEL -->
+  <!-- NOTIFICATIONS PANEL -->
   <div id="notificationPanel" class="notification-panel">
     <div class="notification-header">
-      <div><small>WAHEN</small><h2>Notifications</h2></div>
+      <div>
+        <small>WAHEN</small>
+        <h2>Notifications</h2>
+      </div>
       <button id="closeNotificationPanel" type="button">×</button>
     </div>
+
     <div id="notificationList" class="notification-list">
       <div class="empty-notification">
         <span>🔔</span>
@@ -981,71 +750,61 @@
     </div>
   </div>
 
-
-  <!-- =======================================================
-       BOTTOM NAVIGATION (MOBILE)
-  ======================================================== -->
-
+  <!-- BOTTOM NAVIGATION -->
   <nav class="bottom-nav">
     <button class="bottom-item active" data-bottom="home" type="button">
       <span>⌂</span>
       <small>Home</small>
     </button>
-
     <button class="bottom-item" data-bottom="categories" type="button">
       <span>◈</span>
       <small>Qaybo</small>
     </button>
-
     <button class="bottom-item bottom-main" id="bottomSearch" type="button" aria-label="Search">
       <span>🔎</span>
     </button>
-
     <button class="bottom-item" data-bottom="orders" type="button">
       <span>▣</span>
       <small>Orders</small>
     </button>
-
     <button class="bottom-item" data-bottom="account" type="button">
       <span>◯</span>
       <small>Account</small>
     </button>
   </nav>
 
-
-  <!-- TOAST NOTIFICATION -->
+  <!-- TOAST NOTIFICATIONS -->
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
-
 
   <!-- GLOBAL LOADING -->
   <div id="globalLoading" class="global-loading hidden">
     <div class="loading-spinner"></div>
     <strong>WaHeN</strong>
-    <p>Fadlan sug...</p>
+    <p>WaHeN ayaa shaqaynaya...</p>
   </div>
 
+  <!-- DYNAMIC VIEW CONTAINER -->
+  <section id="dynamicView" class="dynamic-view hidden"></section>
 
   <!-- FOOTER -->
   <footer class="app-footer">
-
     <div class="footer-brand">
       <span class="brand-main">WaHeN</span>
       <span class="brand-sub">MARKETPLACE</span>
-      <p>Wax kasta hal meel ka hel. Somaliland's premier marketplace.</p>
+      <p>Wax kasta hal meel ka hel.</p>
     </div>
 
     <div class="footer-links">
       <button data-footer="support" type="button">Customer Support</button>
-      <button data-footer="contact" type="button">Contact</button>
+      <button data-footer="contact" type="button">Contact Us</button>
       <button data-footer="privacy" type="button">Privacy Policy</button>
       <button data-footer="terms" type="button">Terms of Service</button>
     </div>
 
     <div class="footer-bottom">
-      <span>© 2026 WaHeN Marketplace</span>
-      <span>Hargeysa, Somaliland</span>
+      <span>© 2026 WaHeN Marketplace. All rights reserved.</span>
+      <span>Somaliland Marketplace</span>
     </div>
-
   </footer>
 
 </div>

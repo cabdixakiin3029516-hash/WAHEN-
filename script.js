@@ -1,45 +1,60 @@
 /* ==========================================================================
-   WAHEN MARKETPLACE — CORE APPLICATION ENGINE (script.js)
+   WAHEN MARKETPLACE — HYBRID MOBILE & WEB ENGINE (script.js)
+   Compatible with: iOS, Android (WebView/PWA), and Web Browsers
    ========================================================================== */
 
 // --------------------------------------------------------------------------
-// 1. SUPABASE CONFIGURATION & INITIALIZATION
+// 1. SUPABASE CONFIGURATION (Anon Key & Public URL)
 // --------------------------------------------------------------------------
 const SUPABASE_URL = "https://hkmtlyknwsqxuxmvfaqv.supabase.co";
-const SUPABASE_ANON_KEY = "YOUR_SUPABASE_ANON_KEY_HERE";
+const SUPABASE_ANON_KEY = "YOUR_SUPABASE_ANON_KEY_HERE"; // Ku beddel Anon Public Key-gaaga Supabase Project Settings
 
 let supabaseClient = null;
 
 if (typeof supabase !== "undefined") {
-  supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+    auth: {
+      persistSession: true,
+      autoRefreshToken: true,
+      detectSessionInUrl: true
+    }
+  });
 } else {
-  console.error("Supabase SDK laguma soo shubin HTML-ka!");
+  console.error("Supabase SDK laguma soo shubin HTML-ka! Fadlan ku dar CDN-ka Supabase.");
 }
 
 // --------------------------------------------------------------------------
-// 2. STATE MANAGEMENT
+// 2. GLOBAL APP STATE MANAGEMENT
 // --------------------------------------------------------------------------
 const AppState = {
   products: [],
   filteredProducts: [],
+  categories: [],
   cart: JSON.parse(localStorage.getItem("wahen_cart")) || [],
   currentUser: JSON.parse(localStorage.getItem("wahen_user")) || null,
+  userProfile: JSON.parse(localStorage.getItem("wahen_profile")) || null,
   activeCategory: "all",
-  activeBrand: null,
   searchQuery: "",
-  deliveryFee: 2.00
+  deliveryFee: 2.00,
+  unreadNotifications: 0
 };
 
 // --------------------------------------------------------------------------
-// 3. API SERVICE (Supabase Database Calls)
+// 3. API & BACKEND SERVICES (Supabase Integration)
 // --------------------------------------------------------------------------
 const ApiService = {
+  // --- Products & Categories ---
   async fetchProducts() {
     if (!supabaseClient) return [];
     try {
       const { data, error } = await supabaseClient
         .from("products")
-        .select("*")
+        .select(`
+          *,
+          shops (id, name, seller_id),
+          categories (id, name)
+        `)
+        .eq("is_active", true)
         .order("created_at", { ascending: false });
 
       if (error) throw error;
@@ -51,18 +66,18 @@ const ApiService = {
     }
   },
 
-  async fetchProductsByCategory(category) {
+  async fetchCategories() {
     if (!supabaseClient) return [];
     try {
-      let query = supabaseClient.from("products").select("*");
-      if (category !== "all") {
-        query = query.eq("category", category);
-      }
-      const { data, error } = await query;
+      const { data, error } = await supabaseClient
+        .from("categories")
+        .select("*")
+        .order("name", { ascending: true });
+
       if (error) throw error;
       return data || [];
     } catch (err) {
-      console.error("Error filtering category:", err.message);
+      console.error("Error fetching categories:", err.message);
       return [];
     }
   },
@@ -83,40 +98,112 @@ const ApiService = {
     }
   },
 
-  async createOrder(orderData) {
-    if (!supabaseClient) return null;
-    try {
-      const { data, error } = await supabaseClient
-        .from("orders")
-        .insert([orderData])
-        .select();
+  // --- Atomic RPC Checkout ---
+  async executeAtomicCheckout(deliveryAddressId, paymentMethod) {
+    if (!supabaseClient) return { success: false, error: "Supabase client not initialized" };
+    if (!AppState.currentUser) return { success: false, error: "Fadlan soo gal si aad u iibsato alaabta" };
+    if (AppState.cart.length === 0) return { success: false, error: "Cart-kaagu waa faaruq!" };
 
+    const formattedCartItems = AppState.cart.map(item => ({
+      product_id: item.id,
+      quantity: item.quantity,
+      price: parseFloat(item.price)
+    }));
+
+    const payload = {
+      p_buyer_id: AppState.currentUser.id,
+      p_shop_id: AppState.cart[0].shop_id || AppState.cart[0].shops?.id,
+      p_delivery_address_id: deliveryAddressId,
+      p_payment_method: paymentMethod,
+      p_cart_items: formattedCartItems,
+      p_delivery_fee: AppState.deliveryFee
+    };
+
+    try {
+      const { data, error } = await supabaseClient.rpc("process_checkout", payload);
       if (error) throw error;
       return data;
     } catch (err) {
-      console.error("Error creating order:", err.message);
-      UI.showToast("Dalabku ma samaysmin, fadlan dib u baroocad.", "error");
-      return null;
+      console.error("Checkout RPC Error:", err.message);
+      return { success: false, error: err.message };
     }
   },
 
+  // --- Auth & User Profile ---
   async login(email, password) {
-    if (!supabaseClient) return { error: { message: "Supabase laguma xidhin" } };
-    return await supabaseClient.auth.signInWithPassword({ email, password });
+    if (!supabaseClient) return { error: { message: "Backend offline" } };
+    const res = await supabaseClient.auth.signInWithPassword({ email, password });
+    if (res.data?.user) {
+      AppState.currentUser = res.data.user;
+      localStorage.setItem("wahen_user", JSON.stringify(res.data.user));
+      await this.fetchUserProfile(res.data.user.id);
+    }
+    return res;
   },
 
-  async signUp(email, password, userData) {
-    if (!supabaseClient) return { error: { message: "Supabase laguma xidhin" } };
+  async signUp(email, password, fullName, phone) {
+    if (!supabaseClient) return { error: { message: "Backend offline" } };
     return await supabaseClient.auth.signUp({
       email,
       password,
-      options: { data: userData }
+      options: {
+        data: {
+          full_name: fullName,
+          phone_number: phone
+        }
+      }
     });
+  },
+
+  async logout() {
+    if (supabaseClient) await supabaseClient.auth.signOut();
+    AppState.currentUser = null;
+    AppState.userProfile = null;
+    localStorage.removeItem("wahen_user");
+    localStorage.removeItem("wahen_profile");
+    window.location.reload();
+  },
+
+  async fetchUserProfile(userId) {
+    if (!supabaseClient || !userId) return;
+    try {
+      const { data } = await supabaseClient
+        .from("profiles")
+        .select("*")
+        .eq("id", userId)
+        .single();
+
+      if (data) {
+        AppState.userProfile = data;
+        localStorage.setItem("wahen_profile", JSON.stringify(data));
+      }
+    } catch (err) {
+      console.error("Error fetching profile:", err.message);
+    }
+  },
+
+  // --- Real-time Notifications ---
+  async fetchNotifications() {
+    if (!supabaseClient || !AppState.currentUser) return [];
+    try {
+      const { data, error } = await supabaseClient
+        .from("notifications")
+        .select("*")
+        .eq("user_id", AppState.currentUser.id)
+        .order("created_at", { ascending: false })
+        .limit(20);
+
+      if (error) throw error;
+      return data || [];
+    } catch (err) {
+      console.error("Error notifications:", err.message);
+      return [];
+    }
   }
 };
 
 // --------------------------------------------------------------------------
-// 4. CART MANAGER
+// 4. SHOPPING CART MANAGER
 // --------------------------------------------------------------------------
 const CartManager = {
   addItem(product) {
@@ -218,14 +305,15 @@ const CartManager = {
 };
 
 // --------------------------------------------------------------------------
-// 5. UI CONTROLLER & EVENT BINDINGS
+// 5. USER INTERFACE (UI) & EVENT CONTROLLER
 // --------------------------------------------------------------------------
 const UI = {
-  init() {
+  async init() {
     this.bindGlobalEvents();
     this.updateCartBadge();
     this.checkAuthStatus();
-    this.loadInitialPageData();
+    await this.loadInitialPageData();
+    this.initRealtimeNotifications();
   },
 
   renderProducts(products, containerId = "productGrid") {
@@ -245,7 +333,7 @@ const UI = {
             <img src="${p.image || 'logo.png'}" alt="${p.name}" onerror="this.src='logo.png'">
           </div>
           <div class="product-details">
-            <span class="category-tag">${p.category || 'WaHeN'}</span>
+            <span class="category-tag">${p.categories?.name || 'WaHeN'}</span>
             <h3 class="product-title">${p.name}</h3>
             <div class="product-bottom">
               <span class="price">$${parseFloat(p.price || 0).toFixed(2)}</span>
@@ -268,13 +356,17 @@ const UI = {
   },
 
   showToast(message, type = "success") {
-    const toast = document.getElementById("toast");
-    if (!toast) return;
+    let toast = document.getElementById("toast");
+    if (!toast) {
+      toast = document.createElement("div");
+      toast.id = "toast";
+      document.body.appendChild(toast);
+    }
     toast.textContent = message;
     toast.className = `toast show ${type}`;
     setTimeout(() => {
       toast.className = "toast";
-    }, 3000);
+    }, 3500);
   },
 
   checkAuthStatus() {
@@ -283,7 +375,7 @@ const UI = {
       guestMenu.innerHTML = `
         <div class="menu-avatar">👤</div>
         <div>
-          <strong>${AppState.currentUser.user_metadata?.full_name || 'Macmiil'}</strong>
+          <strong>${AppState.userProfile?.full_name || AppState.currentUser.email}</strong>
           <small>${AppState.currentUser.email}</small>
         </div>
       `;
@@ -291,18 +383,43 @@ const UI = {
   },
 
   async loadInitialPageData() {
-    const currentPage = window.location.pathname.split("/").pop();
-
     const grid = document.getElementById("productGrid");
     if (grid) {
       grid.innerHTML = `<div class="loading-card"><div class="loading-spinner"></div><p>Raadinaya alaabo...</p></div>`;
     }
 
-    if (currentPage === "" || currentPage === "index.html" || currentPage === "home.html") {
-      AppState.products = await ApiService.fetchProducts();
-      AppState.filteredProducts = AppState.products;
-      this.renderProducts(AppState.filteredProducts);
-    }
+    AppState.products = await ApiService.fetchProducts();
+    AppState.filteredProducts = AppState.products;
+    this.renderProducts(AppState.filteredProducts);
+  },
+
+  // --- Real-time Websocket Notification Listener ---
+  initRealtimeNotifications() {
+    if (!supabaseClient || !AppState.currentUser) return;
+
+    supabaseClient
+      .channel("public:notifications")
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "notifications",
+          filter: `user_id=eq.${AppState.currentUser.id}`
+        },
+        (payload) => {
+          const notif = payload.new;
+          this.showToast(`${notif.title}: ${notif.message}`, "info");
+
+          const badge = document.getElementById("notifCountBadge");
+          if (badge) {
+            AppState.unreadNotifications += 1;
+            badge.textContent = AppState.unreadNotifications;
+            badge.style.display = "inline-block";
+          }
+        }
+      )
+      .subscribe();
   },
 
   bindGlobalEvents() {
@@ -344,28 +461,8 @@ const UI = {
       });
     }
 
-    // 3. Category Buttons Event Listener
-    document.querySelectorAll(".category-card").forEach(btn => {
-      btn.addEventListener("click", async (e) => {
-        document.querySelectorAll(".category-card").forEach(b => b.classList.remove("active"));
-        const card = e.currentTarget;
-        card.classList.add("active");
-
-        const category = card.dataset.category;
-        AppState.activeCategory = category;
-
-        if (category === "all") {
-          this.renderProducts(AppState.products);
-        } else {
-          const filtered = await ApiService.fetchProductsByCategory(category);
-          this.renderProducts(filtered);
-        }
-      });
-    });
-
-    // 4. Search Input Debounce & Clear
+    // 3. Search Input Debounce
     const searchInput = document.getElementById("searchInput");
-    const clearSearch = document.getElementById("clearSearch");
     let searchTimeout;
 
     if (searchInput) {
@@ -383,85 +480,30 @@ const UI = {
       });
     }
 
-    if (clearSearch && searchInput) {
-      clearSearch.addEventListener("click", () => {
-        searchInput.value = "";
-        this.renderProducts(AppState.products);
-      });
-    }
-
-    // 5. Navigation Links (Side Menu & Bottom Navigation)
-    document.querySelectorAll("[data-menu], [data-bottom]").forEach(btn => {
-      btn.addEventListener("click", () => {
-        const target = btn.dataset.menu || btn.dataset.bottom;
-        this.navigateToPage(target);
-      });
-    });
-
-    // 6. Action Buttons (Hero Shop, Offer, Wholesale)
-    const heroShopBtn = document.getElementById("heroShopBtn");
-    const offerBtn = document.getElementById("offerBtn");
-    const wholesaleBtn = document.getElementById("wholesaleBtn");
-
-    if (heroShopBtn) heroShopBtn.addEventListener("click", () => {
-      document.getElementById("categoryGrid")?.scrollIntoView({ behavior: "smooth" });
-    });
-
-    if (offerBtn) offerBtn.addEventListener("click", () => {
-      document.getElementById("productGrid")?.scrollIntoView({ behavior: "smooth" });
-    });
-
-    if (wholesaleBtn) wholesaleBtn.addEventListener("click", () => {
-      this.navigateToPage("wholesale");
-    });
-
-    // 7. Checkout Action
+    // 4. Checkout Handler (Atomic Execution)
     const checkoutBtn = document.getElementById("checkoutBtn");
     if (checkoutBtn) {
       checkoutBtn.addEventListener("click", async () => {
-        if (AppState.cart.length === 0) {
-          this.showToast("Cart-kaagu waa faaruq!", "error");
-          return;
-        }
+        checkoutBtn.disabled = true;
+        checkoutBtn.textContent = "Iibintu wey socotaa...";
 
-        const totals = CartManager.getTotals();
-        const orderData = {
-          items: AppState.cart,
-          total_amount: totals.total,
-          status: "pending",
-          user_id: AppState.currentUser ? AppState.currentUser.id : null,
-          created_at: new Date()
-        };
+        // Address ID iyo Payment Method (Badal ama ka saar UI-gaaga)
+        const addressId = "00000000-0000-0000-0000-000000000000"; 
+        const paymentMethod = "Zaad / eDahab";
 
-        const res = await ApiService.createOrder(orderData);
-        if (res) {
-          this.showToast("Dalabkaaga waa la guddoomay!", "success");
+        const res = await ApiService.executeAtomicCheckout(addressId, paymentMethod);
+
+        if (res.success) {
+          this.showToast(res.message || "Order-kaagu si guul leh ayaa loo kaydiyay!", "success");
           CartManager.clearCart();
           if (cartModal) cartModal.classList.remove("open");
           if (overlay) overlay.classList.remove("show");
-        }
-      });
-    }
-
-    // 8. Auth Switch Forms (Login / Signup Toggle)
-    const authSwitchBtn = document.getElementById("authSwitchBtn");
-    const loginForm = document.getElementById("loginForm");
-    const signupForm = document.getElementById("signupForm");
-    const authTitle = document.getElementById("authTitle");
-
-    if (authSwitchBtn) {
-      authSwitchBtn.addEventListener("click", () => {
-        if (loginForm.classList.contains("hidden")) {
-          loginForm.classList.remove("hidden");
-          signupForm.classList.add("hidden");
-          if (authTitle) authTitle.textContent = "Ku soo dhawoow WaHeN";
-          authSwitchBtn.textContent = "Samee Account";
         } else {
-          loginForm.classList.add("hidden");
-          signupForm.classList.remove("hidden");
-          if (authTitle) authTitle.textContent = "Samee Account Cusub";
-          authSwitchBtn.textContent = "Soo Gal";
+          this.showToast(res.error || "Cillad ayaa ka dhacday checkout-ka", "error");
         }
+
+        checkoutBtn.disabled = false;
+        checkoutBtn.textContent = "Dhammaystir Iibsiga";
       });
     }
   },
@@ -472,35 +514,11 @@ const UI = {
     const overlay = document.getElementById("overlay");
     if (sideMenu) sideMenu.classList.remove("open");
     if (overlay) overlay.classList.remove("show");
-  },
-
-  navigateToPage(pageKey) {
-    const routes = {
-      home: "home.html",
-      index: "index.html",
-      admin: "admin.html",
-      buyer: "buyer.html",
-      contact: "contact.html",
-      signup: "create-account.html",
-      login: "login.html",
-      seller: "seller.html",
-      support: "support.html",
-      chat: "support.html",
-      wholesale: "buyer.html",
-      jumlo: "buyer.html",
-      naadir: "home.html",
-      warshado: "seller.html",
-      settings: "contact.html"
-    };
-
-    if (routes[pageKey]) {
-      window.location.href = routes[pageKey];
-    }
   }
 };
 
 // --------------------------------------------------------------------------
-// 6. INITIALIZE ENGINE ON DOM LOADED
+// 6. INITIALIZE APPLICATION ENGINE ON DOM LOAD
 // --------------------------------------------------------------------------
 document.addEventListener("DOMContentLoaded", () => {
   UI.init();

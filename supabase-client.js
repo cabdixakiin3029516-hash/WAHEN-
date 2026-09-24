@@ -4,7 +4,7 @@
 
 // 1. Supabase Credentials
 const SUPABASE_URL = "https://hkmtlyknwsqxuxmvfaqv.supabase.co";
-const SUPABASE_ANON_KEY = "GELI_SUPABASE_ANON_KEY_GAAGA_HALKAN";
+const SUPABASE_ANON_KEY = "0JW5GQQnLPwmyRRbNQOBHg_QoBdH01S";
 
 // Initialize Supabase Client
 if (typeof window.supabase === 'undefined') {

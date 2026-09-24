@@ -1,21 +1,407 @@
 <!doctype html>
 <html lang="so">
+
 <head>
+
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1"
+  >
+
   <title>WaHeN — Home</title>
+
+  <meta
+    name="description"
+    content="WaHeN Marketplace — Wax kasta hal meel ka hel."
+  >
+
+  <meta
+    name="theme-color"
+    content="#4338CA"
+  >
+
   <link rel="stylesheet" href="pages.css">
+
+  <style>
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: #f6f7fb;
+      color: #111827;
+      font-family: Arial, sans-serif;
+    }
+
+    .home-page {
+      width: min(900px, calc(100% - 28px));
+      margin: 20px auto;
+    }
+
+    .page-nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 15px;
+      margin-bottom: 25px;
+    }
+
+    .logo {
+      text-decoration: none;
+      color: #4338ca;
+      font-size: 25px;
+      font-weight: 900;
+    }
+
+    .login-link {
+      text-decoration: none;
+      color: #4338ca;
+      background: #eef0fe;
+      padding: 10px 15px;
+      border-radius: 11px;
+      font-weight: 800;
+    }
+
+    .page-hero {
+      background: linear-gradient(
+        135deg,
+        #4338ca,
+        #6366f1
+      );
+
+      color: white;
+
+      border-radius: 25px;
+
+      padding: clamp(30px, 7vw, 65px);
+
+      overflow: hidden;
+
+      box-shadow:
+        0 20px 50px rgba(67, 56, 202, .20);
+    }
+
+    .eyebrow {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 900;
+      letter-spacing: 1.5px;
+      opacity: .85;
+      margin-bottom: 12px;
+    }
+
+    .page-hero h1 {
+      margin: 0;
+      font-size: clamp(34px, 8vw, 60px);
+      line-height: 1.05;
+    }
+
+    .page-hero p {
+      max-width: 620px;
+      line-height: 1.7;
+      font-size: 16px;
+      opacity: .92;
+      margin: 20px 0 25px;
+    }
+
+    .button {
+      display: inline-block;
+      text-decoration: none;
+      background: white;
+      color: #4338ca;
+      padding: 14px 20px;
+      border-radius: 13px;
+      font-weight: 900;
+    }
+
+    .feature-grid {
+      display: grid;
+      grid-template-columns:
+        repeat(3, minmax(0, 1fr));
+
+      gap: 14px;
+
+      margin-top: 18px;
+    }
+
+    .feature-grid article {
+      background: white;
+      border: 1px solid #e5e7eb;
+      border-radius: 19px;
+      padding: 22px;
+      box-shadow:
+        0 5px 20px rgba(15, 23, 42, .04);
+    }
+
+    .feature-grid article > span {
+      font-size: 28px;
+    }
+
+    .feature-grid h2 {
+      margin: 14px 0 7px;
+      font-size: 18px;
+    }
+
+    .feature-grid p {
+      margin: 0;
+      color: #64748b;
+      line-height: 1.6;
+      font-size: 14px;
+    }
+
+    .quick-section {
+      margin-top: 18px;
+    }
+
+    .quick-section h2 {
+      margin-bottom: 12px;
+    }
+
+    .quick-grid {
+      display: grid;
+      grid-template-columns:
+        repeat(4, minmax(0, 1fr));
+
+      gap: 10px;
+    }
+
+    .quick-card {
+      display: block;
+      text-decoration: none;
+      color: #111827;
+      background: white;
+      border: 1px solid #e5e7eb;
+      border-radius: 15px;
+      padding: 17px;
+      font-weight: 800;
+    }
+
+    .quick-card span {
+      display: block;
+      font-size: 25px;
+      margin-bottom: 8px;
+    }
+
+    .footer-links {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 18px;
+      margin: 28px 0;
+    }
+
+    .footer-links a {
+      color: #4338ca;
+      text-decoration: none;
+      font-weight: 700;
+    }
+
+    @media (max-width: 650px) {
+
+      .feature-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .quick-grid {
+        grid-template-columns:
+          repeat(2, minmax(0, 1fr));
+      }
+
+      .page-hero {
+        padding: 30px 22px;
+      }
+
+    }
+
+  </style>
+
 </head>
+
+
 <body>
-  <main class="page-card">
-    <header class="page-nav"><a class="logo" href="index.html">WaHeN</a><a href="login.html">Soo gal</a></header>
-    <section class="page-hero"><span class="eyebrow">WAHEN MARKETPLACE</span><h1>Ku soo dhawoow WaHeN</h1><p>Suuqa dijitaalka ah ee aad ka heli karto alaabooyin, dukaamo iyo adeegyo kala duwan.</p><a class="button" href="index.html">Bilaaw wax iibsiga</a></section>
-    <section class="feature-grid">
-      <article><span>🛍️</span><h2>Alaabooyin badan</h2><p>Raadi oo hel alaabta aad u baahan tahay.</p></article>
-      <article><span>🚚</span><h2>Dalab la raaco</h2><p>La soco halka uu marayo dalabkaaga.</p></article>
-      <article><span>🔐</span><h2>Qaybo kala gaar ah</h2><p>Buyer, Seller iyo Admin mid walba wuxuu leeyahay dashboard u gaar ah.</p></article>
+
+  <main class="home-page">
+
+
+    <!-- NAVIGATION -->
+
+    <header class="page-nav">
+
+      <a
+        class="logo"
+        href="index.html"
+      >
+        WaHeN
+      </a>
+
+      <a
+        class="login-link"
+        href="login.html"
+      >
+        Soo gal
+      </a>
+
+    </header>
+
+
+    <!-- HERO -->
+
+    <section class="page-hero">
+
+      <span class="eyebrow">
+        WAHEN MARKETPLACE
+      </span>
+
+      <h1>
+        Ku soo dhawoow WaHeN
+      </h1>
+
+      <p>
+        Suuqa dijitaalka ah ee aad ka heli karto
+        alaabooyin, dukaamo, brands, jumlo iyo
+        adeegyo kala duwan — meel keliya.
+      </p>
+
+      <a
+        class="button"
+        href="index.html"
+      >
+        🛍️ Bilaaw wax iibsiga
+      </a>
+
     </section>
-    <footer class="footer-links"><a href="create-account.html">Samee account</a><a href="support.html">Support</a><a href="contact.html">Contact</a></footer>
+
+
+    <!-- FEATURES -->
+
+    <section class="feature-grid">
+
+      <article>
+
+        <span>🛍️</span>
+
+        <h2>
+          Alaabooyin badan
+        </h2>
+
+        <p>
+          Raadi oo hel alaabta aad u baahan tahay,
+          isbarbar dhig qiimaha iyo faahfaahinta.
+        </p>
+
+      </article>
+
+
+      <article>
+
+        <span>🚚</span>
+
+        <h2>
+          Dalab la raaco
+        </h2>
+
+        <p>
+          La soco xaaladda dalabkaaga iyo
+          delivery-gaaga.
+        </p>
+
+      </article>
+
+
+      <article>
+
+        <span>🔐</span>
+
+        <h2>
+          Account ammaan ah
+        </h2>
+
+        <p>
+          Buyer, Seller iyo Admin waxay leeyihiin
+          qaybaha iyo adeegyada u gaarka ah.
+        </p>
+
+      </article>
+
+    </section>
+
+
+    <!-- QUICK ACCESS -->
+
+    <section class="quick-section">
+
+      <h2>
+        Si degdeg ah u gal
+      </h2>
+
+      <div class="quick-grid">
+
+        <a
+          class="quick-card"
+          href="index.html"
+        >
+          <span>🛍️</span>
+          Alaabooyinka
+        </a>
+
+        <a
+          class="quick-card"
+          href="index.html"
+        >
+          <span>📦</span>
+          Jumlo
+        </a>
+
+        <a
+          class="quick-card"
+          href="index.html"
+        >
+          <span>🏭</span>
+          Warshado
+        </a>
+
+        <a
+          class="quick-card"
+          href="support.html"
+        >
+          <span>🎧</span>
+          Support
+        </a>
+
+      </div>
+
+    </section>
+
+
+    <!-- FOOTER -->
+
+    <footer class="footer-links">
+
+      <a href="create-account.html">
+        Samee Account
+      </a>
+
+      <a href="support.html">
+        Support
+      </a>
+
+      <a href="contact.html">
+        Contact
+      </a>
+
+      <a href="index.html">
+        Marketplace
+      </a>
+
+    </footer>
+
+
   </main>
+
 </body>
+
 </html>

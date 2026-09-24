@@ -2,692 +2,184 @@
 <html lang="so">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-
-  <title>WaHeN — Marketplace</title>
-  <meta name="description" content="WaHeN Marketplace — Wax kasta hal meel ka hel.">
-  <meta name="theme-color" content="#10B981">
-
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WaHeN Marketplace</title>
+  
+  <!-- CSS STYLESHEET -->
   <link rel="stylesheet" href="style.css">
+  
+  <!-- Supabase Official SDK -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
-
 <body>
 
-  <!-- APP -->
-  <div id="app">
-
-    <!-- TOP HEADER -->
-    <header class="top-header">
-
-      <div class="brand-area">
-        <button id="menuBtn" class="icon-btn" aria-label="Menu">☰</button>
-
-        <!-- BRAND & LOGO INTEGRATION -->
-        <div class="brand">
-          <img src="logo.png" alt="WaHeN Logo" class="brand-logo" id="mainLogo" onerror="this.style.display='none'">
-          <span class="brand-title">WaHeN</span>
-          <span class="brand-sub">MARKETPLACE</span>
-        </div>
+  <!-- APP HEADER -->
+  <header class="app-header">
+    <div class="header-container">
+      <button type="button" id="openMenu" class="icon-btn" aria-label="Open Menu">☰</button>
+      
+      <div class="app-logo">
+        <a href="index.html">
+          <h1>WaHeN<span>.</span></h1>
+        </a>
       </div>
 
       <div class="header-actions">
-        <button id="notificationBtn" class="icon-btn" aria-label="Notifications">
-          🔔
-        </button>
-
-        <button id="cartBtn" class="icon-btn cart-btn" aria-label="Cart">
-          🛒
-          <span id="cartCount" class="cart-count">0</span>
+        <button type="button" id="openAuthModal" class="icon-btn" title="Akaun">👤</button>
+        <button type="button" id="openCart" class="icon-btn" title="Basket">
+          🛒 <span id="cartBadge" class="badge">0</span>
         </button>
       </div>
+    </div>
 
-    </header>
+    <!-- SEARCH BAR ENGINE -->
+    <div class="search-container">
+      <span class="search-icon">🔍</span>
+      <input type="text" id="searchInput" placeholder="Maxaad raadinaysaa WAHEN Marketplace?">
+    </div>
+  </header>
 
-
-    <!-- SEARCH -->
-    <section class="search-section">
-
-      <div class="search-box">
-
-        <span class="search-icon">⌕</span>
-
-        <input
-          id="searchInput"
-          type="search"
-          placeholder="Maxaad raadineysaa?"
-          autocomplete="off"
-        >
-
-        <button id="clearSearch" class="clear-search">×</button>
-
+  <!-- MAIN MARKETPLACE DISPLAY -->
+  <main class="app-main">
+    
+    <!-- HERO BANNER -->
+    <section class="hero-banner">
+      <div class="banner-content">
+        <h2>Wax kasta hal meel ka hel!</h2>
+        <p>Geeska E-Commerce-ka Somaliland — Ganacsigaaga ka sameey WAHEN.</p>
       </div>
-
-      <button id="filterBtn" class="filter-btn">
-        ⚙
-      </button>
-
     </section>
 
-
-    <!-- LOCATION -->
-    <div class="location-bar">
-
-      <span>📍</span>
-
-      <div>
-        <small>Goobta delivery-ga</small>
-        <strong id="userLocation">Hargeysa</strong>
+    <!-- CATEGORY FILTER PILLS -->
+    <section class="categories-section">
+      <div class="section-header">
+        <h3>Qaybaha Alaabta</h3>
       </div>
+      <div id="categoryPills" class="category-pills">
+        <button type="button" class="pill-btn active" data-category="all">Dhammaan</button>
+        <button type="button" class="pill-btn" data-category="Electronics">Electronics</button>
+        <button type="button" class="pill-btn" data-category="Dharka">Dharka & Fashion</button>
+        <button type="button" class="pill-btn" data-category="Cunto">Cunto & Groceries</button>
+        <button type="button" class="pill-btn" data-category="Gadiidka">Gadiidka & Auto</button>
+      </div>
+    </section>
 
-      <button id="changeLocation">Beddel</button>
+    <!-- REAL-TIME PRODUCTS GRID -->
+    <section class="products-section">
+      <div class="section-header">
+        <h3>Alaabaha Cusub</h3>
+      </div>
+      <div id="productGrid" class="product-grid">
+        <div style="grid-column: 1 / -1; text-align: center; padding: 40px; color: var(--text-muted);">
+          Soo rogeysa alaabta Supabase Database...
+        </div>
+      </div>
+    </section>
 
+  </main>
+
+  <!-- OVERLAY BACKGROUND -->
+  <div id="overlay" class="app-overlay"></div>
+
+  <!-- SIDE MENU DRAWER -->
+  <aside id="sideMenu" class="side-menu">
+    <div class="side-menu-header">
+      <div id="userProfileStatus">
+        <strong id="menuUserName">Ku soo dhaawow WAHEN</strong>
+        <p><small id="menuUserRole" style="color:var(--text-muted);">Guest / Bishen</small></p>
+      </div>
+      <button type="button" id="closeMenu" class="close-btn">&times;</button>
     </div>
 
-
-    <!-- MAIN -->
-    <main>
-
-
-      <!-- HERO -->
-      <section class="hero">
-
-        <div class="hero-content">
-
-          <span class="hero-label">WAHEN MARKETPLACE</span>
-
-          <h1>
-            Wax kasta<br>
-            <strong>hal meel ka hel.</strong>
-          </h1>
-
-          <p>
-            Alaabo, ganacsiyo, brands iyo jumlado
-            meel keliya ka raadi.
-          </p>
-
-          <button id="heroShopBtn" class="hero-button">
-            Bilow Raadinta
-            <span>→</span>
-          </button>
-
-        </div>
-
-        <div class="hero-art">
-          🛍️
-        </div>
-
-        <div class="hero-shape"></div>
-
-      </section>
-
-
-      <!-- CATEGORIES -->
-      <section class="section">
-
-        <div class="section-header">
-
-          <div>
-            <span class="section-label">RAADI</span>
-            <h2>Qaybaha</h2>
-          </div>
-
-          <button id="allCategoriesBtn" class="see-all">
-            Dhammaan →
-          </button>
-
-        </div>
-
-
-        <div id="categoryGrid" class="category-grid">
-
-          <button class="category-card active" data-category="all">
-            <span>✨</span>
-            <strong>Dhammaan</strong>
-          </button>
-
-          <button class="category-card" data-category="men">
-            <span>👔</span>
-            <strong>Ragga</strong>
-          </button>
-
-          <button class="category-card" data-category="women">
-            <span>👗</span>
-            <strong>Haween</strong>
-          </button>
-
-          <button class="category-card" data-category="electronics">
-            <span>📱</span>
-            <strong>Electronics</strong>
-          </button>
-
-          <button class="category-card" data-category="food">
-            <span>🍎</span>
-            <strong>Cunto</strong>
-          </button>
-
-          <button class="category-card" data-category="baby">
-            <span>👶</span>
-            <strong>Caruur</strong>
-          </button>
-
-          <button class="category-card" data-category="construction">
-            <span>🧱</span>
-            <strong>Dhismaha</strong>
-          </button>
-
-          <button class="category-card" data-category="transport">
-            <span>🚗</span>
-            <strong>Gadiidka</strong>
-          </button>
-
-        </div>
-
-      </section>
-
-
-      <!-- SPECIAL OFFER -->
-      <section class="offer-banner">
-
-        <div>
-          <span>DALAB GAAR AH</span>
-
-          <h2>
-            Ilaa <strong>30%</strong> dhimis
-          </h2>
-
-          <p>
-            Alaabooyin la doortay
-          </p>
-
-          <button id="offerBtn">
-            Eeg hadda →
-          </button>
-        </div>
-
-        <div class="offer-icon">
-          🏷️
-        </div>
-
-      </section>
-
-
-      <!-- PRODUCTS -->
-      <section class="section">
-
-        <div class="section-header">
-
-          <div>
-            <span class="section-label">WAHEN</span>
-            <h2>Ugu Iibsan</h2>
-          </div>
-
-          <button id="allProductsBtn" class="see-all">
-            Dhammaan →
-          </button>
-
-        </div>
-
-
-        <div id="productGrid" class="product-grid">
-
-          <div class="loading-card">
-            <div class="loading-spinner"></div>
-            <p>Raadinaya alaabo...</p>
-          </div>
-
-        </div>
-
-      </section>
-
-
-      <!-- WHOLESALE -->
-      <section class="wholesale-section">
-
-        <div class="wholesale-content">
-
-          <span class="section-label">
-            GANACSIGA
-          </span>
-
-          <h2>
-            Ma rabtaa<br>
-            <strong>Jumlo?</strong>
-          </h2>
-
-          <p>
-            Ka hel alaabo tiro badan iyo
-            qiimaha jumlada ee ganacsatada.
-          </p>
-
-          <button id="wholesaleBtn">
-            Raadi Jumlo →
-          </button>
-
-        </div>
-
-        <div class="wholesale-art">
-          📦
-        </div>
-
-      </section>
-
-
-      <!-- BRANDS -->
-      <section class="section">
-
-        <div class="section-header">
-
-          <div>
-            <span class="section-label">BRANDS</span>
-            <h2>Brands-ka</h2>
-          </div>
-
-          <button id="allBrandsBtn" class="see-all">
-            Dhammaan →
-          </button>
-
-        </div>
-
-        <div id="brandGrid" class="brand-grid">
-
-          <button class="brand-item" data-brand="Samsung">
-            <strong>SAMSUNG</strong>
-          </button>
-
-          <button class="brand-item" data-brand="Apple">
-            <strong>APPLE</strong>
-          </button>
-
-          <button class="brand-item" data-brand="Xiaomi">
-            <strong>XIAOMI</strong>
-          </button>
-
-          <button class="brand-item" data-brand="Oraimo">
-            <strong>ORAIMO</strong>
-          </button>
-
-        </div>
-
-      </section>
-
-
-      <!-- TRUST -->
-      <section class="trust-section">
-
-        <div class="trust-title">
-          <span class="section-label">MAXAA LAGU KALSOON YAHAY?</span>
-          <h2>WaHeN waa fudeydiyahaaga.</h2>
-        </div>
-
-        <div class="trust-grid">
-
-          <div class="trust-card">
-            <span>🛡️</span>
-            <strong>Ammaan</strong>
-            <p>
-              Xogtaada iyo account-kaaga
-              si ammaan ah ayaa loo ilaaliyaa.
-            </p>
-          </div>
-
-          <div class="trust-card">
-            <span>⭐</span>
-            <strong>Qiimeyn</strong>
-            <p>
-              Arag qiimeynta iyo reviews-ka
-              alaabta iyo iibiyaha.
-            </p>
-          </div>
-
-          <div class="trust-card">
-            <span>🚚</span>
-            <strong>Delivery</strong>
-            <p>
-              Dalabkaaga waxaa laguugu
-              keenayaa meesha aad doorato.
-            </p>
-          </div>
-
-        </div>
-
-      </section>
-
-
-      <!-- EMPTY / SEARCH RESULTS -->
-      <section id="searchResultsSection" class="section hidden">
-
-        <div class="section-header">
-
-          <div>
-            <span class="section-label">SEARCH</span>
-            <h2>Natiijooyinka</h2>
-          </div>
-
-          <button id="closeSearchResults" class="see-all">
-            Xir
-          </button>
-
-        </div>
-
-        <div id="searchResults" class="product-grid"></div>
-
-      </section>
-
-
-    </main>
-
-
-    <!-- SIDE MENU -->
-    <aside id="sideMenu" class="side-menu">
-
-      <div class="side-menu-header">
-
-        <div class="brand">
-          <span class="brand-title">WaHeN</span>
-          <span class="brand-sub">MARKETPLACE</span>
-        </div>
-
-        <button id="closeMenu" class="icon-btn">
-          ×
-        </button>
-
-      </div>
-
-
-      <div id="menuGuest" class="menu-account">
-
-        <div class="menu-avatar">
-          👤
-        </div>
-
-        <div>
-          <strong>Ku soo dhawoow</strong>
-          <small>Soo gal ama samee account</small>
-        </div>
-
-      </div>
-
-
-      <nav class="side-navigation">
-
-        <button data-menu="home">
-          🏠
-          <span>Home</span>
-        </button>
-
-        <button data-menu="naadir">
-          💎
-          <span>Naadir</span>
-        </button>
-
-        <button data-menu="wholesale">
-          📦
-          <span>Jumlo</span>
-        </button>
-
-        <button data-menu="manufacturers">
-          🏭
-          <span>Warshado</span>
-        </button>
-
-        <button data-menu="chat">
-          💬
-          <span>Support Chats</span>
-        </button>
-
-        <button data-menu="settings">
-          ⚙️
-          <span>Settings</span>
-        </button>
-
-      </nav>
-
-    </aside>
-
-
-    <!-- OVERLAY -->
-    <div id="overlay" class="overlay"></div>
-
-
-    <!-- PRODUCT DETAIL MODAL -->
-    <div id="productModal" class="modal">
-
-      <div class="modal-content">
-
-        <button id="closeProductModal" class="modal-close">
-          ×
-        </button>
-
-        <div id="productDetail"></div>
-
-      </div>
-
-    </div>
-
-
-    <!-- CART MODAL -->
-    <div id="cartModal" class="modal">
-
-      <div class="modal-content">
-
-        <button id="closeCartModal" class="modal-close">
-          ×
-        </button>
-
-        <div class="modal-title">
-          <span>🛒</span>
-          <div>
-            <small>WAHEN</small>
-            <h2>Cart-kaaga</h2>
-          </div>
-        </div>
-
-        <div id="cartItems"></div>
-
-        <div class="cart-summary">
-
-          <div>
-            <span>Subtotal</span>
-            <strong id="cartSubtotal">$0.00</strong>
-          </div>
-
-          <div>
-            <span>Delivery</span>
-            <strong id="cartDelivery">$0.00</strong>
-          </div>
-
-          <div class="cart-total">
-            <span>Wadarta</span>
-            <strong id="cartTotal">$0.00</strong>
-          </div>
-
-          <button id="checkoutBtn" class="primary-btn">
-            Checkout →
-          </button>
-
-        </div>
-
-      </div>
-
-    </div>
-
-
-    <!-- AUTH MODAL -->
-    <div id="authModal" class="modal">
-
-      <div class="modal-content auth-content">
-
-        <button id="closeAuthModal" class="modal-close">
-          ×
-        </button>
-
-        <div class="auth-logo">
-          <span>W</span>
-        </div>
-
-        <h2 id="authTitle">
-          Ku soo dhawoow WaHeN
-        </h2>
-
-        <p id="authDescription">
-          Soo gal si aad u isticmaasho dhammaan adeegyada WaHeN.
-        </p>
-
-
-        <!-- LOGIN -->
-        <form id="loginForm" class="auth-form">
-
-          <label>
-            Email
-            <input
-              id="loginEmail"
-              type="email"
-              required
-              placeholder="email@example.com"
-            >
-          </label>
-
-          <label>
-            Password
-            <input
-              id="loginPassword"
-              type="password"
-              required
-              placeholder="••••••••"
-            >
-          </label>
-
-          <button type="submit" class="primary-btn">
-            Soo Gal
-          </button>
-
-        </form>
-
-
-        <!-- SIGN UP -->
-        <form id="signupForm" class="auth-form hidden">
-
-          <label>
-            Magaca oo buuxa
-            <input
-              id="signupName"
-              type="text"
-              required
-              placeholder="Magacaaga"
-            >
-          </label>
-
-          <label>
-            Phone
-            <input
-              id="signupPhone"
-              type="tel"
-              required
-              placeholder="63xxxxxxx"
-            >
-          </label>
-
-          <label>
-            Email
-            <input
-              id="signupEmail"
-              type="email"
-              required
-              placeholder="email@example.com"
-            >
-          </label>
-
-          <label>
-            Password
-            <input
-              id="signupPassword"
-              type="password"
-              required
-              minlength="6"
-              placeholder="••••••••"
-            >
-          </label>
-
-          <button type="submit" class="primary-btn">
-            Samee Account
-          </button>
-
-        </form>
-
-
-        <div class="auth-switch">
-
-          <span id="authSwitchText">
-            Account ma lihid?
-          </span>
-
-          <button id="authSwitchBtn">
-            Samee Account
-          </button>
-
-        </div>
-
-        <p id="authMessage" class="auth-message"></p>
-
-      </div>
-
-    </div>
-
-
-    <!-- BOTTOM NAVIGATION (5 QAYBOOD) -->
-    <nav class="bottom-nav">
-
-      <button class="bottom-item active" data-bottom="naadir">
-        <span>💎</span>
-        <small>Naadir</small>
-      </button>
-
-      <button class="bottom-item" data-bottom="jumlo">
-        <span>📦</span>
-        <small>Jumlo</small>
-      </button>
-
-      <button class="bottom-item" data-bottom="warshado">
-        <span>🏭</span>
-        <small>Warshado</small>
-      </button>
-
-      <button class="bottom-item" data-bottom="chat">
-        <span>💬</span>
-        <small>Support</small>
-      </button>
-
-      <button class="bottom-item" data-bottom="settings">
-        <span>⚙️</span>
-        <small>Settings</small>
-      </button>
-
+    <nav style="margin-top:20px;">
+      <ul style="list-style:none; display:flex; flex-direction:column; gap:16px;">
+        <li><a href="index.html" style="font-weight:600;">🏠 Hoyga Marketplace</a></li>
+        <li><a href="admin.html" style="font-weight:600; color:var(--accent);">⚙️ Admin & Seller Panel</a></li>
+        <li id="logoutItem" style="display:none;"><button type="button" id="logoutBtn" style="background:none; border:none; color:var(--danger); font-weight:600;">🚪 Ka bax Akownka</button></li>
+      </ul>
     </nav>
+  </aside>
 
-
-    <!-- TOAST -->
-    <div id="toast" class="toast"></div>
-
-
-    <!-- LOADING -->
-    <div id="globalLoading" class="global-loading hidden">
-
-      <div class="loading-spinner"></div>
-
-      <p>
-        WaHeN ayaa shaqaynaya...
-      </p>
-
+  <!-- CART MODAL DRAWER -->
+  <div id="cartModal" class="cart-modal">
+    <div class="cart-modal-header">
+      <h3>Basket-kaaga (Cart)</h3>
+      <button type="button" id="closeCartModal" class="close-btn">&times;</button>
     </div>
 
+    <div id="cartItems" class="cart-modal-body">
+      <p style="text-align:center; color:var(--text-muted); padding:20px;">Cart-kaagu waa faaruq!</p>
+    </div>
+
+    <div style="padding-top:12px; border-top:1px solid var(--border-color);">
+      <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+        <span>Warta Guud (Total):</span>
+        <strong id="cartTotal" style="font-size:1.1rem; color:var(--primary);">$0.00</strong>
+      </div>
+
+      <!-- CHECKOUT FORM INPUTS -->
+      <div id="checkoutFields" style="display:none; margin-top:12px; flex-direction:column; gap:8px;">
+        <input type="text" id="custName" class="form-control" placeholder="Magacaaga Buuxa">
+        <input type="tel" id="custPhone" class="form-control" placeholder="Tel / Zaad / eDahab">
+        <input type="text" id="custAddress" class="form-control" placeholder="Cinwaanka (Magaalada/Xaafadda)">
+      </div>
+
+      <button type="button" id="checkoutBtn" class="pill-btn active" style="width:100%; padding:12px; margin-top:12px; border-radius:8px; font-weight:700;">
+        Koresho / Checkout
+      </button>
+    </div>
   </div>
 
+  <!-- AUTHENTICATION MODAL (LOGIN / REGISTER) -->
+  <div id="authModal" class="cart-modal" style="max-height:90vh;">
+    <div class="cart-modal-header">
+      <h3 id="authTitle">Soo Gal WAHEN</h3>
+      <button type="button" id="closeAuthModal" class="close-btn">&times;</button>
+    </div>
 
-  <!-- 1. SUPABASE SDK LIBRARY -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <form id="authForm" style="display:flex; flex-direction:column; gap:12px; padding:10px 0;">
+      <div class="form-group">
+        <label>Email-kaaga</label>
+        <input type="email" id="authEmail" class="form-control" required placeholder="name@example.com">
+      </div>
+      <div class="form-group">
+        <label>Password-ka</label>
+        <input type="password" id="authPassword" class="form-control" required placeholder="******">
+      </div>
+      
+      <!-- EXTRA REGISTER FIELDS -->
+      <div id="registerFields" style="display:none; flex-direction:column; gap:12px;">
+        <div class="form-group">
+          <label>Magaca Buuxa</label>
+          <input type="text" id="authFullName" class="form-control" placeholder="Magacaaga">
+        </div>
+        <div class="form-group">
+          <label>Doorkaaga (Role)</label>
+          <select id="authRole" class="form-control">
+            <option value="buyer">Macmiil (Buyer)</option>
+            <option value="seller">Gancasi / Vendor (Seller)</option>
+          </select>
+        </div>
+      </div>
 
-  <!-- 2. MAIN SCRIPT FILE -->
+      <button type="submit" class="pill-btn active" style="padding:12px; font-weight:700; margin-top:10px;">
+        Gudbi (Submit)
+      </button>
+      <p style="text-align:center; font-size:0.85rem; margin-top:10px;">
+        <a href="#" id="toggleAuthMode" style="color:var(--accent);">Miyaanad lahayn Akown? Is-diiwaangeli</a>
+      </p>
+    </form>
+  </div>
+
+  <!-- TOAST NOTIFICATION -->
+  <div id="toast" class="toast"></div>
+
+  <footer class="app-footer">
+    <p>&copy; 2026 WaHeN Marketplace. Dhammaan xuquuqda waa la dhowray.</p>
+  </footer>
+
+  <!-- BACKEND & FRONTEND SCRIPTS -->
+  <script src="supabase-client.js"></script>
   <script src="script.js"></script>
-
 </body>
 </html>

@@ -22,8 +22,9 @@
       <div class="brand-area">
         <button id="menuBtn" class="icon-btn" aria-label="Menu">☰</button>
 
+        <!-- BRAND & LOGO INTEGRATION -->
         <div class="brand">
-          <span class="brand-main">WaHeN</span>
+          <img src="logo.png" alt="WaHeN Logo" class="brand-logo" id="mainLogo">
           <span class="brand-sub">MARKETPLACE</span>
         </div>
       </div>
@@ -383,7 +384,7 @@
       <div class="side-menu-header">
 
         <div class="brand">
-          <span class="brand-main">WaHeN</span>
+          <img src="logo.png" alt="WaHeN Logo" class="brand-logo">
           <span class="brand-sub">MARKETPLACE</span>
         </div>
 
@@ -415,14 +416,9 @@
           <span>Home</span>
         </button>
 
-        <button data-menu="products">
-          🛍️
-          <span>Alaabooyinka</span>
-        </button>
-
-        <button data-menu="categories">
-          📂
-          <span>Qaybaha</span>
+        <button data-menu="naadir">
+          💎
+          <span>Naadir</span>
         </button>
 
         <button data-menu="wholesale">
@@ -430,44 +426,14 @@
           <span>Jumlo</span>
         </button>
 
-        <button data-menu="brands">
-          🏷️
-          <span>Brands</span>
-        </button>
-
         <button data-menu="manufacturers">
           🏭
           <span>Warshado</span>
         </button>
 
-        <button data-menu="orders">
-          📋
-          <span>Dalabyadayda</span>
-        </button>
-
-        <button data-menu="favorites">
-          ❤️
-          <span>Waxaan jeclahay</span>
-        </button>
-
         <button data-menu="chat">
           💬
-          <span>Chat</span>
-        </button>
-
-        <button data-menu="account">
-          👤
-          <span>Account</span>
-        </button>
-
-      </nav>
-
-
-      <div class="side-menu-footer">
-
-        <button data-menu="support">
-          🎧
-          <span>Customer Support</span>
+          <span>Support Chats</span>
         </button>
 
         <button data-menu="settings">
@@ -475,7 +441,7 @@
           <span>Settings</span>
         </button>
 
-      </div>
+      </nav>
 
     </aside>
 
@@ -669,31 +635,32 @@
     </div>
 
 
-    <!-- BOTTOM NAVIGATION -->
+    <!-- UPDATED BOTTOM NAVIGATION (5 QAYBOOD) -->
     <nav class="bottom-nav">
 
-      <button class="bottom-item active" data-bottom="home">
-        <span>⌂</span>
-        <small>Home</small>
+      <button class="bottom-item active" data-bottom="naadir">
+        <span>💎</span>
+        <small>Naadir</small>
       </button>
 
-      <button class="bottom-item" data-bottom="categories">
-        <span>◈</span>
-        <small>Qaybo</small>
+      <button class="bottom-item" data-bottom="jumlo">
+        <span>📦</span>
+        <small>Jumlo</small>
       </button>
 
-      <button class="bottom-item bottom-main" id="bottomSearch">
-        <span>⌕</span>
+      <button class="bottom-item" data-bottom="warshado">
+        <span>🏭</span>
+        <small>Warshado</small>
       </button>
 
-      <button class="bottom-item" data-bottom="orders">
-        <span>▣</span>
-        <small>Orders</small>
+      <button class="bottom-item" data-bottom="chat">
+        <span>💬</span>
+        <small>Support</small>
       </button>
 
-      <button class="bottom-item" data-bottom="account">
-        <span>◯</span>
-        <small>Account</small>
+      <button class="bottom-item" data-bottom="settings">
+        <span>⚙️</span>
+        <small>Settings</small>
       </button>
 
     </nav>

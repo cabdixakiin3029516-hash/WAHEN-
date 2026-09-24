@@ -1,4 +1,3 @@
-https://hkmtlyknwsqxuxmvfaqv.supabase.co
 /* ==========================================================================
    WAHEN MARKETPLACE — CORE APPLICATION ENGINE (script.js)
    ========================================================================== */
@@ -6,9 +5,8 @@ https://hkmtlyknwsqxuxmvfaqv.supabase.co
 // --------------------------------------------------------------------------
 // 1. SUPABASE CONFIGURATION & INITIALIZATION
 // --------------------------------------------------------------------------
-// OGOW: Ku beddel URL-kaaga iyo Anon Key-gaaga rasmiga ah ee Supabase Dashboard
-const SUPABASE_URL = "https://YOUR-PROJECT-REF.supabase.co";
-const SUPABASE_ANON_KEY = "YOUR-SUPABASE-ANON-KEY-HERE";
+const SUPABASE_URL = "https://hkmtlyknwsqxuxmvfaqv.supabase.co";
+const SUPABASE_ANON_KEY = "YOUR_SUPABASE_ANON_KEY_HERE";
 
 let supabaseClient = null;
 

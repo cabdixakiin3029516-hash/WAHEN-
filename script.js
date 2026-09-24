@@ -1,3053 +1,534 @@
-/* =========================================================
-   WAHEN MARKETPLACE
-   SCRIPT.JS — M.3 MASTER APP CONTROLLER
-   =========================================================
-   IMPORTANT:
-   - Uses existing Supabase configuration/client.
-   - Does NOT replace database/backend.
-   - Works with the supplied index.html.
-   - Mobile-first: Android + iPhone.
-   ========================================================= */
+/**
+ * WAHEN MARKETPLACE - CORE APPLICATION ENGINE
+ * Pure Vanilla JavaScript ES6+ Architecture
+ * Connected to Supabase Backend
+ */
 
-(() => {
-  "use strict";
+// ==========================================================================
+// 1. STATE MANAGEMENT (GLOBAL STORE)
+// ==========================================================================
+const AppState = {
+  user: null,
+  session: null,
+  products: [],
+  filteredProducts: [],
+  categories: [],
+  brands: [],
+  cart: [],
+  currentCategory: 'all',
+  currentBrand: null,
+  searchQuery: '',
+  location: 'Hargeysa',
+  isLoading: false
+};
 
-  /* =========================================================
-     1. SUPABASE CLIENT
-     ========================================================= */
-
-  const SB =
-    window.supabaseClient ||
-    window._supabase ||
-    window.supabase;
-
-  let db = null;
-
-  if (SB && typeof SB.from === "function") {
-    db = SB;
-  } else if (
-    SB &&
-    typeof SB.createClient === "function" &&
-    window.WAHEN_SUPABASE_URL &&
-    window.WAHEN_SUPABASE_KEY
-  ) {
-    db = SB.createClient(
-      window.WAHEN_SUPABASE_URL,
-      window.WAHEN_SUPABASE_KEY
-    );
-  }
-
-  /* =========================================================
-     2. APP STATE
-     ========================================================= */
-
-  const state = {
-    user: null,
-    session: null,
-    profile: null,
-
-    products: [],
-    categories: [],
-    brands: [],
-    manufacturers: [],
-    wholesale: [],
-    orders: [],
-    favorites: [],
-
-    cart: loadLocal("wahen_cart", []),
-    favoriteIds: loadLocal("wahen_favorites", []),
-
-    currentSection: "home",
-    currentCategory: "all",
-    currentBrand: null,
-
-    searchText: "",
-    deliveryLocation: "Hargeysa",
-
-    authMode: "login",
-    isLoading: false,
-
-    initialized: false
-  };
-
-  /* =========================================================
-     3. DOM HELPERS
-     ========================================================= */
-
-  const $ = (id) => document.getElementById(id);
-
-  const $$ = (selector, parent = document) =>
-    Array.from(parent.querySelectorAll(selector));
-
-  function exists(id) {
-    return !!$(id);
-  }
-
-  function safeText(value) {
-    if (value === null || value === undefined) return "";
-    return String(value);
-  }
-
-  function escapeHTML(value) {
-    return safeText(value)
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;")
-      .replace(/'/g, "&#039;");
-  }
-
-  function firstValue(obj, keys, fallback = "") {
-    for (const key of keys) {
-      if (
-        obj &&
-        obj[key] !== undefined &&
-        obj[key] !== null &&
-        obj[key] !== ""
-      ) {
-        return obj[key];
-      }
-    }
-    return fallback;
-  }
-
-  function numberValue(obj, keys, fallback = 0) {
-    const value = firstValue(obj, keys, fallback);
-    const n = Number(value);
-    return Number.isFinite(n) ? n : fallback;
-  }
-
-  /* =========================================================
-     4. LOCAL STORAGE
-     ========================================================= */
-
-  function loadLocal(key, fallback) {
+// ==========================================================================
+// 2. SUPABASE API SERVICE LAYER
+// ==========================================================================
+const ApiService = {
+  // Fetch All Active Products
+  async fetchProducts() {
     try {
-      const value = localStorage.getItem(key);
-      return value ? JSON.parse(value) : fallback;
-    } catch {
-      return fallback;
-    }
-  }
+      const { data, error } = await supabaseClient
+        .from('products')
+        .select('*')
+        .order('created_at', { ascending: false });
 
-  function saveLocal(key, value) {
+      if (error) throw error;
+      return data || [];
+    } catch (err) {
+      console.error('[ApiService] Error fetching products:', err.message);
+      UI.showToast('Cillad ayaa ka dhacday soo qaadista alaabta', 'error');
+      return [];
+    }
+  },
+
+  // Fetch Products by Category
+  async fetchProductsByCategory(categorySlug) {
     try {
-      localStorage.setItem(key, JSON.stringify(value));
-    } catch {
-      /* Ignore storage errors */
+      let query = supabaseClient.from('products').select('*');
+      if (categorySlug !== 'all') {
+        query = query.eq('category', categorySlug);
+      }
+      const { data, error } = await query;
+      if (error) throw error;
+      return data || [];
+    } catch (err) {
+      console.error('[ApiService] Category fetch error:', err.message);
+      return [];
     }
-  }
+  },
 
-  /* =========================================================
-     5. TOAST
-     ========================================================= */
-
-  function toast(message, type = "info") {
-    const el = $("toast");
-    if (!el) return;
-
-    el.textContent = message;
-
-    el.classList.remove(
-      "show",
-      "success",
-      "error",
-      "warning",
-      "info"
-    );
-
-    el.classList.add("show", type);
-
-    clearTimeout(toast.timer);
-
-    toast.timer = setTimeout(() => {
-      el.classList.remove("show");
-    }, 3000);
-  }
-
-  /* =========================================================
-     6. GLOBAL LOADING
-     ========================================================= */
-
-  function loading(show, text = "WaHeN ayaa shaqaynaya...") {
-    state.isLoading = show;
-
-    const el = $("globalLoading");
-
-    if (!el) return;
-
-    const p = el.querySelector("p");
-
-    if (p) p.textContent = text;
-
-    el.classList.toggle("hidden", !show);
-  }
-
-  /* =========================================================
-     7. INJECT SAFE APP CSS
-     ========================================================= */
-
-  function injectAppCSS() {
-    if ($("wahenRuntimeCSS")) return;
-
-    const style = document.createElement("style");
-    style.id = "wahenRuntimeCSS";
-
-    style.textContent = `
-      .hidden {
-        display:none !important;
-      }
-
-      body.wahen-locked {
-        overflow:hidden;
-      }
-
-      .side-menu {
-        z-index:5000 !important;
-      }
-
-      .overlay {
-        z-index:4900 !important;
-      }
-
-      .modal {
-        z-index:6000 !important;
-      }
-
-      .wahen-view-hidden {
-        display:none !important;
-      }
-
-      .wahen-view-active {
-        display:block !important;
-        animation: wahenFade .18s ease;
-      }
-
-      @keyframes wahenFade {
-        from {
-          opacity:.35;
-          transform:translateY(4px);
-        }
-        to {
-          opacity:1;
-          transform:translateY(0);
-        }
-      }
-
-      .auth-password-wrap {
-        position:relative;
-      }
-
-      .auth-password-wrap input {
-        padding-right:48px;
-      }
-
-      .auth-password-toggle {
-        position:absolute;
-        right:10px;
-        top:50%;
-        transform:translateY(-50%);
-        border:0;
-        background:transparent;
-        font-size:18px;
-        cursor:pointer;
-      }
-
-      .wahen-auth-extra {
-        display:flex;
-        justify-content:flex-end;
-        margin-top:-6px;
-        margin-bottom:12px;
-      }
-
-      .wahen-link-btn {
-        border:0;
-        background:none;
-        color:#4338CA;
-        cursor:pointer;
-        font-weight:600;
-      }
-
-      .wahen-page {
-        padding:18px 16px 110px;
-      }
-
-      .wahen-page-header {
-        margin-bottom:18px;
-      }
-
-      .wahen-page-header small {
-        display:block;
-        color:#777;
-        margin-bottom:4px;
-      }
-
-      .wahen-page-header h2 {
-        margin:0;
-      }
-
-      .wahen-page-card {
-        background:#fff;
-        border-radius:18px;
-        padding:16px;
-        margin-bottom:12px;
-        box-shadow:0 5px 20px rgba(0,0,0,.06);
-      }
-
-      .wahen-empty {
-        text-align:center;
-        padding:35px 18px;
-        color:#777;
-      }
-
-      .wahen-empty-icon {
-        font-size:40px;
-        margin-bottom:8px;
-      }
-
-      .wahen-action-grid {
-        display:grid;
-        grid-template-columns:repeat(2,minmax(0,1fr));
-        gap:10px;
-      }
-
-      .wahen-action {
-        border:0;
-        border-radius:15px;
-        padding:15px;
-        background:#f1f2ff;
-        color:#25245d;
-        text-align:left;
-        font-weight:700;
-        cursor:pointer;
-      }
-
-      .wahen-manufacturer-card {
-        display:flex;
-        align-items:center;
-        gap:12px;
-      }
-
-      .wahen-manufacturer-logo {
-        width:50px;
-        height:50px;
-        border-radius:14px;
-        display:flex;
-        align-items:center;
-        justify-content:center;
-        background:#eef0fe;
-        font-weight:800;
-        color:#4338CA;
-      }
-
-      .wahen-order-status {
-        display:inline-flex;
-        padding:5px 9px;
-        border-radius:999px;
-        font-size:12px;
-        font-weight:700;
-        background:#eef0fe;
-        color:#4338CA;
-      }
-
-      .wahen-user-box {
-        display:flex;
-        gap:12px;
-        align-items:center;
-      }
-
-      .wahen-avatar {
-        width:50px;
-        height:50px;
-        border-radius:50%;
-        display:flex;
-        align-items:center;
-        justify-content:center;
-        background:#4338CA;
-        color:#fff;
-        font-weight:800;
-      }
-
-      .wahen-cart-item {
-        display:flex;
-        gap:10px;
-        align-items:center;
-        padding:10px 0;
-        border-bottom:1px solid #eee;
-      }
-
-      .wahen-cart-info {
-        flex:1;
-      }
-
-      .wahen-qty {
-        display:flex;
-        align-items:center;
-        gap:8px;
-      }
-
-      .wahen-qty button {
-        width:30px;
-        height:30px;
-        border:0;
-        border-radius:8px;
-        background:#eee;
-        cursor:pointer;
-      }
-
-      .wahen-danger {
-        color:#d33;
-      }
-
-      .wahen-section-nav {
-        position:sticky;
-        top:0;
-        z-index:100;
-        background:#fff;
-        display:flex;
-        gap:7px;
-        overflow:auto;
-        padding:8px 10px;
-        border-bottom:1px solid #eee;
-      }
-
-      .wahen-section-nav button {
-        white-space:nowrap;
-        border:0;
-        padding:9px 13px;
-        border-radius:999px;
-        background:#f2f2f6;
-        cursor:pointer;
-        font-weight:700;
-      }
-
-      .wahen-section-nav button.active {
-        background:#4338CA;
-        color:#fff;
-      }
-
-      @media (min-width:700px) {
-        .wahen-page {
-          max-width:900px;
-          margin:auto;
-        }
-      }
-    `;
-
-    document.head.appendChild(style);
-  }
-
-  /* =========================================================
-     8. AUTH
-     ========================================================= */
-
-  async function getSession() {
-    if (!db || !db.auth) return null;
-
+  // Search Products using Supabase Text Match
+  async searchProducts(searchTerm) {
     try {
-      const result = await db.auth.getSession();
+      const { data, error } = await supabaseClient
+        .from('products')
+        .select('*')
+        .ilike('name', `%${searchTerm}%`);
 
-      if (result.error) {
-        console.warn("getSession:", result.error);
-        return null;
-      }
-
-      return result.data?.session || null;
-    } catch (error) {
-      console.error(error);
-      return null;
+      if (error) throw error;
+      return data || [];
+    } catch (err) {
+      console.error('[ApiService] Search error:', err.message);
+      return [];
     }
-  }
+  },
 
-  async function loadProfile(userId) {
-    if (!db || !userId) return null;
-
+  // Submit New Order to Supabase
+  async createOrder(orderPayload) {
     try {
-      const result = await db
-        .from("profiles")
-        .select("*")
-        .eq("id", userId)
-        .maybeSingle();
+      const { data, error } = await supabaseClient
+        .from('orders')
+        .insert([orderPayload])
+        .select();
 
-      if (result.error) {
-        console.warn("Profile:", result.error);
-        return null;
-      }
-
-      return result.data || null;
-    } catch (error) {
-      console.error(error);
-      return null;
+      if (error) throw error;
+      return { success: true, data };
+    } catch (err) {
+      console.error('[ApiService] Order creation error:', err.message);
+      return { success: false, error: err.message };
     }
-  }
+  },
 
-  async function refreshAuth() {
-    state.session = await getSession();
-    state.user = state.session?.user || null;
-
-    if (state.user) {
-      state.profile = await loadProfile(state.user.id);
-    } else {
-      state.profile = null;
-    }
-
-    updateAuthUI();
-  }
-
-  function updateAuthUI() {
-    const guest = $("menuGuest");
-
-    if (!guest) return;
-
-    if (!state.user) {
-      guest.innerHTML = `
-        <div class="menu-avatar">👤</div>
-        <div>
-          <strong>Ku soo dhawoow</strong>
-          <small>Soo gal ama samee account</small>
-        </div>
-      `;
-
-      return;
-    }
-
-    const name =
-      firstValue(
-        state.profile,
-        ["full_name", "name", "display_name"],
-        state.user.email || "WaHeN User"
-      );
-
-    guest.innerHTML = `
-      <div class="menu-avatar">👤</div>
-      <div>
-        <strong>${escapeHTML(name)}</strong>
-        <small>${escapeHTML(state.user.email || "")}</small>
-      </div>
-    `;
-  }
-
-  function openAuth(mode = "login") {
-    state.authMode = mode;
-
-    const modal = $("authModal");
-    if (!modal) return;
-
-    setAuthMode(mode);
-
-    modal.classList.add("open", "active");
-    modal.style.display = "flex";
-
-    document.body.classList.add("wahen-locked");
-  }
-
-  function closeAuth() {
-    const modal = $("authModal");
-
-    if (!modal) return;
-
-    modal.classList.remove("open", "active");
-    modal.style.display = "none";
-
-    document.body.classList.remove("wahen-locked");
-
-    const message = $("authMessage");
-    if (message) {
-      message.textContent = "";
-    }
-  }
-
-  function setAuthMode(mode) {
-    state.authMode = mode;
-
-    const login = $("loginForm");
-    const signup = $("signupForm");
-
-    const title = $("authTitle");
-    const description = $("authDescription");
-    const switchText = $("authSwitchText");
-    const switchBtn = $("authSwitchBtn");
-
-    if (!login || !signup) return;
-
-    const isLogin = mode === "login";
-
-    login.classList.toggle("hidden", !isLogin);
-    signup.classList.toggle("hidden", isLogin);
-
-    if (title) {
-      title.textContent = isLogin
-        ? "Ku soo dhawoow WaHeN"
-        : "Samee Account-kaaga";
-    }
-
-    if (description) {
-      description.textContent = isLogin
-        ? "Soo gal si aad u isticmaasho dhammaan adeegyada WaHeN."
-        : "Samee account si aad u dalbato, u kaydsato alaabo iyo ula socoto orders-kaaga.";
-    }
-
-    if (switchText) {
-      switchText.textContent = isLogin
-        ? "Account ma lihid?"
-        : "Account hore ma leedahay?";
-    }
-
-    if (switchBtn) {
-      switchBtn.textContent = isLogin
-        ? "Samee Account"
-        : "Soo Gal";
-    }
-  }
-
-  function authMessage(message, type = "error") {
-    const el = $("authMessage");
-
-    if (!el) return;
-
-    el.textContent = message;
-    el.className = `auth-message ${type}`;
-  }
-
-  async function login(email, password) {
-    if (!db?.auth) {
-      authMessage("Supabase Auth lama helin.");
-      return;
-    }
-
-    loading(true, "Soo galaya...");
-
+  // Auth: Login
+  async login(email, password) {
     try {
-      const result = await db.auth.signInWithPassword({
+      const { data, error } = await supabaseClient.auth.signInWithPassword({
         email,
         password
       });
-
-      if (result.error) {
-        authMessage(result.error.message || "Login-ku wuu fashilmay.");
-        return;
-      }
-
-      await refreshAuth();
-
-      closeAuth();
-
-      toast("Si guul leh ayaad u soo gashay.", "success");
-
-      await loadUserData();
-
-      goToSection("home");
-    } catch (error) {
-      console.error(error);
-      authMessage("Wax baa khaldamay. Fadlan isku day mar kale.");
-    } finally {
-      loading(false);
+      if (error) throw error;
+      return { success: true, data };
+    } catch (err) {
+      return { success: false, error: err.message };
     }
-  }
+  },
 
-  async function signup(name, phone, email, password) {
-    if (!db?.auth) {
-      authMessage("Supabase Auth lama helin.");
-      return;
-    }
-
-    loading(true, "Account-ka ayaa la samaynayaa...");
-
+  // Auth: Sign Up
+  async signUp(email, password, metadata) {
     try {
-      const result = await db.auth.signUp({
+      const { data, error } = await supabaseClient.auth.signUp({
         email,
         password,
-        options: {
-          data: {
-            full_name: name,
-            phone
-          }
-        }
+        options: { data: metadata }
       });
+      if (error) throw error;
+      return { success: true, data };
+    } catch (err) {
+      return { success: false, error: err.message };
+    }
+  }
+};
 
-      if (result.error) {
-        authMessage(result.error.message || "Account lama samayn.");
-        return;
+// ==========================================================================
+// 3. CART MANAGEMENT (LOCALSTORAGE + STATE SYNC)
+// ==========================================================================
+const CartManager = {
+  init() {
+    const savedCart = localStorage.getItem('wahen_cart');
+    if (savedCart) {
+      try {
+        AppState.cart = JSON.parse(savedCart);
+      } catch (e) {
+        AppState.cart = [];
       }
+    }
+    this.updateCartUI();
+  },
 
-      if (result.data?.user) {
-        await createProfileIfNeeded(
-          result.data.user,
-          name,
-          phone
-        );
-      }
+  saveCart() {
+    localStorage.setItem('wahen_cart', JSON.stringify(AppState.cart));
+    this.updateCartUI();
+  },
 
-      if (result.data?.session) {
-        await refreshAuth();
-        closeAuth();
-        toast("Account-ka waa la sameeyay.", "success");
-        await loadUserData();
+  addItem(product, quantity = 1) {
+    const existingIndex = AppState.cart.findIndex(item => item.id === product.id);
+    if (existingIndex > -1) {
+      AppState.cart[existingIndex].quantity += quantity;
+    } else {
+      AppState.cart.push({
+        id: product.id,
+        name: product.name,
+        price: Number(product.price),
+        image_url: product.image_url,
+        quantity: quantity
+      });
+    }
+    this.saveCart();
+    UI.showToast(`'${product.name}' waa lagu daray cart-ka!`);
+  },
+
+  removeItem(productId) {
+    AppState.cart = AppState.cart.filter(item => item.id !== productId);
+    this.saveCart();
+  },
+
+  updateQuantity(productId, delta) {
+    const item = AppState.cart.find(item => item.id === productId);
+    if (item) {
+      item.quantity += delta;
+      if (item.quantity <= 0) {
+        this.removeItem(productId);
       } else {
-        authMessage(
-          "Account-ka waa la sameeyay. Fadlan email-kaaga xaqiiji kadibna soo gal.",
-          "success"
-        );
+        this.saveCart();
       }
-    } catch (error) {
-      console.error(error);
-      authMessage("Account lama samayn. Fadlan isku day mar kale.");
-    } finally {
-      loading(false);
     }
-  }
+  },
 
-  async function createProfileIfNeeded(user, name, phone) {
-    if (!db || !user) return;
+  clearCart() {
+    AppState.cart = [];
+    this.saveCart();
+  },
 
-    try {
-      const existing = await db
-        .from("profiles")
-        .select("id")
-        .eq("id", user.id)
-        .maybeSingle();
-
-      if (existing.data) return;
-
-      const payload = {
-        id: user.id,
-        full_name: name,
-        phone: phone
-      };
-
-      const result = await db
-        .from("profiles")
-        .insert(payload);
-
-      if (result.error) {
-        console.warn(
-          "Profile insert:",
-          result.error
-        );
-      }
-    } catch (error) {
-      console.warn(error);
-    }
-  }
-
-  async function logout() {
-    if (!db?.auth) return;
-
-    try {
-      await db.auth.signOut();
-
-      state.user = null;
-      state.session = null;
-      state.profile = null;
-      state.orders = [];
-
-      updateAuthUI();
-
-      toast("Waad ka baxday account-ka.", "success");
-
-      goToSection("home");
-    } catch (error) {
-      console.error(error);
-      toast("Logout-ku wuu fashilmay.", "error");
-    }
-  }
-
-  /* =========================================================
-     9. PASSWORD UI
-     ========================================================= */
-
-  function enhancePasswordFields() {
-    const fields = [
-      $("loginPassword"),
-      $("signupPassword")
-    ];
-
-    fields.forEach((input) => {
-      if (!input || input.dataset.enhanced) return;
-
-      input.dataset.enhanced = "1";
-
-      const parent = input.parentElement;
-
-      if (!parent) return;
-
-      parent.classList.add("auth-password-wrap");
-
-      const button = document.createElement("button");
-
-      button.type = "button";
-      button.className = "auth-password-toggle";
-      button.textContent = "👁️";
-      button.setAttribute(
-        "aria-label",
-        "Show password"
-      );
-
-      button.addEventListener("click", () => {
-        const hidden = input.type === "password";
-
-        input.type = hidden
-          ? "text"
-          : "password";
-
-        button.textContent = hidden
-          ? "🙈"
-          : "👁️";
-      });
-
-      parent.appendChild(button);
-    });
-  }
-
-  /* =========================================================
-     10. PRODUCT NORMALIZATION
-     ========================================================= */
-
-  function normalizeProduct(row) {
-    const price = numberValue(
-      row,
-      [
-        "price",
-        "selling_price",
-        "sale_price",
-        "unit_price"
-      ],
-      0
-    );
-
-    const oldPrice = numberValue(
-      row,
-      [
-        "old_price",
-        "compare_price",
-        "regular_price"
-      ],
-      0
-    );
-
-    const name = firstValue(
-      row,
-      [
-        "name",
-        "product_name",
-        "title",
-        "product_title"
-      ],
-      "Alaab"
-    );
-
-    const image = firstValue(
-      row,
-      [
-        "image_url",
-        "image",
-        "thumbnail",
-        "photo",
-        "product_image"
-      ],
-      ""
-    );
-
-    const category = firstValue(
-      row,
-      [
-        "category",
-        "category_name",
-        "category_slug"
-      ],
-      ""
-    );
-
-    const brand = firstValue(
-      row,
-      [
-        "brand",
-        "brand_name"
-      ],
-      ""
-    );
-
+  getTotals() {
+    const subtotal = AppState.cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    const delivery = AppState.cart.length > 0 ? 2.00 : 0.00; // Flat $2 delivery rate
     return {
-      ...row,
-
-      _id: firstValue(
-        row,
-        ["id", "product_id"],
-        cryptoSafeId()
-      ),
-
-      _name: name,
-      _price: price,
-      _oldPrice: oldPrice,
-      _image: image,
-      _category: category,
-      _brand: brand,
-
-      _description: firstValue(
-        row,
-        [
-          "description",
-          "details",
-          "short_description"
-        ],
-        ""
-      ),
-
-      _stock: numberValue(
-        row,
-        [
-          "stock",
-          "quantity",
-          "stock_quantity",
-          "available_quantity"
-        ],
-        0
-      ),
-
-      _rating: numberValue(
-        row,
-        [
-          "rating",
-          "average_rating"
-        ],
-        0
-      ),
-
-      _shop: firstValue(
-        row,
-        [
-          "shop_name",
-          "store_name",
-          "seller_name"
-        ],
-        ""
-      )
+      subtotal: subtotal.toFixed(2),
+      delivery: delivery.toFixed(2),
+      total: (subtotal + delivery).toFixed(2),
+      itemCount: AppState.cart.reduce((sum, item) => sum + item.quantity, 0)
     };
-  }
+  },
 
-  function cryptoSafeId() {
-    if (
-      window.crypto &&
-      typeof window.crypto.randomUUID === "function"
-    ) {
-      return window.crypto.randomUUID();
-    }
+  updateCartUI() {
+    const totals = this.getTotals();
+    const cartCountEl = document.getElementById('cartCount');
+    if (cartCountEl) cartCountEl.textContent = totals.itemCount;
 
-    return "local-" + Date.now() + "-" +
-      Math.random().toString(36).slice(2);
-  }
+    const cartSubtotalEl = document.getElementById('cartSubtotal');
+    const cartDeliveryEl = document.getElementById('cartDelivery');
+    const cartTotalEl = document.getElementById('cartTotal');
 
-  /* =========================================================
-     11. LOAD PRODUCTS
-     ========================================================= */
+    if (cartSubtotalEl) cartSubtotalEl.textContent = `$${totals.subtotal}`;
+    if (cartDeliveryEl) cartDeliveryEl.textContent = `$${totals.delivery}`;
+    if (cartTotalEl) cartTotalEl.textContent = `$${totals.total}`;
 
-  async function loadProducts() {
-    if (!db) {
-      renderProducts([]);
-      return;
-    }
+    this.renderCartItems();
+  },
 
-    try {
-      let query = db
-        .from("products")
-        .select("*");
-
-      const result = await query;
-
-      if (result.error) {
-        console.warn(
-          "Products:",
-          result.error
-        );
-
-        renderProducts([]);
-        return;
-      }
-
-      state.products = Array.isArray(result.data)
-        ? result.data.map(normalizeProduct)
-        : [];
-
-      renderProducts(state.products);
-      renderSearchResults();
-
-    } catch (error) {
-      console.error(error);
-      renderProducts([]);
-    }
-  }
-
-  /* =========================================================
-     12. PRODUCT FILTER
-     ========================================================= */
-
-  function getFilteredProducts() {
-    let products = [...state.products];
-
-    if (state.currentCategory !== "all") {
-      const wanted =
-        normalizeText(state.currentCategory);
-
-      products = products.filter((product) => {
-        const category =
-          normalizeText(product._category);
-
-        const name =
-          normalizeText(product._name);
-
-        return (
-          category.includes(wanted) ||
-          name.includes(wanted) ||
-          categoryMatches(
-            wanted,
-            category,
-            name
-          )
-        );
-      });
-    }
-
-    if (state.currentBrand) {
-      const brand =
-        normalizeText(state.currentBrand);
-
-      products = products.filter((product) => {
-        return normalizeText(product._brand)
-          .includes(brand);
-      });
-    }
-
-    if (state.searchText) {
-      const search =
-        normalizeText(state.searchText);
-
-      products = products.filter((product) => {
-        const haystack = [
-          product._name,
-          product._description,
-          product._category,
-          product._brand,
-          product._shop
-        ]
-          .join(" ")
-          .toLowerCase();
-
-        return haystack.includes(search);
-      });
-    }
-
-    return products;
-  }
-
-  function normalizeText(value) {
-    return safeText(value)
-      .toLowerCase()
-      .trim();
-  }
-
-  function categoryMatches(wanted, category, name) {
-    const aliases = {
-      men: [
-        "rag",
-        "men",
-        "male",
-        "mens"
-      ],
-      women: [
-        "haween",
-        "women",
-        "woman",
-        "female",
-        "womens"
-      ],
-      electronics: [
-        "electronic",
-        "phone",
-        "mobile",
-        "computer"
-      ],
-      food: [
-        "cunto",
-        "food",
-        "grocery"
-      ],
-      baby: [
-        "caruur",
-        "baby",
-        "children"
-      ],
-      construction: [
-        "dhismaha",
-        "construction",
-        "building"
-      ],
-      transport: [
-        "gadiid",
-        "vehicle",
-        "car",
-        "transport"
-      ]
-    };
-
-    const list = aliases[wanted] || [];
-
-    return list.some(
-      (x) =>
-        category.includes(x) ||
-        name.includes(x)
-    );
-  }
-
-  /* =========================================================
-     13. PRODUCT RENDER
-     ========================================================= */
-
-  function renderProducts(products) {
-    const grid = $("productGrid");
-
-    if (!grid) return;
-
-    if (!products.length) {
-      grid.innerHTML = `
-        <div class="wahen-empty">
-          <div class="wahen-empty-icon">🛍️</div>
-          <strong>Alaabooyin lama helin</strong>
-          <p>
-            Alaabo cusub ayaa halkan kasoo muuqan doona.
-          </p>
-        </div>
-      `;
-
-      return;
-    }
-
-    grid.innerHTML = products
-      .map(productCard)
-      .join("");
-
-    bindProductCards(grid);
-  }
-
-  function productCard(product) {
-    const favorite =
-      state.favoriteIds.includes(product._id);
-
-    const image = product._image
-      ? `
-        <img
-          src="${escapeHTML(product._image)}"
-          alt="${escapeHTML(product._name)}"
-          loading="lazy"
-        >
-      `
-      : `
-        <div class="product-placeholder">
-          🛍️
-        </div>
-      `;
-
-    return `
-      <article
-        class="product-card"
-        data-product-id="${escapeHTML(product._id)}"
-      >
-
-        <div class="product-image">
-          ${image}
-
-          <button
-            class="product-favorite"
-            data-favorite="${escapeHTML(product._id)}"
-            aria-label="Favorite"
-          >
-            ${favorite ? "❤️" : "♡"}
-          </button>
-        </div>
-
-        <div class="product-info">
-
-          <small>
-            ${escapeHTML(product._brand || product._category || "WaHeN")}
-          </small>
-
-          <h3>
-            ${escapeHTML(product._name)}
-          </h3>
-
-          <div class="product-price">
-            $${product._price.toFixed(2)}
-          </div>
-
-          ${
-            product._rating
-              ? `
-                <div class="product-rating">
-                  ⭐ ${product._rating.toFixed(1)}
-                </div>
-              `
-              : ""
-          }
-
-        </div>
-
-      </article>
-    `;
-  }
-
-  function bindProductCards(parent) {
-    $$(".product-card", parent).forEach((card) => {
-      card.addEventListener("click", (event) => {
-        if (
-          event.target.closest(
-            "[data-favorite]"
-          )
-        ) {
-          return;
-        }
-
-        const id =
-          card.dataset.productId;
-
-        openProduct(id);
-      });
-    });
-
-    $$("[data-favorite]", parent).forEach(
-      (button) => {
-        button.addEventListener(
-          "click",
-          (event) => {
-            event.stopPropagation();
-
-            toggleFavorite(
-              button.dataset.favorite
-            );
-          }
-        );
-      }
-    );
-  }
-
-  /* =========================================================
-     14. PRODUCT DETAIL
-     ========================================================= */
-
-  function openProduct(id) {
-    const product = state.products.find(
-      (p) => String(p._id) === String(id)
-    );
-
-    if (!product) {
-      toast("Alaabta lama helin.", "error");
-      return;
-    }
-
-    const modal = $("productModal");
-    const detail = $("productDetail");
-
-    if (!modal || !detail) return;
-
-    const image = product._image
-      ? `
-        <img
-          src="${escapeHTML(product._image)}"
-          alt="${escapeHTML(product._name)}"
-          style="width:100%;max-height:300px;object-fit:contain;border-radius:16px"
-        >
-      `
-      : `
-        <div style="font-size:70px;text-align:center;padding:30px">
-          🛍️
-        </div>
-      `;
-
-    detail.innerHTML = `
-      ${image}
-
-      <div style="padding-top:14px">
-
-        <small>
-          ${escapeHTML(
-            product._brand ||
-            product._category ||
-            "WaHeN"
-          )}
-        </small>
-
-        <h2>
-          ${escapeHTML(product._name)}
-        </h2>
-
-        <h3>
-          $${product._price.toFixed(2)}
-        </h3>
-
-        ${
-          product._rating
-            ? `<p>⭐ ${product._rating.toFixed(1)} / 5</p>`
-            : ""
-        }
-
-        ${
-          product._description
-            ? `
-              <p>
-                ${escapeHTML(product._description)}
-              </p>
-            `
-            : ""
-        }
-
-        ${
-          product._shop
-            ? `
-              <p>
-                🏪 ${escapeHTML(product._shop)}
-              </p>
-            `
-            : ""
-        }
-
-        <button
-          class="primary-btn"
-          id="detailAddCart"
-        >
-          🛒 Ku dar Cart-ka
-        </button>
-
-        <button
-          class="primary-btn"
-          id="detailBuyNow"
-          style="margin-top:8px"
-        >
-          Iibso Hadda →
-        </button>
-
-      </div>
-    `;
-
-    $("detailAddCart")?.addEventListener(
-      "click",
-      () => {
-        addToCart(product);
-        closeModal("productModal");
-      }
-    );
-
-    $("detailBuyNow")?.addEventListener(
-      "click",
-      () => {
-        addToCart(product);
-        closeModal("productModal");
-        openCart();
-      }
-    );
-
-    openModal("productModal");
-  }
-
-  /* =========================================================
-     15. CART
-     ========================================================= */
-
-  function addToCart(product, quantity = 1) {
-    const id = String(product._id);
-
-    const existing = state.cart.find(
-      (item) => String(item.id) === id
-    );
-
-    if (existing) {
-      existing.quantity += quantity;
-    } else {
-      state.cart.push({
-        id,
-        name: product._name,
-        price: product._price,
-        image: product._image,
-        quantity
-      });
-    }
-
-    saveLocal("wahen_cart", state.cart);
-
-    updateCartUI();
-
-    toast(
-      `${product._name} Cart-ka ayaa lagu daray.`,
-      "success"
-    );
-  }
-
-  function removeFromCart(id) {
-    state.cart = state.cart.filter(
-      (item) => String(item.id) !== String(id)
-    );
-
-    saveLocal("wahen_cart", state.cart);
-
-    updateCartUI();
-  }
-
-  function changeCartQuantity(id, amount) {
-    const item = state.cart.find(
-      (x) => String(x.id) === String(id)
-    );
-
-    if (!item) return;
-
-    item.quantity += amount;
-
-    if (item.quantity <= 0) {
-      removeFromCart(id);
-      return;
-    }
-
-    saveLocal("wahen_cart", state.cart);
-
-    updateCartUI();
-  }
-
-  function cartSubtotal() {
-    return state.cart.reduce(
-      (sum, item) =>
-        sum +
-        Number(item.price || 0) *
-        Number(item.quantity || 0),
-      0
-    );
-  }
-
-  function updateCartUI() {
-    const count = state.cart.reduce(
-      (sum, item) =>
-        sum + Number(item.quantity || 0),
-      0
-    );
-
-    const badge = $("cartCount");
-
-    if (badge) {
-      badge.textContent = count;
-    }
-
-    renderCart();
-  }
-
-  function renderCart() {
-    const container = $("cartItems");
-
+  renderCartItems() {
+    const container = document.getElementById('cartItems');
     if (!container) return;
 
-    if (!state.cart.length) {
+    if (AppState.cart.length === 0) {
       container.innerHTML = `
-        <div class="wahen-empty">
-          <div class="wahen-empty-icon">🛒</div>
-          <strong>Cart-ka waa madhan yahay</strong>
-          <p>Alaabta aad doorato halkan ayay kasoo muuqanaysaa.</p>
+        <div style="text-align:center; padding: 40px 10px;">
+          <p style="font-size: 48px; margin-bottom: 10px;">🛒</p>
+          <p style="color: #6B7280;">Cart-kaagu wuu madhan yahay.</p>
         </div>
       `;
-    } else {
-      container.innerHTML = state.cart
-        .map(
-          (item) => `
-          <div class="wahen-cart-item">
-
-            <div style="font-size:30px">
-              🛍️
-            </div>
-
-            <div class="wahen-cart-info">
-              <strong>
-                ${escapeHTML(item.name)}
-              </strong>
-
-              <div>
-                $${Number(item.price).toFixed(2)}
-              </div>
-
-              <div class="wahen-qty">
-
-                <button
-                  data-cart-minus="${escapeHTML(item.id)}"
-                >
-                  −
-                </button>
-
-                <strong>
-                  ${item.quantity}
-                </strong>
-
-                <button
-                  data-cart-plus="${escapeHTML(item.id)}"
-                >
-                  +
-                </button>
-
-                <button
-                  class="wahen-danger"
-                  data-cart-remove="${escapeHTML(item.id)}"
-                >
-                  🗑️
-                </button>
-
-              </div>
-            </div>
-
-          </div>
-        `
-        )
-        .join("");
-    }
-
-    const subtotal = cartSubtotal();
-
-    const subtotalEl = $("cartSubtotal");
-    const deliveryEl = $("cartDelivery");
-    const totalEl = $("cartTotal");
-
-    if (subtotalEl) {
-      subtotalEl.textContent =
-        `$${subtotal.toFixed(2)}`;
-    }
-
-    const delivery = state.cart.length
-      ? 0
-      : 0;
-
-    if (deliveryEl) {
-      deliveryEl.textContent =
-        `$${delivery.toFixed(2)}`;
-    }
-
-    if (totalEl) {
-      totalEl.textContent =
-        `$${(subtotal + delivery).toFixed(2)}`;
-    }
-
-    if (container) {
-      $$("[data-cart-minus]", container)
-        .forEach((button) => {
-          button.onclick = () =>
-            changeCartQuantity(
-              button.dataset.cartMinus,
-              -1
-            );
-        });
-
-      $$("[data-cart-plus]", container)
-        .forEach((button) => {
-          button.onclick = () =>
-            changeCartQuantity(
-              button.dataset.cartPlus,
-              1
-            );
-        });
-
-      $$("[data-cart-remove]", container)
-        .forEach((button) => {
-          button.onclick = () =>
-            removeFromCart(
-              button.dataset.cartRemove
-            );
-        });
-    }
-  }
-
-  function openCart() {
-    updateCartUI();
-    openModal("cartModal");
-  }
-
-  /* =========================================================
-     16. FAVORITES
-     ========================================================= */
-
-  function toggleFavorite(id) {
-    const value = String(id);
-
-    if (state.favoriteIds.includes(value)) {
-      state.favoriteIds =
-        state.favoriteIds.filter(
-          (x) => String(x) !== value
-        );
-
-      toast("Favorites-ka waa laga saaray.");
-    } else {
-      state.favoriteIds.push(value);
-
-      toast(
-        "Alaabta Favorites ayaa lagu daray.",
-        "success"
-      );
-    }
-
-    saveLocal(
-      "wahen_favorites",
-      state.favoriteIds
-    );
-
-    renderProducts(
-      getFilteredProducts()
-    );
-  }
-
-  /* =========================================================
-     17. SEARCH
-     ========================================================= */
-
-  function performSearch(value) {
-    state.searchText = safeText(value).trim();
-
-    const results =
-      getFilteredProducts();
-
-    const section =
-      $("searchResultsSection");
-
-    if (!state.searchText) {
-      section?.classList.add("hidden");
       return;
     }
 
-    section?.classList.remove("hidden");
-
-    renderSearchResults();
-
-    scrollToElement(
-      "searchResultsSection"
-    );
+    container.innerHTML = AppState.cart.map(item => `
+      <div class="cart-item" style="display:flex; align-items:center; justify-content:space-between; margin-bottom: 15px; border-bottom:1px solid #eee; padding-bottom:10px;">
+        <div style="display:flex; align-items:center; gap:10px;">
+          <img src="${item.image_url || 'https://via.placeholder.com/50'}" style="width:50px; height:50px; object-fit:cover; border-radius:8px;" />
+          <div>
+            <strong style="display:block; font-size:14px;">${item.name}</strong>
+            <small style="color:#6366F1;">$${item.price} x ${item.quantity}</small>
+          </div>
+        </div>
+        <div style="display:flex; align-items:center; gap:8px;">
+          <button onclick="CartManager.updateQuantity(${item.id}, -1)" style="padding:2px 8px; border-radius:4px; border:1px solid #ccc;">-</button>
+          <span>${item.quantity}</span>
+          <button onclick="CartManager.updateQuantity(${item.id}, 1)" style="padding:2px 8px; border-radius:4px; border:1px solid #ccc;">+</button>
+          <button onclick="CartManager.removeItem(${item.id})" style="color:red; background:none; border:none; margin-left:5px;">×</button>
+        </div>
+      </div>
+    `).join('');
   }
+};
 
-  function renderSearchResults() {
-    const container =
-      $("searchResults");
+// ==========================================================================
+// 4. UI RENDERER & INTERACTION CONTROLLER
+// ==========================================================================
+const UI = {
+  // Show Global Loading
+  setLoading(status) {
+    AppState.isLoading = status;
+    const loader = document.getElementById('globalLoading');
+    if (loader) {
+      if (status) loader.classList.remove('hidden');
+      else loader.classList.add('hidden');
+    }
+  },
 
+  // Display Toast Notifications
+  showToast(message, type = 'info') {
+    const toast = document.getElementById('toast');
+    if (!toast) return;
+
+    toast.textContent = message;
+    toast.style.backgroundColor = type === 'error' ? '#EF4444' : '#4338CA';
+    toast.classList.add('show');
+
+    setTimeout(() => {
+      toast.classList.remove('show');
+    }, 3000);
+  },
+
+  // Render Product Cards Grid
+  renderProducts(productsList, targetContainerId = 'productGrid') {
+    const container = document.getElementById(targetContainerId);
     if (!container) return;
 
-    if (!state.searchText) {
-      container.innerHTML = "";
-      return;
-    }
-
-    const results =
-      getFilteredProducts();
-
-    if (!results.length) {
+    if (!productsList || productsList.length === 0) {
       container.innerHTML = `
-        <div class="wahen-empty">
-          <div class="wahen-empty-icon">🔎</div>
-          <strong>Natiijo lama helin</strong>
-          <p>
-            Isku day eray kale.
-          </p>
+        <div style="grid-column: 1/-1; text-align: center; padding: 40px;">
+          <p>Diman alaab ah ma la helin.</p>
         </div>
       `;
       return;
     }
 
-    container.innerHTML =
-      results.map(productCard).join("");
-
-    bindProductCards(container);
-  }
-
-  /* =========================================================
-     18. CATEGORY
-     ========================================================= */
-
-  function selectCategory(category) {
-    state.currentCategory =
-      category || "all";
-
-    state.currentBrand = null;
-
-    $$(".category-card").forEach(
-      (button) => {
-        button.classList.toggle(
-          "active",
-          button.dataset.category ===
-            state.currentCategory
-        );
-      }
-    );
-
-    const filtered =
-      getFilteredProducts();
-
-    renderProducts(filtered);
-
-    goToSection("products");
-  }
-
-  /* =========================================================
-     19. BRANDS
-     ========================================================= */
-
-  function selectBrand(brand) {
-    state.currentBrand = brand;
-    state.currentCategory = "all";
-
-    renderProducts(
-      getFilteredProducts()
-    );
-
-    goToSection("products");
-  }
-
-  /* =========================================================
-     20. DATA COLLECTION
-     ========================================================= */
-
-  async function loadTable(
-    table,
-    options = {}
-  ) {
-    if (!db) return [];
-
-    try {
-      let query =
-        db.from(table).select(
-          options.select || "*"
-        );
-
-      if (options.limit) {
-        query = query.limit(
-          options.limit
-        );
-      }
-
-      if (options.orderBy) {
-        query = query.order(
-          options.orderBy,
-          {
-            ascending:
-              options.ascending !== false
-          }
-        );
-      }
-
-      const result = await query;
-
-      if (result.error) {
-        console.warn(
-          `${table}:`,
-          result.error
-        );
-
-        return [];
-      }
-
-      return result.data || [];
-    } catch (error) {
-      console.warn(
-        `${table}:`,
-        error
-      );
-
-      return [];
-    }
-  }
-
-  async function loadCategories() {
-    const rows =
-      await loadTable(
-        "categories"
-      );
-
-    state.categories = rows;
-  }
-
-  async function loadBrands() {
-    const rows =
-      await loadTable(
-        "brands"
-      );
-
-    state.brands = rows;
-  }
-
-  async function loadManufacturers() {
-    const rows =
-      await loadTable(
-        "manufacturers"
-      );
-
-    state.manufacturers = rows;
-
-    renderManufacturers();
-  }
-
-  async function loadWholesale() {
-    const possibleTables = [
-      "wholesale_products",
-      "wholesale"
-    ];
-
-    for (const table of possibleTables) {
-      const rows =
-        await loadTable(table);
-
-      if (rows.length) {
-        state.wholesale = rows;
-        break;
-      }
-    }
-
-    renderWholesale();
-  }
-
-  /* =========================================================
-     21. MANUFACTURERS
-     ========================================================= */
-
-  function renderManufacturers() {
-    const existing =
-      $("manufacturersRuntimePage");
-
-    if (!existing) return;
-
-    const rows =
-      state.manufacturers || [];
-
-    if (!rows.length) {
-      existing.innerHTML = `
-        <div class="wahen-page">
-          <div class="wahen-page-header">
-            <small>WARSHADO</small>
-            <h2>Warshadaha</h2>
-          </div>
-
-          <div class="wahen-empty">
-            <div class="wahen-empty-icon">🏭</div>
-            <strong>Warshado weli lama gelin</strong>
-            <p>
-              Marka xogta warshaduhu ku jirto database-ka,
-              halkan ayay kasoo muuqan doonaan.
-            </p>
-          </div>
+    container.innerHTML = productsList.map(product => `
+      <div class="product-card" onclick="UI.openProductModal(${product.id})" style="cursor:pointer;">
+        <div class="product-img-wrapper" style="position:relative; width:100%; padding-top:100%; overflow:hidden; border-radius:12px; background:#f3f4f6;">
+          <img src="${product.image_url || 'https://via.placeholder.com/200'}" alt="${product.name}" style="position:absolute; top:0; left:0; width:100%; height:100%; object-fit:cover;">
         </div>
-      `;
-
-      return;
-    }
-
-    existing.innerHTML = `
-      <div class="wahen-page">
-
-        <div class="wahen-page-header">
-          <small>WAHEEN</small>
-          <h2>Warshadaha</h2>
-          <p>
-            Soo hel warshadaha iyo soo saarayaasha
-            alaabta.
-          </p>
-        </div>
-
-        ${rows
-          .map(
-            (row) => {
-              const name =
-                firstValue(
-                  row,
-                  [
-                    "name",
-                    "manufacturer_name",
-                    "title"
-                  ],
-                  "Warshad"
-                );
-
-              const location =
-                firstValue(
-                  row,
-                  [
-                    "location",
-                    "city",
-                    "address"
-                  ],
-                  ""
-                );
-
-              return `
-                <div class="wahen-page-card">
-                  <div class="wahen-manufacturer-card">
-
-                    <div class="wahen-manufacturer-logo">
-                      🏭
-                    </div>
-
-                    <div>
-                      <strong>
-                        ${escapeHTML(name)}
-                      </strong>
-
-                      ${
-                        location
-                          ? `<small>${escapeHTML(location)}</small>`
-                          : ""
-                      }
-                    </div>
-
-                  </div>
-                </div>
-              `;
-            }
-          )
-          .join("")}
-
-      </div>
-    `;
-  }
-
-  /* =========================================================
-     22. WHOLESALE PAGE
-     ========================================================= */
-
-  function renderWholesale() {
-    const existing =
-      $("wholesaleRuntimePage");
-
-    if (!existing) return;
-
-    if (!state.wholesale.length) {
-      existing.innerHTML = `
-        <div class="wahen-page">
-
-          <div class="wahen-page-header">
-            <small>GANACSIGA</small>
-            <h2>Jumlo</h2>
-          </div>
-
-          <div class="wahen-page-card">
-            <div class="wahen-empty">
-              <div class="wahen-empty-icon">📦</div>
-              <strong>Jumlo weli lama helin</strong>
-              <p>
-                Alaabta jumlada waxay halkan kasoo muuqan doontaa.
-              </p>
-            </div>
-          </div>
-
-        </div>
-      `;
-
-      return;
-    }
-
-    existing.innerHTML = `
-      <div class="wahen-page">
-
-        <div class="wahen-page-header">
-          <small>GANACSIGA</small>
-          <h2>Alaabta Jumlada</h2>
-        </div>
-
-        ${state.wholesale
-          .map((row) => {
-            const name =
-              firstValue(
-                row,
-                [
-                  "name",
-                  "product_name",
-                  "title"
-                ],
-                "Alaab"
-              );
-
-            const price =
-              numberValue(
-                row,
-                [
-                  "wholesale_price",
-                  "price",
-                  "unit_price"
-                ],
-                0
-              );
-
-            return `
-              <div class="wahen-page-card">
-
-                <strong>
-                  ${escapeHTML(name)}
-                </strong>
-
-                <p>
-                  Qiimaha jumlada:
-                  <strong>
-                    $${price.toFixed(2)}
-                  </strong>
-                </p>
-
-                <button
-                  class="primary-btn"
-                  data-wholesale-id="${escapeHTML(
-                    firstValue(
-                      row,
-                      ["id"],
-                      ""
-                    )
-                  )}"
-                >
-                  Faahfaahin →
-                </button>
-
-              </div>
-            `;
-          })
-          .join("")}
-
-      </div>
-    `;
-  }
-
-  /* =========================================================
-     23. ORDERS
-     ========================================================= */
-
-  async function loadOrders() {
-    if (!db || !state.user) {
-      state.orders = [];
-      renderOrders();
-      return;
-    }
-
-    try {
-      let result =
-        await db
-          .from("orders")
-          .select("*")
-          .order(
-            "created_at",
-            { ascending: false }
-          );
-
-      if (result.error) {
-        console.warn(
-          "Orders:",
-          result.error
-        );
-
-        state.orders = [];
-        renderOrders();
-
-        return;
-      }
-
-      const rows = result.data || [];
-
-      state.orders = rows.filter(
-        (row) => {
-          const owner =
-            firstValue(
-              row,
-              [
-                "user_id",
-                "customer_id",
-                "profile_id",
-                "buyer_id"
-              ],
-              null
-            );
-
-          return (
-            !owner ||
-            String(owner) ===
-              String(state.user.id)
-          );
-        }
-      );
-
-      renderOrders();
-    } catch (error) {
-      console.error(error);
-
-      state.orders = [];
-
-      renderOrders();
-    }
-  }
-
-  function renderOrders() {
-    const page =
-      $("ordersRuntimePage");
-
-    if (!page) return;
-
-    if (!state.user) {
-      page.innerHTML = `
-        <div class="wahen-page">
-
-          <div class="wahen-page-header">
-            <small>WAHEEN</small>
-            <h2>Dalabyadayda</h2>
-          </div>
-
-          <div class="wahen-page-card">
-            <div class="wahen-empty">
-              <div class="wahen-empty-icon">🔐</div>
-
-              <strong>
-                Soo gal marka hore
-              </strong>
-
-              <p>
-                Si aad u aragto dalabyadaada,
-                fadlan soo gal account-kaaga.
-              </p>
-
-              <button
-                class="primary-btn"
-                id="ordersLoginBtn"
-              >
-                Soo Gal
-              </button>
-            </div>
-          </div>
-
-        </div>
-      `;
-
-      $("ordersLoginBtn")
-        ?.addEventListener(
-          "click",
-          () => openAuth("login")
-        );
-
-      return;
-    }
-
-    if (!state.orders.length) {
-      page.innerHTML = `
-        <div class="wahen-page">
-
-          <div class="wahen-page-header">
-            <small>WAHEEN</small>
-            <h2>Dalabyadayda</h2>
-          </div>
-
-          <div class="wahen-page-card">
-            <div class="wahen-empty">
-              <div class="wahen-empty-icon">📋</div>
-              <strong>Dalab ma lihid weli</strong>
-              <p>
-                Dalabyada aad sameyso halkan ayay kasoo muuqan doonaan.
-              </p>
-            </div>
-          </div>
-
-        </div>
-      `;
-
-      return;
-    }
-
-    page.innerHTML = `
-      <div class="wahen-page">
-
-        <div class="wahen-page-header">
-          <small>ACCOUNT</small>
-          <h2>Dalabyadayda</h2>
-        </div>
-
-        ${state.orders
-          .map((order) => {
-            const id =
-              firstValue(
-                order,
-                ["id", "order_id"],
-                "Order"
-              );
-
-            const status =
-              firstValue(
-                order,
-                ["status", "order_status"],
-                "Pending"
-              );
-
-            const total =
-              numberValue(
-                order,
-                [
-                  "total",
-                  "total_amount",
-                  "grand_total"
-                ],
-                0
-              );
-
-            return `
-              <div class="wahen-page-card">
-
-                <div style="
-                  display:flex;
-                  justify-content:space-between;
-                  gap:10px;
-                ">
-
-                  <strong>
-                    #${escapeHTML(id)}
-                  </strong>
-
-                  <span class="wahen-order-status">
-                    ${escapeHTML(status)}
-                  </span>
-
-                </div>
-
-                <p>
-                  Wadarta:
-                  <strong>
-                    $${total.toFixed(2)}
-                  </strong>
-                </p>
-
-              </div>
-            `;
-          })
-          .join("")}
-
-      </div>
-    `;
-  }
-
-  /* =========================================================
-     24. CREATE ORDER
-     ========================================================= */
-
-  async function checkout() {
-    if (!state.cart.length) {
-      toast(
-        "Cart-ka waa madhan yahay.",
-        "warning"
-      );
-      return;
-    }
-
-    if (!state.user) {
-      closeModal("cartModal");
-
-      openAuth("login");
-
-      toast(
-        "Fadlan soo gal si aad u dalbato.",
-        "warning"
-      );
-
-      return;
-    }
-
-    if (!db) {
-      toast(
-        "Database-ka lama helin.",
-        "error"
-      );
-      return;
-    }
-
-    const total = cartSubtotal();
-
-    loading(
-      true,
-      "Dalabka ayaa la dirayaa..."
-    );
-
-    try {
-      const payload = {
-        user_id: state.user.id,
-        total,
-        status: "pending",
-        delivery_address:
-          state.deliveryLocation
-      };
-
-      let result =
-        await db
-          .from("orders")
-          .insert(payload)
-          .select()
-          .single();
-
-      /*
-       * If the current orders table uses a different
-       * total column, we do NOT modify the database.
-       * We simply report the real Supabase error.
-       */
-
-      if (result.error) {
-        console.error(
-          "Order insert:",
-          result.error
-        );
-
-        toast(
-          "Order-ka lama gelin. Supabase error-ka eeg.",
-          "error"
-        );
-
-        return;
-      }
-
-      const order =
-        result.data;
-
-      /*
-       * order_items insertion is attempted only if
-       * an order was successfully created.
-       */
-
-      if (order?.id) {
-        await insertOrderItems(
-          order.id
-        );
-      }
-
-      state.cart = [];
-
-      saveLocal(
-        "wahen_cart",
-        state.cart
-      );
-
-      updateCartUI();
-
-      closeModal("cartModal");
-
-      await loadOrders();
-
-      goToSection("orders");
-
-      toast(
-        "Dalabka si guul leh ayaa loo diray.",
-        "success"
-      );
-    } catch (error) {
-      console.error(error);
-
-      toast(
-        "Waxaa dhacay qalad intii dalabka la dirayay.",
-        "error"
-      );
-    } finally {
-      loading(false);
-    }
-  }
-
-  async function insertOrderItems(orderId) {
-    if (!db || !orderId) return;
-
-    if (!state.cart.length) return;
-
-    const items = state.cart.map(
-      (item) => ({
-        order_id: orderId,
-        product_id: item.id,
-        quantity: item.quantity,
-        price: item.price
-      })
-    );
-
-    try {
-      const result =
-        await db
-          .from("order_items")
-          .insert(items);
-
-      if (result.error) {
-        console.warn(
-          "order_items:",
-          result.error
-        );
-      }
-    } catch (error) {
-      console.warn(error);
-    }
-  }
-
-  /* =========================================================
-     25. MODALS
-     ========================================================= */
-
-  function openModal(id) {
-    const modal = $(id);
-
-    if (!modal) return;
-
-    modal.classList.add(
-      "open",
-      "active"
-    );
-
-    modal.style.display = "flex";
-
-    document.body.classList.add(
-      "wahen-locked"
-    );
-  }
-
-  function closeModal(id) {
-    const modal = $(id);
-
-    if (!modal) return;
-
-    modal.classList.remove(
-      "open",
-      "active"
-    );
-
-    modal.style.display = "none";
-
-    document.body.classList.remove(
-      "wahen-locked"
-    );
-  }
-
-  /* =========================================================
-     26. SIDE MENU
-     ========================================================= */
-
-  function openMenu() {
-    const menu = $("sideMenu");
-    const overlay = $("overlay");
-
-    menu?.classList.add(
-      "open",
-      "active"
-    );
-
-    overlay?.classList.add(
-      "open",
-      "active"
-    );
-
-    if (menu) {
-      menu.style.transform =
-        "translateX(0)";
-    }
-
-    if (overlay) {
-      overlay.style.display = "block";
-    }
-  }
-
-  function closeMenu() {
-    const menu = $("sideMenu");
-    const overlay = $("overlay");
-
-    menu?.classList.remove(
-      "open",
-      "active"
-    );
-
-    overlay?.classList.remove(
-      "open",
-      "active"
-    );
-
-    if (overlay) {
-      overlay.style.display = "none";
-    }
-  }
-
-  /* =========================================================
-     27. FOUR MAIN VIEWS
-     ========================================================= */
-
-  function createRuntimeViews() {
-    if ($("wahenRuntimeViews")) {
-      return;
-    }
-
-    const main =
-      document.querySelector("main");
-
-    if (!main) return;
-
-    const wrapper =
-      document.createElement("div");
-
-    wrapper.id =
-      "wahenRuntimeViews";
-
-    /*
-     * We keep the existing home/main content.
-     * Other pages are generated without deleting
-     * the existing HTML.
-     */
-
-    const wholesale =
-      document.createElement("section");
-
-    wholesale.id =
-      "wholesaleRuntimePage";
-
-    wholesale.className =
-      "wahen-view-hidden";
-
-    const orders =
-      document.createElement("section");
-
-    orders.id =
-      "ordersRuntimePage";
-
-    orders.className =
-      "wahen-view-hidden";
-
-    const settings =
-      document.createElement("section");
-
-    settings.id =
-      "settingsRuntimePage";
-
-    settings.className =
-      "wahen-view-hidden";
-
-    const manufacturers =
-      document.createElement("section");
-
-    manufacturers.id =
-      "manufacturersRuntimePage";
-
-    manufacturers.className =
-      "wahen-view-hidden";
-
-    wrapper.appendChild(
-      wholesale
-    );
-
-    wrapper.appendChild(
-      orders
-    );
-
-    wrapper.appendChild(
-      settings
-    );
-
-    wrapper.appendChild(
-      manufacturers
-    );
-
-    main.appendChild(wrapper);
-
-    renderSettings();
-  }
-
-  function hideHomeContent() {
-    const main =
-      document.querySelector("main");
-
-    if (!main) return;
-
-    const runtime =
-      $("wahenRuntimeViews");
-
-    Array.from(main.children)
-      .forEach((child) => {
-        if (child === runtime) return;
-
-        child.classList.add(
-          "wahen-view-hidden"
-        );
-      });
-  }
-
-  function showHomeContent() {
-    const main =
-      document.querySelector("main");
-
-    if (!main) return;
-
-    const runtime =
-      $("wahenRuntimeViews");
-
-    Array.from(main.children)
-      .forEach((child) => {
-        if (child === runtime) return;
-
-        child.classList.remove(
-          "wahen-view-hidden"
-        );
-      });
-  }
-
-  function showRuntimePage(id) {
-    hideHomeContent();
-
-    [
-      "wholesaleRuntimePage",
-      "ordersRuntimePage",
-      "settingsRuntimePage",
-      "manufacturersRuntimePage"
-    ].forEach((pageId) => {
-      const page = $(pageId);
-
-      if (!page) return;
-
-      page.classList.toggle(
-        "wahen-view-active",
-        pageId === id
-      );
-
-      page.classList.toggle(
-        "wahen-view-hidden",
-        pageId !== id
-      );
-    });
-  }
-
-  function goToSection(section) {
-    state.currentSection =
-      section || "home";
-
-    closeMenu();
-
-    updateBottomNavigation(
-      state.currentSection
-    );
-
-    if (state.currentSection === "home") {
-      showHomeContent();
-      scrollTop();
-      return;
-    }
-
-    if (
-      state.currentSection ===
-      "products"
-    ) {
-      showHomeContent();
-
-      scrollToElement(
-        "productGrid"
-      );
-
-      return;
-    }
-
-    if (
-      state.currentSection ===
-      "categories"
-    ) {
-      showHomeContent();
-
-      scrollToElement(
-        "categoryGrid"
-      );
-
-      return;
-    }
-
-    if (
-      state.currentSection ===
-      "brands"
-    ) {
-      showHomeContent();
-
-      scrollToElement(
-        "brandGrid"
-      );
-
-      return;
-    }
-
-    if (
-      state.currentSection ===
-      "wholesale"
-    ) {
-      showRuntimePage(
-        "wholesaleRuntimePage"
-      );
-
-      renderWholesale();
-
-      return;
-    }
-
-    if (
-      state.currentSection ===
-      "orders"
-    ) {
-      showRuntimePage(
-        "ordersRuntimePage"
-      );
-
-      loadOrders();
-
-      return;
-    }
-
-    if (
-      state.currentSection ===
-      "manufacturers"
-    ) {
-      showRuntimePage(
-        "manufacturersRuntimePage"
-      );
-
-      renderManufacturers();
-
-      return;
-    }
-
-    if (
-      state.currentSection ===
-      "settings" ||
-      state.currentSection ===
-      "account"
-    ) {
-      showRuntimePage(
-        "settingsRuntimePage"
-      );
-
-      renderSettings();
-
-      return;
-    }
-
-    if (
-      state.currentSection ===
-      "favorites"
-    ) {
-      showHomeContent();
-
-      const favoriteProducts =
-        state.products.filter(
-          (product) =>
-            state.favoriteIds.includes(
-              String(product._id)
-            )
-        );
-
-      renderProducts(
-        favoriteProducts
-      );
-
-      scrollToElement(
-        "productGrid"
-      );
-
-      return;
-    }
-
-    if (
-      state.currentSection ===
-      "chat" ||
-      state.currentSection ===
-      "support"
-    ) {
-      openSupport();
-
-      return;
-    }
-  }
-
-  /* =========================================================
-     28. SETTINGS
-     ========================================================= */
-
-  function renderSettings() {
-    const page =
-      $("settingsRuntimePage");
-
-    if (!page) return;
-
-    if (!state.user) {
-      page.innerHTML = `
-        <div class="wahen-page">
-
-          <div class="wahen-page-header">
-            <small>WAHEEN</small>
-            <h2>Account & Settings</h2>
-          </div>
-
-          <div class="wahen-page-card">
-
-            <div class="wahen-empty">
-
-              <div class="wahen-empty-icon">
-                👤
-              </div>
-
-              <strong>
-                Soo gal account-kaaga
-              </strong>
-
-              <p>
-                Maamul profile-kaaga,
-                orders-kaaga iyo settings-kaaga.
-              </p>
-
-              <button
-                class="primary-btn"
-                id="settingsLoginBtn"
-              >
-                Soo Gal
-              </button>
-
-            </div>
-
-          </div>
-
-          <div class="wahen-page-card">
-            <strong>🎧 Customer Support</strong>
-            <p>
-              Haddii aad caawimo u baahan tahay,
-              nala soo xiriir.
-            </p>
-
-            <button
-              class="primary-btn"
-              id="settingsSupportBtn"
+        <div style="padding: 10px 0;">
+          <small style="color:#6B7280; text-transform:uppercase; font-size:10px;">${product.category || 'WaHeN'}</small>
+          <h3 style="font-size:14px; margin: 4px 0; font-weight:600;">${product.name}</h3>
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px;">
+            <strong style="color:#4338CA; font-size:16px;">$${Number(product.price).toFixed(2)}</strong>
+            <button 
+              onclick="event.stopPropagation(); CartManager.addItem(${JSON.stringify(product).replace(/"/g, '&quot;')})" 
+              style="background:#4338CA; color:#fff; border:none; border-radius:6px; padding:6px 10px; cursor:pointer;"
             >
-              La xiriir Support
+              🛒 +
             </button>
           </div>
-
         </div>
-      `;
+      </div>
+    `).join('');
+  },
 
-      $("settingsLoginBtn")
-        ?.addEventListener(
-          "click",
-          () => openAuth("login")
-        );
+  // Open Product Modal
+  openProductModal(productId) {
+    const product = AppState.products.find(p => p.id === productId);
+    if (!product) return;
 
-      $("settingsSupportBtn")
-        ?.addEventListener(
-          "click",
-          openSupport
-        );
+    const modal = document.getElementById('productModal');
+    const detailContainer = document.getElementById('productDetail');
 
-      return;
-    }
-
-    const name =
-      firstValue(
-        state.profile,
-        [
-          "full_name",
-          "name",
-          "display_name"
-        ],
-        state.user.email
-      );
-
-    const phone =
-      firstValue(
-        state.profile,
-        ["phone", "phone_number"],
-        ""
-      );
-
-    const role =
-      firstValue(
-        state.profile,
-        ["role", "user_role"],
-        "customer"
-      );
-
-    page.innerHTML = `
-      <div class="wahen-page">
-
-        <div class="wahen-page-header">
-          <small>WAHEEN</small>
-          <h2>Account & Settings</h2>
-        </div>
-
-        <div class="wahen-page-card">
-
-          <div class="wahen-user-box">
-
-            <div class="wahen-avatar">
-              ${escapeHTML(
-                safeText(name)
-                  .charAt(0)
-                  .toUpperCase()
-              )}
-            </div>
-
-            <div>
-              <strong>
-                ${escapeHTML(name)}
-              </strong>
-
-              <small>
-                ${escapeHTML(
-                  state.user.email || ""
-                )}
-              </small>
-            </div>
-
-          </div>
-
-        </div>
-
-        <div class="wahen-action-grid">
-
-          <button
-            class="wahen-action"
-            id="settingsOrdersBtn"
-          >
-            📋<br>
-            Dalabyadayda
-          </button>
-
-          <button
-            class="wahen-action"
-            id="settingsFavoritesBtn"
-          >
-            ❤️<br>
-            Favorites
-          </button>
-
-          <button
-            class="wahen-action"
-            id="settingsSecurityBtn"
-          >
-            🔐<br>
-            Security
-          </button>
-
-          <button
-            class="wahen-action"
-            id="settingsNotificationsBtn"
-          >
-            🔔<br>
-            Notifications
-          </button>
-
-          <button
-            class="wahen-action"
-            id="settingsSupportBtn"
-          >
-            🎧<br>
-            Customer Support
-          </button>
-
-          <button
-            class="wahen-action"
-            id="settingsLogoutBtn"
-          >
-            🚪<br>
-            Logout
-          </button>
-
-        </div>
-
-        <div class="wahen-page-card">
-
-          <strong>Profile</strong>
-
-          <p>
-            Magac:
-            ${escapeHTML(name)}
-          </p>
-
-          ${
-            phone
-              ? `
-                <p>
-                  Phone:
-                  ${escapeHTML(phone)}
-                </p>
-              `
-              : ""
-          }
-
-          <p>
-            Account:
-            ${escapeHTML(role)}
-          </p>
-
-        </div>
-
+    detailContainer.innerHTML = `
+      <div style="text-align:center;">
+        <img src="${product.image_url || 'https://via.placeholder.com/300'}" style="width:100%; max-height:250px; object-fit:contain; border-radius:12px; margin-bottom:15px;">
+        <h2>${product.name}</h2>
+        <p style="color:#4338CA; font-size:22px; font-weight:bold; margin: 10px 0;">$${Number(product.price).toFixed(2)}</p>
+        <p style="color:#4B5563; margin-bottom:20px;">${product.description || 'Alaab tayo sare leh oo WaHeN Marketplace laga heli karo.'}</p>
+        <button 
+          onclick="CartManager.addItem(${JSON.stringify(product).replace(/"/g, '&quot;')}); UI.closeModal('productModal');" 
+          style="width:100%; background:#4338CA; color:white; padding:12px; border:none; border-radius:8px; font-weight:bold; font-size:16px; cursor:pointer;"
+        >
+          Ku Dar Cart-ka
+        </button>
       </div>
     `;
 
-    $("settingsOrdersBtn")
-      ?.addEventListener(
-        "click",
-        () => goToSection("orders")
-      );
+    this.openModal('productModal');
+  },
 
-    $("settingsFavoritesBtn")
-      ?.addEventListener(
-        "click",
-        () => goToSection("favorites")
-      );
+  // Modal Controllers
+  openModal(modalId) {
+    const modal = document.getElementById(modalId);
+    const overlay = document.getElementById('overlay');
+    if (modal) modal.classList.add('active');
+    if (overlay) overlay.classList.add('active');
+  },
 
-    $("settingsSecurityBtn")
-      ?.addEventListener(
-        "click",
-        () =>
-          toast(
-            "Security settings ayaa imanaya qaybta account-ka.",
-            "info"
-          )
-      );
+  closeModal(modalId) {
+    const modal = document.getElementById(modalId);
+    const overlay = document.getElementById('overlay');
+    if (modal) modal.classList.remove('active');
+    if (overlay) overlay.classList.remove('active');
+  },
 
-    $("settingsNotificationsBtn")
-      ?.addEventListener(
-        "click",
-        () =>
-          toast(
-            "Notifications-ka waxaa lagu xidhayaa backend-ka marka notification table/service la isticmaalo.",
-            "info"
-          )
-      );
-
-    $("settingsSupportBtn")
-      ?.addEventListener(
-        "click",
-        openSupport
-      );
-
-    $("settingsLogoutBtn")
-      ?.addEventListener(
-        "click",
-        logout
-      );
+  closeAllModals() {
+    document.querySelectorAll('.modal').forEach(m => m.classList.remove('active'));
+    document.getElementById('sideMenu')?.classList.remove('active');
+    document.getElementById('overlay')?.classList.remove('active');
   }
+};
 
-  /* =========================================================
-     29. BOTTOM NAV
-     ========================================================= */
+// ==========================================================================
+// 5. EVENT LISTENERS SETUP
+// ==========================================================================
+function setupEventListeners() {
+  // Navigation & Side Menu Toggle
+  document.getElementById('menuBtn')?.addEventListener('click', () => {
+    document.getElementById('sideMenu')?.classList.add('active');
+    document.getElementById('overlay')?.classList.add('active');
+  });
 
-  function updateBottomNavigation(
-    section
-  ) {
-    $$("[data-bottom]")
-      .forEach((button) => {
-        const value =
-          button.dataset.bottom;
+  document.getElementById('closeMenu')?.addEventListener('click', () => {
+    UI.closeAllModals();
+  });
 
-        const active =
-          (
-            section === "home" &&
-            value === "home"
-          ) ||
-          (
-            section === "categories" &&
-            value === "categories"
-          ) ||
-          (
-            section === "orders" &&
-            value === "orders"
-          ) ||
-          (
-            (
-              section === "account" ||
-              section === "settings"
-            ) &&
-            value === "account"
-          );
+  document.getElementById('overlay')?.addEventListener('click', () => {
+    UI.closeAllModals();
+  });
 
-        button.classList.toggle(
-          "active",
-          active
-        );
-      });
- 
+  // Cart Modal Toggle
+  document.getElementById('cartBtn')?.addEventListener('click', () => {
+    UI.openModal('cartModal');
+  });
+
+  document.getElementById('closeCartModal')?.addEventListener('click', () => {
+    UI.closeModal('cartModal');
+  });
+
+  document.getElementById('closeProductModal')?.addEventListener('click', () => {
+    UI.closeModal('productModal');
+  });
+
+  // Category Selector Buttons
+  const categoryButtons = document.querySelectorAll('.category-card');
+  categoryButtons.forEach(btn => {
+    btn.addEventListener('click', async (e) => {
+      categoryButtons.forEach(b => b.classList.remove('active'));
+      const card = e.currentTarget;
+      card.classList.add('active');
+
+      const category = card.dataset.category;
+      AppState.currentCategory = category;
+
+      UI.setLoading(true);
+      const products = await ApiService.fetchProductsByCategory(category);
+      AppState.filteredProducts = products;
+      UI.renderProducts(products);
+      UI.setLoading(false);
+    });
+  });
+
+  // Search Input with Debounce Logic
+  const searchInput = document.getElementById('searchInput');
+  const clearSearchBtn = document.getElementById('clearSearch');
+  let searchDebounceTimeout;
+
+  searchInput?.addEventListener('input', (e) => {
+    const term = e.target.value.trim();
+    clearTimeout(searchDebounceTimeout);
+
+    searchDebounceTimeout = setTimeout(async () => {
+      if (term.length > 0) {
+        UI.setLoading(true);
+        const results = await ApiService.searchProducts(term);
+        UI.renderProducts(results);
+        UI.setLoading(false);
+      } else {
+        UI.renderProducts(AppState.products);
+      }
+    }, 350);
+  });
+
+  clearSearchBtn?.addEventListener('click', () => {
+    if (searchInput) searchInput.value = '';
+    UI.renderProducts(AppState.products);
+  });
+
+  // Auth Modal Triggers
+  document.getElementById('menuGuest')?.addEventListener('click', () => {
+    UI.openModal('authModal');
+  });
+
+  document.getElementById('closeAuthModal')?.addEventListener('click', () => {
+    UI.closeModal('authModal');
+  });
+
+  // Toggle Login / Signup Forms
+  const authSwitchBtn = document.getElementById('authSwitchBtn');
+  const loginForm = document.getElementById('loginForm');
+  const signupForm = document.getElementById('signupForm');
+  const authTitle = document.getElementById('authTitle');
+
+  authSwitchBtn?.addEventListener('click', () => {
+    const isLoginVisible = !loginForm.classList.contains('hidden');
+    if (isLoginVisible) {
+      loginForm.classList.add('hidden');
+      signupForm.classList.remove('hidden');
+      authTitle.textContent = 'Samee Account WaHeN';
+      authSwitchBtn.textContent = 'Soo Gal';
+    } else {
+      signupForm.classList.add('hidden');
+      loginForm.classList.remove('hidden');
+      authTitle.textContent = 'Ku soo dhawoow WaHeN';
+      authSwitchBtn.textContent = 'Samee Account';
+    }
+  });
+
+  // Handle Login Submit
+  loginForm?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = document.getElementById('loginEmail').value;
+    const password = document.getElementById('loginPassword').value;
+
+    UI.setLoading(true);
+    const res = await ApiService.login(email, password);
+    UI.setLoading(false);
+
+    if (res.success) {
+      UI.showToast('Waad soo gashay!');
+      UI.closeModal('authModal');
+    } else {
+      UI.showToast(`Cillad: ${res.error}`, 'error');
+    }
+  });
+
+  // Checkout Button
+  document.getElementById('checkoutBtn')?.addEventListener('click', async () => {
+    if (AppState.cart.length === 0) {
+      UI.showToast('Cart-kaagu waa madhan yahay!', 'error');
+      return;
+    }
+
+    const totals = CartManager.getTotals();
+    const orderPayload = {
+      items: AppState.cart,
+      total_price: Number(totals.total),
+      delivery_address: AppState.location,
+      status: 'pending'
+    };
+
+    UI.setLoading(true);
+    const res = await ApiService.createOrder(orderPayload);
+    UI.setLoading(false);
+
+    if (res.success) {
+      UI.showToast('Dalabkaagii si guul leh ayaa loo diray! 🎉');
+      CartManager.clearCart();
+      UI.closeModal('cartModal');
+    } else {
+      UI.showToast('Dalabku ma kicin. Fadlan soo gal account-kaaga.', 'error');
+      UI.openModal('authModal');
+    }
+  });
+}
+
+// ==========================================================================
+// 6. INITIALIZATION ENGINE
+// ==========================================================================
+document.addEventListener('DOMContentLoaded', async () => {
+  console.log('[WaHeN Marketplace] Initializing core services...');
+  
+  // 1. Initialize Cart state from LocalStorage
+  CartManager.init();
+
+  // 2. Setup All Event Handlers
+  setupEventListeners();
+
+  // 3. Fetch Initial Products from Supabase
+  UI.setLoading(true);
+  const products = await ApiService.fetchProducts();
+  AppState.products = products;
+  AppState.filteredProducts = products;
+  
+  // 4. Render Initial Screen
+  UI.renderProducts(products);
+  UI.setLoading(false);
+
+  console.log('[WaHeN Marketplace] Ready!');
+});

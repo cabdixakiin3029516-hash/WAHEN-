@@ -5,139 +5,424 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>WaHeN Marketplace</title>
   
-  <!-- CSS STYLESHEET -->
-  <link rel="stylesheet" href="style.css">
-  
   <!-- Supabase Official SDK -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  
+  <style>
+    /* ==========================================================================
+       WAHEN CORE THEME: GREEN (#00a651), YELLOW (#ffd700), WHITE (#ffffff)
+       ========================================================================== */
+    :root {
+      --primary-green: #00a651;
+      --green-hover: #008d44;
+      --accent-yellow: #ffd700;
+      --yellow-light: #fff9c4;
+      --bg-white: #ffffff;
+      --card-bg: #f8fafc;
+      --text-dark: #0f172a;
+      --text-muted: #64748b;
+      --border-color: #e2e8f0;
+      --radius: 12px;
+      --shadow: 0 4px 12px rgba(0,0,0,0.08);
+      --bottom-nav-height: 65px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background-color: var(--bg-white);
+      color: var(--text-dark);
+      padding-top: 70px;
+      padding-bottom: calc(var(--bottom-nav-height) + 20px);
+      min-height: 100vh;
+    }
+
+    /* --------------------------------------------------------------------------
+       1. TOP HEADER (LOGO, MENU, CART, AUTH)
+       -------------------------------------------------------------------------- */
+    .app-header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 70px;
+      background: var(--bg-white);
+      border-bottom: 3px solid var(--accent-yellow);
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 16px;
+      box-shadow: var(--shadow);
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    /* LOGO DESIGN: WAHEN WITH GREEN & YELLOW */
+    .logo-container {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .logo-icon {
+      width: 38px;
+      height: 38px;
+      background: var(--primary-green);
+      color: var(--accent-yellow);
+      font-weight: 900;
+      font-size: 1.2rem;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 2px solid var(--accent-yellow);
+    }
+
+    .logo-text {
+      font-size: 1.4rem;
+      font-weight: 900;
+      color: var(--primary-green);
+      letter-spacing: -0.5px;
+    }
+
+    .logo-text span {
+      color: var(--accent-yellow);
+      background: var(--primary-green);
+      padding: 0 4px;
+      border-radius: 4px;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .btn-icon {
+      background: #f1f5f9;
+      border: none;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      font-size: 1.2rem;
+      cursor: pointer;
+      position: relative;
+    }
+
+    .badge {
+      position: absolute;
+      top: -2px;
+      right: -2px;
+      background: var(--primary-green);
+      color: var(--accent-yellow);
+      font-size: 0.7rem;
+      font-weight: 800;
+      padding: 2px 6px;
+      border-radius: 10px;
+      border: 1px solid var(--bg-white);
+    }
+
+    /* --------------------------------------------------------------------------
+       2. SINGLE PAGE VIEWS (SWITCHING SYSTEM)
+       -------------------------------------------------------------------------- */
+    .page-view {
+      display: none;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 16px;
+      animation: fadeIn 0.25s ease-in-out;
+    }
+
+    .page-view.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(5px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* BANNER & CARDS */
+    .hero-banner {
+      background: linear-gradient(135deg, var(--primary-green), #007a3b);
+      color: #fff;
+      padding: 20px;
+      border-radius: var(--radius);
+      border-bottom: 4px solid var(--accent-yellow);
+      margin-bottom: 20px;
+    }
+
+    .search-box {
+      margin-top: 12px;
+      display: flex;
+      gap: 8px;
+    }
+
+    .search-box input {
+      flex: 1;
+      padding: 12px;
+      border-radius: 8px;
+      border: 2px solid var(--accent-yellow);
+      outline: none;
+      font-size: 0.9rem;
+    }
+
+    .product-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+    }
+
+    @media (min-width: 600px) {
+      .product-grid { grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    }
+
+    .product-card {
+      background: var(--bg-white);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius);
+      overflow: hidden;
+      box-shadow: var(--shadow);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .product-img {
+      width: 100%;
+      height: 130px;
+      object-fit: cover;
+      background: #f8fafc;
+    }
+
+    .product-info {
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      flex-grow: 1;
+    }
+
+    .product-title { font-size: 0.85rem; font-weight: 700; margin-bottom: 4px; }
+    .product-price { color: var(--primary-green); font-weight: 800; font-size: 1rem; }
+
+    .btn-add {
+      background: var(--primary-green);
+      color: var(--accent-yellow);
+      border: none;
+      padding: 8px;
+      border-radius: 6px;
+      font-weight: 700;
+      cursor: pointer;
+      margin-top: 8px;
+      width: 100%;
+    }
+
+    /* --------------------------------------------------------------------------
+       3. BOTTOM NAVIGATION BAR (5 TAB SWITCHER)
+       -------------------------------------------------------------------------- */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: var(--bottom-nav-height);
+      background: var(--bg-white);
+      border-top: 2px solid var(--accent-yellow);
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      z-index: 1000;
+      box-shadow: 0 -4px 10px rgba(0,0,0,0.05);
+    }
+
+    .nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 0.7rem;
+      font-weight: 600;
+      cursor: pointer;
+      flex: 1;
+      padding: 6px 0;
+    }
+
+    .nav-item .icon { font-size: 1.3rem; }
+
+    .nav-item.active {
+      color: var(--primary-green);
+      font-weight: 800;
+    }
+
+    .nav-item.active .icon {
+      transform: translateY(-2px);
+      transition: transform 0.2s;
+    }
+
+    /* UI FOR FORMS & MODALS */
+    .form-group { margin-bottom: 12px; }
+    .form-group label { display: block; font-size: 0.8rem; font-weight: 700; margin-bottom: 4px; }
+    .form-control {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      font-size: 0.9rem;
+    }
+
+    .btn-primary {
+      background: var(--primary-green);
+      color: var(--accent-yellow);
+      border: none;
+      padding: 12px;
+      border-radius: 8px;
+      font-weight: 800;
+      width: 100%;
+      cursor: pointer;
+    }
+
+    /* DRAWER MENU */
+    .drawer-overlay {
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.5);
+      z-index: 2000;
+      display: none;
+    }
+    .drawer {
+      position: fixed;
+      top: 0; left: -280px; width: 280px; height: 100%;
+      background: var(--bg-white);
+      z-index: 2001;
+      transition: left 0.3s;
+      padding: 20px;
+    }
+    .drawer.open { left: 0; }
+  </style>
 </head>
 <body>
 
-  <!-- APP HEADER -->
+  <!-- 1. TOP HEADER WITH LOGO & MENU -->
   <header class="app-header">
-    <div class="header-container">
-      <button type="button" id="openMenu" class="icon-btn" aria-label="Open Menu">☰</button>
-      
-      <div class="app-logo">
-        <a href="index.html">
-          <h1>WaHeN<span>.</span></h1>
-        </a>
-      </div>
-
-      <div class="header-actions">
-        <button type="button" id="openAuthModal" class="icon-btn" title="Akaun">👤</button>
-        <button type="button" id="openCart" class="icon-btn" title="Basket">
-          🛒 <span id="cartBadge" class="badge">0</span>
-        </button>
+    <div class="header-left">
+      <button class="btn-icon" id="openMenuBtn">☰</button>
+      <div class="logo-container">
+        <div class="logo-icon">W</div>
+        <div class="logo-text">WaHeN<span>.</span></div>
       </div>
     </div>
-
-    <!-- SEARCH BAR ENGINE -->
-    <div class="search-container">
-      <span class="search-icon">🔍</span>
-      <input type="text" id="searchInput" placeholder="Maxaad raadinaysaa WAHEN Marketplace?">
+    
+    <div class="header-actions">
+      <button class="btn-icon" onclick="switchPage('chatsView')">💬</button>
+      <button class="btn-icon" id="openCartBtn">
+        🛒 <span class="badge" id="cartBadge">0</span>
+      </button>
     </div>
   </header>
 
-  <!-- MAIN MARKETPLACE DISPLAY -->
-  <main class="app-main">
-    
-    <!-- HERO BANNER -->
-    <section class="hero-banner">
-      <div class="banner-content">
-        <h2>Wax kasta hal meel ka hel!</h2>
-        <p>Geeska E-Commerce-ka Somaliland — Ganacsigaaga ka sameey WAHEN.</p>
-      </div>
-    </section>
-
-    <!-- CATEGORY FILTER PILLS -->
-    <section class="categories-section">
-      <div class="section-header">
-        <h3>Qaybaha Alaabta</h3>
-      </div>
-      <div id="categoryPills" class="category-pills">
-        <button type="button" class="pill-btn active" data-category="all">Dhammaan</button>
-        <button type="button" class="pill-btn" data-category="Electronics">Electronics</button>
-        <button type="button" class="pill-btn" data-category="Dharka">Dharka & Fashion</button>
-        <button type="button" class="pill-btn" data-category="Cunto">Cunto & Groceries</button>
-        <button type="button" class="pill-btn" data-category="Gadiidka">Gadiidka & Auto</button>
-      </div>
-    </section>
-
-    <!-- REAL-TIME PRODUCTS GRID -->
-    <section class="products-section">
-      <div class="section-header">
-        <h3>Alaabaha Cusub</h3>
-      </div>
-      <div id="productGrid" class="product-grid">
-        <div style="grid-column: 1 / -1; text-align: center; padding: 40px; color: var(--text-muted);">
-          Soo rogeysa alaabta Supabase Database...
-        </div>
-      </div>
-    </section>
-
-  </main>
-
-  <!-- OVERLAY BACKGROUND -->
-  <div id="overlay" class="app-overlay"></div>
-
-  <!-- SIDE MENU DRAWER -->
-  <aside id="sideMenu" class="side-menu">
-    <div class="side-menu-header">
-      <div id="userProfileStatus">
-        <strong id="menuUserName">Ku soo dhaawow WAHEN</strong>
-        <p><small id="menuUserRole" style="color:var(--text-muted);">Guest / Bishen</small></p>
-      </div>
-      <button type="button" id="closeMenu" class="close-btn">&times;</button>
+  <!-- 2. SIDE MENU DRAWER (CONTACT & ACCOUNT) -->
+  <div class="drawer-overlay" id="drawerOverlay"></div>
+  <aside class="drawer" id="sideDrawer">
+    <h2 style="color:var(--primary-green); margin-bottom:15px;">WaHeN Menu</h2>
+    <hr style="margin-bottom:15px;">
+    <div style="display:flex; flex-direction:column; gap:15px;">
+      <button class="btn-primary" onclick="switchPage('authView'); closeDrawer();">🔑 Login / Register</button>
+      <button class="btn-primary" style="background:#f1f5f9; color:var(--text-dark);" onclick="switchPage('supportView'); closeDrawer();">📞 Nala Soo Xidhiidh (Contact)</button>
     </div>
-
-    <nav style="margin-top:20px;">
-      <ul style="list-style:none; display:flex; flex-direction:column; gap:16px;">
-        <li><a href="index.html" style="font-weight:600;">🏠 Hoyga Marketplace</a></li>
-        <li><a href="admin.html" style="font-weight:600; color:var(--accent);">⚙️ Admin & Seller Panel</a></li>
-        <li id="logoutItem" style="display:none;"><button type="button" id="logoutBtn" style="background:none; border:none; color:var(--danger); font-weight:600;">🚪 Ka bax Akownka</button></li>
-      </ul>
-    </nav>
   </aside>
 
-  <!-- CART MODAL DRAWER -->
-  <div id="cartModal" class="cart-modal">
-    <div class="cart-modal-header">
-      <h3>Basket-kaaga (Cart)</h3>
-      <button type="button" id="closeCartModal" class="close-btn">&times;</button>
+  <!-- ==========================================================================
+     PAGE 1: HOYGA (HOME MARKETPLACE)
+     ========================================================================== -->
+  <div id="homeView" class="page-view active">
+    <div class="hero-banner">
+      <h2>Soo Dhaawow WaHeN Marketplace!</h2>
+      <p>Aaladda ganacsiga ugu casrisan ee Somaliland.</p>
+      <div class="search-box">
+        <input type="text" id="searchInput" placeholder="Raadi alaab, jumlad ama naadir...">
+      </div>
     </div>
 
-    <div id="cartItems" class="cart-modal-body">
-      <p style="text-align:center; color:var(--text-muted); padding:20px;">Cart-kaagu waa faaruq!</p>
-    </div>
-
-    <div style="padding-top:12px; border-top:1px solid var(--border-color);">
-      <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
-        <span>Warta Guud (Total):</span>
-        <strong id="cartTotal" style="font-size:1.1rem; color:var(--primary);">$0.00</strong>
-      </div>
-
-      <!-- CHECKOUT FORM INPUTS -->
-      <div id="checkoutFields" style="display:none; margin-top:12px; flex-direction:column; gap:8px;">
-        <input type="text" id="custName" class="form-control" placeholder="Magacaaga Buuxa">
-        <input type="tel" id="custPhone" class="form-control" placeholder="Tel / Zaad / eDahab">
-        <input type="text" id="custAddress" class="form-control" placeholder="Cinwaanka (Magaalada/Xaafadda)">
-      </div>
-
-      <button type="button" id="checkoutBtn" class="pill-btn active" style="width:100%; padding:12px; margin-top:12px; border-radius:8px; font-weight:700;">
-        Koresho / Checkout
-      </button>
+    <h3 style="margin-bottom:12px; color:var(--primary-green);">Alaabaha Cusub</h3>
+    <div class="product-grid" id="homeProductGrid">
+      <!-- Products loaded dynamically -->
     </div>
   </div>
 
-  <!-- AUTHENTICATION MODAL (LOGIN / REGISTER) -->
-  <div id="authModal" class="cart-modal" style="max-height:90vh;">
-    <div class="cart-modal-header">
-      <h3 id="authTitle">Soo Gal WAHEN</h3>
-      <button type="button" id="closeAuthModal" class="close-btn">&times;</button>
+  <!-- ==========================================================================
+     PAGE 2: CHATS & CUSTOMER SUPPORT
+     ========================================================================== -->
+  <div id="chatsView" class="page-view">
+    <h2 style="color:var(--primary-green); margin-bottom:15px;">💬 Wada-hadallada & Taageerada</h2>
+    
+    <div style="background:var(--card-bg); padding:15px; border-radius:var(--radius); margin-bottom:15px;">
+      <h4>Customer Support (24/7)</h4>
+      <p style="font-size:0.85rem; color:var(--text-muted); margin:5px 0 10px 0;">Fariin toos ah u dir maamulka ama shaqalaha WAHEN.</p>
+      <textarea id="msgInput" class="form-control" rows="3" placeholder="Qor fariintaada ama dalabkaaga..."></textarea>
+      <button class="btn-primary" style="margin-top:8px;" onclick="sendSupportMessage()">Dir Fariinta 📩</button>
     </div>
+  </div>
 
-    <form id="authForm" style="display:flex; flex-direction:column; gap:12px; padding:10px 0;">
+  <!-- ==========================================================================
+     PAGE 3: NAADIR (EXCLUSIVES) & JUMLAD (WHOLESALE)
+     ========================================================================== -->
+  <div id="wholesaleView" class="page-view">
+    <h2 style="color:var(--primary-green); margin-bottom:10px;">💎 Naadir & Jumlad (Wholesale)</h2>
+    <p style="color:var(--text-muted); font-size:0.85rem; margin-bottom:15px;">Ka eeg alaabaha guud, jumladaha iyo alaabaha naadirka ah.</p>
+    
+    <div class="product-grid" id="wholesaleProductGrid">
+      <!-- Wholesale items dynamically -->
+    </div>
+  </div>
+
+  <!-- ==========================================================================
+     PAGE 4: BRANDS & VENDORS
+     ========================================================================== -->
+  <div id="brandsView" class="page-view">
+    <h2 style="color:var(--primary-green); margin-bottom:15px;">🏷️ Summadaha & Ganacsatada (Brands)</h2>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+      <div style="border:1px solid var(--border-color); padding:15px; border-radius:var(--radius); text-align:center;">
+        <h3 style="color:var(--primary-green);">WaHeN Official</h3>
+        <p style="font-size:0.75rem; color:var(--text-muted);">Verified Store</p>
+      </div>
+      <div style="border:1px solid var(--border-color); padding:15px; border-radius:var(--radius); text-align:center;">
+        <h3 style="color:var(--primary-green);">Electronics Som</h3>
+        <p style="font-size:0.75rem; color:var(--text-muted);">Partner Merchant</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================================================
+     PAGE 5: SETTINGS & ACCOUNT (INCL. LOGIN/REGISTER)
+     ========================================================================== -->
+  <div id="settingsView" class="page-view">
+    <h2 style="color:var(--primary-green); margin-bottom:15px;">⚙️ Mideynta & Akownka (Settings)</h2>
+    
+    <div style="background:var(--card-bg); padding:15px; border-radius:var(--radius); margin-bottom:15px;">
+      <h3>Xaalada Akownka</h3>
+      <p id="userStatusText" style="color:var(--text-muted); font-size:0.85rem; margin:5px 0 10px 0;">Guest User (Aan la soo galin)</p>
+      <button class="btn-primary" onclick="switchPage('authView')">Soo Gal / Is-diiwaangeli</button>
+    </div>
+  </div>
+
+  <!-- AUTH VIEW (LOGIN / CREATE ACCOUNT) -->
+  <div id="authView" class="page-view">
+    <h2 style="color:var(--primary-green); margin-bottom:15px;" id="authTitle">Soo Gal Akownka</h2>
+    
+    <form id="authForm">
       <div class="form-group">
         <label>Email-kaaga</label>
         <input type="email" id="authEmail" class="form-control" required placeholder="name@example.com">
@@ -147,39 +432,140 @@
         <input type="password" id="authPassword" class="form-control" required placeholder="******">
       </div>
       
-      <!-- EXTRA REGISTER FIELDS -->
-      <div id="registerFields" style="display:none; flex-direction:column; gap:12px;">
+      <div id="registerExtraFields" style="display:none;">
         <div class="form-group">
           <label>Magaca Buuxa</label>
           <input type="text" id="authFullName" class="form-control" placeholder="Magacaaga">
         </div>
-        <div class="form-group">
-          <label>Doorkaaga (Role)</label>
-          <select id="authRole" class="form-control">
-            <option value="buyer">Macmiil (Buyer)</option>
-            <option value="seller">Gancasi / Vendor (Seller)</option>
-          </select>
-        </div>
       </div>
 
-      <button type="submit" class="pill-btn active" style="padding:12px; font-weight:700; margin-top:10px;">
-        Gudbi (Submit)
-      </button>
-      <p style="text-align:center; font-size:0.85rem; margin-top:10px;">
-        <a href="#" id="toggleAuthMode" style="color:var(--accent);">Miyaanad lahayn Akown? Is-diiwaangeli</a>
+      <button type="submit" class="btn-primary" style="margin-top:10px;">Gudbi (Submit)</button>
+      <p style="text-align:center; margin-top:10px; font-size:0.85rem;">
+        <a href="#" id="toggleAuthModeBtn" style="color:var(--primary-green); font-weight:700;">Miyaanad lahayn Akown? Is-diiwaangeli</a>
       </p>
     </form>
   </div>
 
-  <!-- TOAST NOTIFICATION -->
-  <div id="toast" class="toast"></div>
+  <!-- 3. BOTTOM NAVIGATION BAR (5 TAB MENU) -->
+  <nav class="bottom-nav">
+    <button class="nav-item active" onclick="switchPage('homeView', this)">
+      <span class="icon">🏠</span>
+      <span>Home</span>
+    </button>
+    <button class="nav-item" onclick="switchPage('chatsView', this)">
+      <span class="icon">💬</span>
+      <span>Chats</span>
+    </button>
+    <button class="nav-item" onclick="switchPage('wholesaleView', this)">
+      <span class="icon">💎</span>
+      <span>Naadir/Jumlad</span>
+    </button>
+    <button class="nav-item" onclick="switchPage('brandsView', this)">
+      <span class="icon">🏷️</span>
+      <span>Brands</span>
+    </button>
+    <button class="nav-item" onclick="switchPage('settingsView', this)">
+      <span class="icon">⚙️</span>
+      <span>Settings</span>
+    </button>
+  </nav>
 
-  <footer class="app-footer">
-    <p>&copy; 2026 WaHeN Marketplace. Dhammaan xuquuqda waa la dhowray.</p>
-  </footer>
+  <!-- JAVASCRIPT CORE LOGIC -->
+  <script>
+    // 1. SUPABASE CLIENT SETUP
+    const SUPABASE_URL = "https://hkmtlyknwsqxuxmvfaqv.supabase.co";
+    const SUPABASE_ANON_KEY = "GELI_SUPABASE_ANON_KEY_GAAGA_HALKAN";
+    const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-  <!-- BACKEND & FRONTEND SCRIPTS -->
-  <script src="supabase-client.js"></script>
-  <script src="script.js"></script>
+    // SAMPLE DATA FOR HOME & JUMLAD
+    const sampleProducts = [
+      { id: 1, name: "iPhone 15 Pro Max", price: 1199, img: "https://via.placeholder.com/150", type: "home" },
+      { id: 2, name: "Dharka Hidaha iyo Dhaqanka", price: 45, img: "https://via.placeholder.com/150", type: "home" },
+      { id: 3, name: "Kartoon Saliid ah (Jumlad)", price: 120, img: "https://via.placeholder.com/150", type: "wholesale" },
+      { id: 4, name: "Saacad Naadir ah (Gold Edition)", price: 350, img: "https://via.placeholder.com/150", type: "wholesale" }
+    ];
+
+    let cartCount = 0;
+    let isRegister = false;
+
+    // PAGE SWITCHING SYSTEM
+    function switchPage(pageId, navBtn = null) {
+      document.querySelectorAll('.page-view').forEach(p => p.classList.remove('active'));
+      document.getElementById(pageId).classList.add('active');
+
+      if (navBtn) {
+        document.querySelectorAll('.nav-item').forEach(btn => btn.classList.remove('active'));
+        navBtn.classList.add('active');
+      }
+      window.scrollTo(0,0);
+    }
+
+    // DRAWER CONTROL
+    const drawer = document.getElementById('sideDrawer');
+    const overlay = document.getElementById('drawerOverlay');
+    document.getElementById('openMenuBtn').addEventListener('click', () => {
+      drawer.classList.add('open');
+      overlay.style.display = 'block';
+    });
+    overlay.addEventListener('click', closeDrawer);
+    function closeDrawer() {
+      drawer.classList.remove('open');
+      overlay.style.display = 'none';
+    }
+
+    // AUTH SWITCH TOGGLE
+    const toggleBtn = document.getElementById('toggleAuthModeBtn');
+    toggleBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      isRegister = !isRegister;
+      document.getElementById('authTitle').textContent = isRegister ? "Is-diiwaangeli WaHeN" : "Soo Gal Akownka";
+      document.getElementById('registerExtraFields').style.display = isRegister ? "block" : "none";
+      toggleBtn.textContent = isRegister ? "Zuu leedahay Akown? Soo gal" : "Miyaanad lahayn Akown? Is-diiwaangeli";
+    });
+
+    // RENDER PRODUCTS
+    function renderProducts() {
+      const homeGrid = document.getElementById('homeProductGrid');
+      const wholesaleGrid = document.getElementById('wholesaleProductGrid');
+
+      homeGrid.innerHTML = sampleProducts.filter(p => p.type === 'home').map(p => `
+        <div class="product-card">
+          <img src="${p.img}" class="product-img">
+          <div class="product-info">
+            <div class="product-title">${p.name}</div>
+            <div class="product-price">$${p.price}</div>
+            <button class="btn-add" onclick="addToCart()">+ Ku darso</button>
+          </div>
+        </div>
+      `).join('');
+
+      wholesaleGrid.innerHTML = sampleProducts.filter(p => p.type === 'wholesale').map(p => `
+        <div class="product-card">
+          <img src="${p.img}" class="product-img">
+          <div class="product-info">
+            <div class="product-title">${p.name}</div>
+            <div class="product-price">$${p.price}</div>
+            <button class="btn-add" onclick="addToCart()">+ Dalbo Jumlad</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function addToCart() {
+      cartCount++;
+      document.getElementById('cartBadge').textContent = cartCount;
+      alert("Alaabta waa la ku daray!");
+    }
+
+    function sendSupportMessage() {
+      const txt = document.getElementById('msgInput').value;
+      if(!txt) return alert("Fadlan qor fariinta!");
+      alert("Fariintaada waa la diray! Waanu kuu soo jawaabi doonaa.");
+      document.getElementById('msgInput').value = "";
+    }
+
+    // INIT
+    renderProducts();
+  </script>
 </body>
 </html>

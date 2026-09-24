@@ -21,27 +21,27 @@
       margin-bottom: 24px;
     }
     .stat-card {
-      background: var(--card-bg);
+      background: var(--card-bg, #ffffff);
       padding: 20px;
-      border-radius: var(--radius);
-      border: 1px solid var(--border-color);
-      box-shadow: var(--shadow);
+      border-radius: var(--radius, 8px);
+      border: 1px solid var(--border-color, #e2e8f0);
+      box-shadow: var(--shadow, 0 2px 4px rgba(0,0,0,0.05));
     }
     .stat-card h4 {
       font-size: 0.85rem;
-      color: var(--text-muted);
+      color: var(--text-muted, #64748b);
       margin-bottom: 8px;
     }
     .stat-card p {
       font-size: 1.5rem;
       font-weight: 700;
-      color: var(--primary-color);
+      color: var(--primary-color, #0f172a);
     }
     .admin-section {
-      background: var(--card-bg);
+      background: var(--card-bg, #ffffff);
       padding: 20px;
-      border-radius: var(--radius);
-      border: 1px solid var(--border-color);
+      border-radius: var(--radius, 8px);
+      border: 1px solid var(--border-color, #e2e8f0);
       margin-bottom: 24px;
     }
     .admin-form {
@@ -52,13 +52,13 @@
     }
     .admin-form input, .admin-form select, .admin-form button {
       padding: 10px 14px;
-      border: 1px solid var(--border-color);
+      border: 1px solid var(--border-color, #cbd5e1);
       border-radius: 8px;
       font-size: 0.9rem;
       outline: none;
     }
     .admin-form button {
-      background: var(--accent-color);
+      background: var(--accent-color, #2563eb);
       color: #fff;
       font-weight: 600;
       cursor: pointer;
@@ -66,7 +66,7 @@
       transition: background 0.2s;
     }
     .admin-form button:hover {
-      background: var(--accent-hover);
+      background: var(--accent-hover, #1d4ed8);
     }
     .admin-table-wrap {
       overflow-x: auto;
@@ -80,11 +80,11 @@
     }
     .admin-table th, .admin-table td {
       padding: 12px;
-      border-bottom: 1px solid var(--border-color);
+      border-bottom: 1px solid var(--border-color, #e2e8f0);
     }
     .admin-table th {
-      background-color: var(--bg-color);
-      color: var(--text-muted);
+      background-color: var(--bg-color, #f8fafc);
+      color: var(--text-muted, #64748b);
       font-weight: 600;
     }
     .status-badge {
@@ -97,7 +97,7 @@
     .status-completed { background: #dcfce7; color: #15803d; }
     .status-cancelled { background: #fee2e2; color: #b91c1c; }
     .btn-danger {
-      background: var(--danger-color);
+      background: #ef4444;
       color: #fff;
       border: none;
       padding: 6px 10px;
@@ -105,19 +105,22 @@
       cursor: pointer;
       font-size: 0.8rem;
     }
+    .btn-danger:hover {
+      background: #dc2626;
+    }
   </style>
 </head>
 <body>
 
   <!-- HEADER -->
   <header class="app-header">
-    <div class="header-container">
+    <div class="header-container" style="display:flex; justify-content:space-between; align-items:center; padding:16px;">
       <div class="app-logo">
-        <h1>WAHEN <span>Admin</span></h1>
+        <h1 style="font-size:1.5rem; margin:0;">WAHEN <span style="color:#2563eb;">Admin</span></h1>
       </div>
-      <div class="header-actions">
-        <a href="index.html" class="pill-btn">⬅️ Qaybta Macmiilka</a>
-        <button type="button" id="adminLogoutBtn" class="icon-btn" title="Soo bax">🚪</button>
+      <div class="header-actions" style="display:flex; gap:10px;">
+        <a href="index.html" class="pill-btn" style="text-decoration:none; padding:8px 12px; background:#e2e8f0; border-radius:6px; color:#333; font-size:0.9rem;">⬅️ Qaybta Macmiilka</a>
+        <button type="button" id="adminLogoutBtn" class="icon-btn" title="Soo bax" style="padding:8px 12px; cursor:pointer; border:1px solid #ccc; border-radius:6px; background:#fff;">🚪 Logout</button>
       </div>
     </div>
   </header>
@@ -206,11 +209,11 @@
   </main>
 
   <!-- TOAST NOTIFICATION CONTAINER -->
-  <div id="toast" class="toast"></div>
+  <div id="toast" class="toast" style="position:fixed; bottom:20px; right:20px; z-index:1000;"></div>
 
   <!-- ADMIN SCRIPT ENGINE -->
   <script>
-    // Supabase Credentials (Ensure these match script.js)
+    // Supabase Credentials (Geli kuwaaga dhabta ah)
     const SUPABASE_URL = "YOUR_SUPABASE_URL";
     const SUPABASE_KEY = "YOUR_SUPABASE_ANON_KEY";
     const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -219,19 +222,23 @@
     function showToast(msg, type = "info") {
       const toast = document.getElementById("toast");
       toast.textContent = msg;
-      toast.className = `toast show ${type}`;
-      setTimeout(() => toast.className = "toast", 3000);
+      toast.style.display = "block";
+      toast.style.padding = "12px 20px";
+      toast.style.background = type === "error" ? "#ef4444" : "#22c55e";
+      toast.style.color = "#fff";
+      toast.style.borderRadius = "8px";
+      setTimeout(() => toast.style.display = "none", 3000);
     }
 
     // Auth & Admin Security Check
     async function checkAdminAuth() {
       const { data: { user }, error } = await supabase.auth.getUser();
       if (error || !user) {
-        window.location.href = "index.html"; // Redirection if not logged in
+        window.location.href = "index.html";
         return;
       }
 
-      // Check user role in public.profiles
+      // Profile verify
       const { data: profile } = await supabase
         .from("profiles")
         .select("role, account_type")
@@ -268,7 +275,7 @@
       const table = document.getElementById("adminProductsTable");
       const { data: products, error } = await supabase.from("products").select("*").order("created_at", { ascending: false });
 
-      if (error || !products.length) {
+      if (error || !products || products.length === 0) {
         table.innerHTML = `<tr><td colspan="5" style="text-align:center;">Alaab lama helin.</td></tr>`;
         return;
       }
@@ -325,7 +332,7 @@
       const table = document.getElementById("adminOrdersTable");
       const { data: orders, error } = await supabase.from("orders").select("*").order("created_at", { ascending: false });
 
-      if (error || !orders.length) {
+      if (error || !orders || orders.length === 0) {
         table.innerHTML = `<tr><td colspan="5" style="text-align:center;">Wax amarra ah ma jiraan.</td></tr>`;
         return;
       }
@@ -335,7 +342,7 @@
           <td><small>${o.id.substring(0, 8)}...</small></td>
           <td><small>${o.user_id ? o.user_id.substring(0, 8) : 'Guest'}</small></td>
           <td>$${Number(o.total_amount).toFixed(2)}</td>
-          <td><span class="status-badge status-${o.status.toLowerCase()}">${o.status}</span></td>
+          <td><span class="status-badge status-${(o.status || 'pending').toLowerCase()}">${o.status || 'pending'}</span></td>
           <td>
             <select onchange="updateOrderStatus('${o.id}', this.value)">
               <option value="">Beddel...</option>

@@ -3739,67 +3739,6 @@ async function openAuth(mode = "login") {
   );
 }
 
-/* =========================================================
-   42. ACCOUNT VIEW
-========================================================= */
-
-function renderAccount() {
-
-  const guest =
-    $("#account-guest") ||
-    $("#guest-account-panel");
-
-  const customer =
-    $("#account-customer") ||
-    $("#customer-account-panel");
-
-  if (!guest || !customer) {
-    return;
-  }
-
-  const loggedIn =
-    Boolean(
-      state.user &&
-      state.user.id
-    );
-
-  guest.style.display =
-    loggedIn ? "none" : "";
-
-  customer.style.display =
-    loggedIn ? "" : "none";
-
-  const name =
-    document.querySelector(
-      "#account-name"
-    );
-
-  const status =
-    document.querySelector(
-      "#account-status"
-    );
-
-  if (name) {
-
-    name.textContent =
-      state.user.name ||
-      "Customer";
-
-  }
-
-  if (status) {
-
-    status.textContent =
-      loggedIn
-        ? (
-            state.user.phone ||
-            "Account-kaaga"
-          )
-        : "Soo gal ama samee account";
-
-  }
-}
-
 
 /* =========================================================
    42.1 PROFILE FORM
@@ -3809,53 +3748,13 @@ async function openProfile() {
 
   if (!state.user.id) {
 
-    showToast(
+    toast(
       "Fadlan marka hore Login samee."
     );
 
     openAuth("login");
 
     return;
-  }
-
-  let districts = [];
-
-  try {
-
-    const {
-      data,
-      error
-    } =
-      await supabaseClient
-        .from("districts")
-        .select(`
-          id,
-          name,
-          region_id
-        `)
-        .order(
-          "name",
-          {
-            ascending: true
-          }
-        );
-
-    if (error) {
-      console.error(
-        "Districts load error:",
-        error
-      );
-    } else {
-      districts = data || [];
-    }
-
-  } catch (error) {
-
-    console.error(
-      "Districts load failed:",
-      error
-    );
-
   }
 
 
@@ -4009,355 +3908,399 @@ async function openProfile() {
   `;
 
 
-  const modal =
-    openModal(
-      "Profile-kayga",
-      profileHTML
-    );
+  openModal(
+    "Profile-kayga",
+    profileHTML,
 
+    async (modal) => {
 
-  const regionSelect =
-    modal.querySelector(
-      "#profile-region"
-    );
-
-  const districtSelect =
-    modal.querySelector(
-      "#profile-district"
-    );
-
-  const saveButton =
-    modal.querySelector(
-      "#save-profile-btn"
-    );
-
-
-  function renderDistricts(
-    regionName
-  ) {
-
-    const filtered =
-      districts.filter(
-        (district) =>
-          district.region_name === regionName
-      );
-
-    districtSelect.innerHTML = `
-      <option value="">
-        Dooro degmada
-      </option>
-    `;
-
-    filtered.forEach(
-      (district) => {
-
-        const option =
-          document.createElement(
-            "option"
-          );
-
-        option.value =
-          district.name;
-
-        option.textContent =
-          district.name;
-
-        if (
-          district.name ===
-          state.user.district
-        ) {
-
-          option.selected =
-            true;
-
-        }
-
-        districtSelect.appendChild(
-          option
-        );
-
-      }
-    );
-
-  }
-
-
-  /*
-   * Waxaan marka hore si sax ah
-   * u helaynaa gobolka uu district-ku leeyahay.
-   */
-
-  async function loadDistrictsForRegion(
-    regionName
-  ) {
-
-    if (!regionName) {
-
-      districtSelect.innerHTML = `
-        <option value="">
-          Dooro degmada
-        </option>
-      `;
-
-      return;
-
-    }
-
-
-    const {
-      data,
-      error
-    } =
-      await supabaseClient
-        .from("districts")
-        .select(`
-          id,
-          name,
-          region_id,
-          regions (
-            name
-          )
-        `)
-        .order(
-          "name",
-          {
-            ascending: true
-          }
-        );
-
-
-    if (error) {
-
-      console.error(
-        "District load error:",
-        error
-      );
-
-      return;
-    }
-
-
-    districtSelect.innerHTML = `
-      <option value="">
-        Dooro degmada
-      </option>
-    `;
-
-
-    (data || [])
-      .filter(
-        (district) =>
-          district.regions?.name ===
-          regionName
-      )
-      .forEach(
-        (district) => {
-
-          const option =
-            document.createElement(
-              "option"
-            );
-
-          option.value =
-            district.name;
-
-          option.textContent =
-            district.name;
-
-          if (
-            district.name ===
-            state.user.district
-          ) {
-
-            option.selected =
-              true;
-
-          }
-
-          districtSelect.appendChild(
-            option
-          );
-
-        }
-      );
-
-  }
-
-
-  regionSelect.addEventListener(
-    "change",
-    async () => {
-
-      state.user.region =
-        regionSelect.value;
-
-      state.user.district =
-        "";
-
-      await loadDistrictsForRegion(
-        regionSelect.value
-      );
-
-    }
-  );
-
-
-  await loadDistrictsForRegion(
-    state.user.region
-  );
-
-
-  saveButton.addEventListener(
-    "click",
-    async () => {
-
-      const name =
+      const regionSelect =
         modal.querySelector(
-          "#profile-name"
-        ).value.trim();
+          "#profile-region"
+        );
 
-      const phone =
+      const districtSelect =
         modal.querySelector(
-          "#profile-phone"
-        ).value.trim();
+          "#profile-district"
+        );
 
-      const region =
-        regionSelect.value;
-
-      const district =
-        districtSelect.value;
-
-      const landmark =
+      const saveButton =
         modal.querySelector(
-          "#profile-landmark"
-        ).value.trim();
-
-
-      if (!name) {
-
-        showToast(
-          "Fadlan geli magaca."
+          "#save-profile-btn"
         );
 
-        return;
-      }
 
-
-      if (!phone) {
-
-        showToast(
-          "Fadlan geli telefoonka."
-        );
-
-        return;
-      }
-
-
-      if (!region) {
-
-        showToast(
-          "Fadlan dooro gobolka."
-        );
-
-        return;
-      }
-
-
-      if (!district) {
-
-        showToast(
-          "Fadlan dooro degmada."
-        );
-
-        return;
-      }
-
-
-      saveButton.disabled =
-        true;
-
-      saveButton.textContent =
-        "⏳ Kaydinaya...";
-
-
-      const {
-        error
-      } =
-        await supabaseClient
-          .from("profiles")
-          .update({
-
-            full_name:
-              name,
-
-            phone:
-              phone,
-
-            region:
-              region,
-
-            district:
-              district,
-
-            landmark:
-              landmark
-
-          })
-          .eq(
-            "id",
-            state.user.id
-          );
-
-
-      if (error) {
+      if (
+        !regionSelect ||
+        !districtSelect ||
+        !saveButton
+      ) {
 
         console.error(
-          "Profile save error:",
-          error
+          "Profile form elements lama helin."
         );
-
-        showToast(
-          "Profile-ka lama kaydin."
-        );
-
-        saveButton.disabled =
-          false;
-
-        saveButton.textContent =
-          "💾 Kaydi Profile";
 
         return;
       }
 
 
-      state.user.name =
-        name;
+      async function loadDistrictsForRegion(
+        regionName
+      ) {
 
-      state.user.phone =
-        phone;
-
-      state.user.region =
-        region;
-
-      state.user.district =
-        district;
-
-      state.user.landmark =
-        landmark;
+        districtSelect.innerHTML = `
+          <option value="">
+            Dooro degmada
+          </option>
+        `;
 
 
-      renderAccount();
+        if (!regionName) {
+          return;
+        }
 
-      showToast(
-        "Profile-ka waa la kaydiyey ✅"
+
+        if (!supabaseClient) {
+
+          console.error(
+            "Supabase connection ayaa maqan."
+          );
+
+          return;
+        }
+
+
+        try {
+
+          const {
+            data: regionData,
+            error: regionError
+          } =
+            await supabaseClient
+              .from("regions")
+              .select("id")
+              .eq(
+                "name",
+                regionName
+              )
+              .maybeSingle();
+
+
+          if (regionError) {
+
+            console.error(
+              "Region load error:",
+              regionError
+            );
+
+            toast(
+              "Gobolka lama helin."
+            );
+
+            return;
+          }
+
+
+          if (!regionData) {
+
+            console.error(
+              "Region lama helin:",
+              regionName
+            );
+
+            return;
+          }
+
+
+          const {
+            data: districts,
+            error: districtError
+          } =
+            await supabaseClient
+              .from("districts")
+              .select(
+                "id, name, region_id"
+              )
+              .eq(
+                "region_id",
+                regionData.id
+              )
+              .order(
+                "name",
+                {
+                  ascending: true
+                }
+              );
+
+
+          if (districtError) {
+
+            console.error(
+              "District load error:",
+              districtError
+            );
+
+            toast(
+              "Degmooyinka lama soo dejin."
+            );
+
+            return;
+          }
+
+
+          (districts || [])
+            .forEach(
+              (district) => {
+
+                const option =
+                  document.createElement(
+                    "option"
+                  );
+
+                option.value =
+                  district.name;
+
+                option.textContent =
+                  district.name;
+
+
+                if (
+                  district.name ===
+                  state.user.district
+                ) {
+
+                  option.selected =
+                    true;
+                }
+
+
+                districtSelect.appendChild(
+                  option
+                );
+
+              }
+            );
+
+        } catch (error) {
+
+          console.error(
+            "District loading failed:",
+            error
+          );
+
+          toast(
+            "Degmooyinka lama soo dejin."
+          );
+        }
+      }
+
+
+      regionSelect.addEventListener(
+        "change",
+        async () => {
+
+          state.user.region =
+            regionSelect.value;
+
+          state.user.district =
+            "";
+
+          await loadDistrictsForRegion(
+            regionSelect.value
+          );
+
+        }
       );
 
-      modal.remove();
+
+      await loadDistrictsForRegion(
+        state.user.region || ""
+      );
+
+
+      saveButton.addEventListener(
+        "click",
+        async () => {
+
+          const name =
+            modal.querySelector(
+              "#profile-name"
+            ).value.trim();
+
+
+          const phone =
+            modal.querySelector(
+              "#profile-phone"
+            ).value.trim();
+
+
+          const region =
+            regionSelect.value;
+
+
+          const district =
+            districtSelect.value;
+
+
+          const landmark =
+            modal.querySelector(
+              "#profile-landmark"
+            ).value.trim();
+
+
+          if (!name) {
+
+            toast(
+              "Fadlan geli magaca."
+            );
+
+            return;
+          }
+
+
+          if (!phone) {
+
+            toast(
+              "Fadlan geli telefoonka."
+            );
+
+            return;
+          }
+
+
+          if (!region) {
+
+            toast(
+              "Fadlan dooro gobolka."
+            );
+
+            return;
+          }
+
+
+          if (!district) {
+
+            toast(
+              "Fadlan dooro degmada."
+            );
+
+            return;
+          }
+
+
+          saveButton.disabled =
+            true;
+
+          saveButton.textContent =
+            "⏳ Kaydinaya...";
+
+
+          try {
+
+            const {
+              error
+            } =
+              await supabaseClient
+                .from("profiles")
+                .update({
+
+                  full_name:
+                    name,
+
+                  phone:
+                    phone,
+
+                  region:
+                    region,
+
+                  district:
+                    district,
+
+                  landmark:
+                    landmark
+
+                })
+                .eq(
+                  "id",
+                  state.user.id
+                );
+
+
+            if (error) {
+
+              console.error(
+                "Profile save error:",
+                error
+              );
+
+              toast(
+                "Profile-ka lama kaydin."
+              );
+
+              saveButton.disabled =
+                false;
+
+              saveButton.textContent =
+                "💾 Kaydi Profile";
+
+              return;
+            }
+
+
+            state.user.name =
+              name;
+
+            state.user.phone =
+              phone;
+
+            state.user.region =
+              region;
+
+            state.user.district =
+              district;
+
+            state.user.landmark =
+              landmark;
+
+
+            renderAccount();
+
+
+            toast(
+              "Profile-ka waa la kaydiyey ✅"
+            );
+
+
+            modal.remove();
+
+          } catch (error) {
+
+            console.error(
+              "Profile save failed:",
+              error
+            );
+
+            toast(
+              "Khalad ayaa dhacay markii Profile-ka la kaydinayay."
+            );
+
+
+            saveButton.disabled =
+              false;
+
+            saveButton.textContent =
+              "💾 Kaydi Profile";
+
+          }
+
+        }
+      );
 
     }
   );
 
 }
+
 /* =========================================================
    43. CHAT
 ========================================================= */

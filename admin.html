@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="so">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WaHeN Enterprise — Portal-ka Maamulka & Ganacsatada</title>
+  
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body style="padding-top: 20px;">
+
+  <div class="app-main" style="max-width: 1200px; margin: 0 auto; padding: 20px;">
+    
+    <!-- HEADER PORTAL -->
+    <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; border-bottom: 1px solid var(--border-color); padding-bottom: 16px;">
+      <div>
+        <h1 style="font-size: 1.6rem; font-weight: 800;">WaHeN Enterprise Portal</h1>
+        <p style="color: var(--text-muted); font-size: 0.85rem;">CEO • Admin • Employee • Seller Management Platform</p>
+      </div>
+      <div>
+        <a href="index.html" class="pill-btn" style="display: inline-block;">🏠 Qabo Marketplace-ka</a>
+      </div>
+    </header>
+
+    <!-- METRICS DASHBOARD (FOR CEO / ADMIN / MANAGERS) -->
+    <section class="metrics-grid">
+      <div class="metric-card">
+        <h4>Warta Iibka Guud (Total Sales)</h4>
+        <div class="value" id="metricSales">$0.00</div>
+      </div>
+      <div class="metric-card">
+        <h4>Warta Dalabaadka (Total Orders)</h4>
+        <div class="value" id="metricOrders">0</div>
+      </div>
+      <div class="metric-card">
+        <h4>Amarrada Dhiman (Pending Orders)</h4>
+        <div class="value" id="metricPending" style="color: var(--warning);">0</div>
+      </div>
+      <div class="metric-card">
+        <h4>Dhammaan Alaabta (Products)</h4>
+        <div class="value" id="metricProducts">0</div>
+      </div>
+    </section>
+
+    <div style="display: grid; grid-template-columns: 1fr; gap: 24px;">
+      
+      <!-- ADD PRODUCT FORM (SELLER / VENDOR / ADMIN) -->
+      <div style="background: var(--card-bg); padding: 20px; border-radius: var(--radius); border: 1px solid var(--border-color); box-shadow: var(--shadow);">
+        <h3 style="margin-bottom: 16px; font-size: 1.1rem;">➕ Ku Dar Alaab Cusub (Add Product)</h3>
+        
+        <form id="addProductForm" style="display: grid; grid-template-columns: 1fr; gap: 12px;">
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+            <div class="form-group">
+              <label>Magaca Alaabta</label>
+              <input type="text" id="pName" class="form-control" required placeholder="Tusaale: iPhone 15 Pro">
+            </div>
+            <div class="form-group">
+              <label>Qiimaha ($)</label>
+              <input type="number" step="0.01" id="pPrice" class="form-control" required placeholder="999.00">
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+            <div class="form-group">
+              <label>Qaybta (Category)</label>
+              <select id="pCategory" class="form-control">
+                <option value="Electronics">Electronics</option>
+                <option value="Dharka">Dharka & Fashion</option>
+                <option value="Cunto">Cunto & Groceries</option>
+                <option value="Gadiidka">Gadiidka & Auto</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Image URL (Sawirka Alaabta)</label>
+              <input type="url" id="pImageUrl" class="form-control" placeholder="https://example.com/image.jpg">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Faahfaahin Yar (Description)</label>
+            <textarea id="pDescription" class="form-control" rows="2" placeholder="Sifooyinka alaabta..."></textarea>
+          </div>
+
+          <button type="submit" class="pill-btn active" style="padding: 12px; font-weight: 700; width: 200px;">Ku Dar Alaabta</button>
+        </form>
+      </div>
+
+      <!-- PRODUCT LIST MANAGEMENT -->
+      <div style="background: var(--card-bg); padding: 20px; border-radius: var(--radius); border: 1px solid var(--border-color); box-shadow: var(--shadow);">
+        <h3 style="margin-bottom: 16px; font-size: 1.1rem;">📦 Maamulida Alaabta (Manage Products)</h3>
+        <div style="overflow-x: auto;">
+          <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.85rem;">
+            <thead>
+              <tr style="border-bottom: 2px solid var(--border-color); background: #f8fafc;">
+                <th style="padding: 10px;">Sawir</th>
+                <th style="padding: 10px;">Magaca</th>
+                <th style="padding: 10px;">Category</th>
+                <th style="padding: 10px;">Qiimaha</th>
+                <th style="padding: 10px;">Tirtir</th>
+              </tr>
+            </thead>
+            <tbody id="adminProductsTable">
+              <tr><td colspan="5" style="padding: 20px; text-align: center; color: var(--text-muted);">Soo rogeysa alaabta...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ORDERS MANAGEMENT TABLE -->
+      <div style="background: var(--card-bg); padding: 20px; border-radius: var(--radius); border: 1px solid var(--border-color); box-shadow: var(--shadow);">
+        <h3 style="margin-bottom: 16px; font-size: 1.1rem;">🛒 Maamulida Amarrada (Orders Management)</h3>
+        <div style="overflow-x: auto;">
+          <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.85rem;">
+            <thead>
+              <tr style="border-bottom: 2px solid var(--border-color); background: #f8fafc;">
+                <th style="padding: 10px;">Customer</th>
+                <th style="padding: 10px;">Phone</th>
+                <th style="padding: 10px;">Cinwaanka</th>
+                <th style="padding: 10px;">Warta ($)</th>
+                <th style="padding: 10px;">Status</th>
+                <th style="padding: 10px;">Beddel Status</th>
+              </tr>
+            </thead>
+            <tbody id="adminOrdersTable">
+              <tr><td colspan="6" style="padding: 20px; text-align: center; color: var(--text-muted);">Soo rogeysa dalabaadka...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <div id="toast" class="toast"></div>
+
+  <script src="supabase-client.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      await loadMetrics();
+      await loadAdminProducts();
+      await loadAdminOrders();
+
+      document.getElementById('addProductForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const pData = {
+          name: document.getElementById('pName').value,
+          price: document.getElementById('pPrice').value,
+          category: document.getElementById('pCategory').value,
+          image_url: document.getElementById('pImageUrl').value,
+          description: document.getElementById('pDescription').value
+        };
+
+        const { error } = await addProduct(pData);
+        if (error) {
+          alert('Cilad: ' + error.message);
+        } else {
+          alert('Alaabta waa la daray!');
+          document.getElementById('addProductForm').reset();
+          await loadAdminProducts();
+          await loadMetrics();
+        }
+      });
+    });
+
+    async function loadMetrics() {
+      const metrics = await getDashboardMetrics();
+      document.getElementById('metricSales').textContent = `$${metrics.totalSales.toFixed(2)}`;
+      document.getElementById('metricOrders').textContent = metrics.totalOrders;
+      document.getElementById('metricPending').textContent = metrics.pendingOrders;
+      document.getElementById('metricProducts').textContent = metrics.totalProducts;
+    }
+
+    async function loadAdminProducts() {
+      const { data: products } = await getProducts();
+      const tbody = document.getElementById('adminProductsTable');
+      if (!products || products.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" style="padding:20px; text-align:center;">Alaab ma jirto.</td></tr>`;
+        return;
+      }
+      tbody.innerHTML = products.map(p => `
+        <tr style="border-bottom: 1px solid var(--border-color);">
+          <td style="padding: 10px;"><img src="${p.image_url || 'https://via.placeholder.com/40'}" style="width:35px; height:35px; border-radius:4px; object-fit:cover;"></td>
+          <td style="padding: 10px; font-weight:600;">${p.name}</td>
+          <td style="padding: 10px;">${p.category}</td>
+          <td style="padding: 10px;">$${parseFloat(p.price).toFixed(2)}</td>
+          <td style="padding: 10px;"><button onclick="handleDelete('${p.id}')" style="color:var(--danger); background:none; border:none; cursor:pointer;">🗑️ Tirtir</button></td>
+        </tr>
+      `).join('');
+    }
+
+    async function handleDelete(id) {
+      if (confirm('Ma ziirtaa inaad tirtirto alaabtan?')) {
+        await deleteProduct(id);
+        await loadAdminProducts();
+        await loadMetrics();
+      }
+    }
+
+    async function loadAdminOrders() {
+      const { data: orders } = await getAllOrders();
+      const tbody = document.getElementById('adminOrdersTable');
+      if (!orders || orders.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" style="padding:20px; text-align:center;">Amar ma jiro.</td></tr>`;
+        return;
+      }
+      tbody.innerHTML = orders.map(o => `
+        <tr style="border-bottom: 1px solid var(--border-color);">
+          <td style="padding: 10px; font-weight:600;">${o.customer_name || 'Anonym'}</td>
+          <td style="padding: 10px;">${o.customer_phone || '-'}</td>
+          <td style="padding: 10px;">${o.delivery_address || '-'}</td>
+          <td style="padding: 10px; font-weight:700;">$${parseFloat(o.total_amount).toFixed(2)}</td>
+          <td style="padding: 10px;"><span style="padding:3px 8px; border-radius:10px; font-size:0.75rem; background:#feefc3; color:#b45309;">${o.status}</span></td>
+          <td style="padding: 10px;">
+            <select onchange="handleStatusChange('${o.id}', this.value)" style="padding:4px; border-radius:4px;">
+              <option value="pending" ${o.status === 'pending' ? 'selected' : ''}>Pending</option>
+              <option value="processing" ${o.status === 'processing' ? 'selected' : ''}>Processing</option>
+              <option value="completed" ${o.status === 'completed' ? 'selected' : ''}>Completed</option>
+            </select>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    async function handleStatusChange(orderId, newStatus) {
+      await updateOrderStatus(orderId, newStatus);
+      await loadAdminOrders();
+      await loadMetrics();
+    }
+  </script>
+</body>
+</html>

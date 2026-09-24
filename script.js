@@ -1,167 +1,153 @@
-/**
- * WAHEN MARKETPLACE - CORE APPLICATION ENGINE
- * Pure Vanilla JavaScript ES6+ Architecture
- * Connected to Supabase Backend
- */
+/* ==========================================================================
+   WAHEN MARKETPLACE — CORE APPLICATION ENGINE (script.js)
+   ========================================================================== */
 
-// ==========================================================================
-// 1. STATE MANAGEMENT (GLOBAL STORE)
-// ==========================================================================
+// --------------------------------------------------------------------------
+// 1. SUPABASE CONFIGURATION & INITIALIZATION
+// --------------------------------------------------------------------------
+// Ogow: Ku beddel URL-kaaga iyo Anon Key-gaaga rasmiga ah ee Supabase Dashboard
+const SUPABASE_URL = "https://YOUR-PROJECT-REF.supabase.co";
+const SUPABASE_ANON_KEY = "YOUR-SUPABASE-ANON-KEY-HERE";
+
+let supabaseClient = null;
+
+if (typeof supabase !== "undefined") {
+  supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+} else {
+  console.error("Supabase SDK laguma soo shubin HTML-ka!");
+}
+
+// --------------------------------------------------------------------------
+// 2. STATE MANAGEMENT (Xogta Guud ee App-ka)
+// --------------------------------------------------------------------------
 const AppState = {
-  user: null,
-  session: null,
   products: [],
   filteredProducts: [],
-  categories: [],
-  brands: [],
-  cart: [],
-  currentCategory: 'all',
-  currentBrand: null,
-  searchQuery: '',
-  location: 'Hargeysa',
-  isLoading: false
+  cart: JSON.parse(localStorage.getItem("wahen_cart")) || [],
+  currentUser: JSON.parse(localStorage.getItem("wahen_user")) || null,
+  activeCategory: "all",
+  activeBrand: null,
+  searchQuery: "",
+  deliveryFee: 2.00
 };
 
-// ==========================================================================
-// 2. SUPABASE API SERVICE LAYER
-// ==========================================================================
+// --------------------------------------------------------------------------
+// 3. API SERVICE (Isku Xidhka Supabase Database-ka)
+// --------------------------------------------------------------------------
 const ApiService = {
-  // Fetch All Active Products
+  // Soo qaadida Dhammaan Alaabooyinka
   async fetchProducts() {
+    if (!supabaseClient) return [];
     try {
       const { data, error } = await supabaseClient
-        .from('products')
-        .select('*')
-        .order('created_at', { ascending: false });
+        .from("products")
+        .select("*")
+        .order("created_at", { ascending: false });
 
       if (error) throw error;
       return data || [];
     } catch (err) {
-      console.error('[ApiService] Error fetching products:', err.message);
-      UI.showToast('Cillad ayaa ka dhacday soo qaadista alaabta', 'error');
+      console.error("Error fetching products:", err.message);
+      UI.showToast("Cillad ayaa ka dhacday soo qaadista alaabta", "error");
       return [];
     }
   },
 
-  // Fetch Products by Category
-  async fetchProductsByCategory(categorySlug) {
+  // Soo qaadida Alaabta loo eego Qaybta (Category)
+  async fetchProductsByCategory(category) {
+    if (!supabaseClient) return [];
     try {
-      let query = supabaseClient.from('products').select('*');
-      if (categorySlug !== 'all') {
-        query = query.eq('category', categorySlug);
+      let query = supabaseClient.from("products").select("*");
+      if (category !== "all") {
+        query = query.eq("category", category);
       }
       const { data, error } = await query;
       if (error) throw error;
       return data || [];
     } catch (err) {
-      console.error('[ApiService] Category fetch error:', err.message);
+      console.error("Error filtering category:", err.message);
       return [];
     }
   },
 
-  // Search Products using Supabase Text Match
-  async searchProducts(searchTerm) {
+  // Raadinta Alaabta (Search)
+  async searchProducts(keyword) {
+    if (!supabaseClient) return [];
     try {
       const { data, error } = await supabaseClient
-        .from('products')
-        .select('*')
-        .ilike('name', `%${searchTerm}%`);
+        .from("products")
+        .select("*")
+        .ilike("name", `%${keyword}%`);
 
       if (error) throw error;
       return data || [];
     } catch (err) {
-      console.error('[ApiService] Search error:', err.message);
+      console.error("Error searching products:", err.message);
       return [];
     }
   },
 
-  // Submit New Order to Supabase
-  async createOrder(orderPayload) {
+  // Abuurida Dalab Cusub (Checkout / Order)
+  async createOrder(orderData) {
+    if (!supabaseClient) return null;
     try {
       const { data, error } = await supabaseClient
-        .from('orders')
-        .insert([orderPayload])
+        .from("orders")
+        .insert([orderData])
         .select();
 
       if (error) throw error;
-      return { success: true, data };
+      return data;
     } catch (err) {
-      console.error('[ApiService] Order creation error:', err.message);
-      return { success: false, error: err.message };
+      console.error("Error creating order:", err.message);
+      UI.showToast("Dalabku ma samaysmin, fadlan dib u baroocad.", "error");
+      return null;
     }
   },
 
-  // Auth: Login
+  // Auth: Soo Gal / Login
   async login(email, password) {
-    try {
-      const { data, error } = await supabaseClient.auth.signInWithPassword({
-        email,
-        password
-      });
-      if (error) throw error;
-      return { success: true, data };
-    } catch (err) {
-      return { success: false, error: err.message };
-    }
+    if (!supabaseClient) return { error: "Supabase laguma xidhin" };
+    const { data, error } = await supabaseClient.auth.signInWithPassword({
+      email,
+      password
+    });
+    return { data, error };
   },
 
-  // Auth: Sign Up
-  async signUp(email, password, metadata) {
-    try {
-      const { data, error } = await supabaseClient.auth.signUp({
-        email,
-        password,
-        options: { data: metadata }
-      });
-      if (error) throw error;
-      return { success: true, data };
-    } catch (err) {
-      return { success: false, error: err.message };
-    }
+  // Auth: Account Samaysasho / SignUp
+  async signUp(email, password, userData) {
+    if (!supabaseClient) return { error: "Supabase laguma xidhin" };
+    const { data, error } = await supabaseClient.auth.signUp({
+      email,
+      password,
+      options: { data: userData }
+    });
+    return { data, error };
   }
 };
 
-// ==========================================================================
-// 3. CART MANAGEMENT (LOCALSTORAGE + STATE SYNC)
-// ==========================================================================
+// --------------------------------------------------------------------------
+// 4. CART MANAGER (Maareynta Gaadhiga Iibsiga)
+// --------------------------------------------------------------------------
 const CartManager = {
-  init() {
-    const savedCart = localStorage.getItem('wahen_cart');
-    if (savedCart) {
-      try {
-        AppState.cart = JSON.parse(savedCart);
-      } catch (e) {
-        AppState.cart = [];
-      }
-    }
-    this.updateCartUI();
-  },
-
-  saveCart() {
-    localStorage.setItem('wahen_cart', JSON.stringify(AppState.cart));
-    this.updateCartUI();
-  },
-
-  addItem(product, quantity = 1) {
-    const existingIndex = AppState.cart.findIndex(item => item.id === product.id);
-    if (existingIndex > -1) {
-      AppState.cart[existingIndex].quantity += quantity;
+  addItem(product) {
+    const existing = AppState.cart.find(item => item.id === product.id);
+    if (existing) {
+      existing.quantity += 1;
     } else {
-      AppState.cart.push({
-        id: product.id,
-        name: product.name,
-        price: Number(product.price),
-        image_url: product.image_url,
-        quantity: quantity
-      });
+      AppState.cart.push({ ...product, quantity: 1 });
     }
     this.saveCart();
-    UI.showToast(`'${product.name}' waa lagu daray cart-ka!`);
+    UI.updateCartBadge();
+    UI.showToast(`${product.name || 'Alaabta'} waa ku dartay cart-ka!`);
   },
 
   removeItem(productId) {
     AppState.cart = AppState.cart.filter(item => item.id !== productId);
     this.saveCart();
+    UI.updateCartBadge();
+    this.renderCartItems();
   },
 
   updateQuantity(productId, delta) {
@@ -172,6 +158,8 @@ const CartManager = {
         this.removeItem(productId);
       } else {
         this.saveCart();
+        UI.updateCartBadge();
+        this.renderCartItems();
       }
     }
   },
@@ -179,356 +167,273 @@ const CartManager = {
   clearCart() {
     AppState.cart = [];
     this.saveCart();
-  },
-
-  getTotals() {
-    const subtotal = AppState.cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-    const delivery = AppState.cart.length > 0 ? 2.00 : 0.00; // Flat $2 delivery rate
-    return {
-      subtotal: subtotal.toFixed(2),
-      delivery: delivery.toFixed(2),
-      total: (subtotal + delivery).toFixed(2),
-      itemCount: AppState.cart.reduce((sum, item) => sum + item.quantity, 0)
-    };
-  },
-
-  updateCartUI() {
-    const totals = this.getTotals();
-    const cartCountEl = document.getElementById('cartCount');
-    if (cartCountEl) cartCountEl.textContent = totals.itemCount;
-
-    const cartSubtotalEl = document.getElementById('cartSubtotal');
-    const cartDeliveryEl = document.getElementById('cartDelivery');
-    const cartTotalEl = document.getElementById('cartTotal');
-
-    if (cartSubtotalEl) cartSubtotalEl.textContent = `$${totals.subtotal}`;
-    if (cartDeliveryEl) cartDeliveryEl.textContent = `$${totals.delivery}`;
-    if (cartTotalEl) cartTotalEl.textContent = `$${totals.total}`;
-
+    UI.updateCartBadge();
     this.renderCartItems();
   },
 
+  saveCart() {
+    localStorage.setItem("wahen_cart", JSON.stringify(AppState.cart));
+  },
+
+  getTotals() {
+    const subtotal = AppState.cart.reduce(
+      (sum, item) => sum + (parseFloat(item.price) || 0) * item.quantity,
+      0
+    );
+    const total = subtotal > 0 ? subtotal + AppState.deliveryFee : 0;
+    return { subtotal, delivery: AppState.deliveryFee, total };
+  },
+
   renderCartItems() {
-    const container = document.getElementById('cartItems');
+    const container = document.getElementById("cartItems");
     if (!container) return;
 
     if (AppState.cart.length === 0) {
-      container.innerHTML = `
-        <div style="text-align:center; padding: 40px 10px;">
-          <p style="font-size: 48px; margin-bottom: 10px;">🛒</p>
-          <p style="color: #6B7280;">Cart-kaagu wuu madhan yahay.</p>
-        </div>
-      `;
+      container.innerHTML = `<p class="empty-cart-msg">Cart-kaagu waa faaruq!</p>`;
+      this.updateSummaryHTML(0, 0, 0);
       return;
     }
 
-    container.innerHTML = AppState.cart.map(item => `
-      <div class="cart-item" style="display:flex; align-items:center; justify-content:space-between; margin-bottom: 15px; border-bottom:1px solid #eee; padding-bottom:10px;">
-        <div style="display:flex; align-items:center; gap:10px;">
-          <img src="${item.image_url || 'https://via.placeholder.com/50'}" style="width:50px; height:50px; object-fit:cover; border-radius:8px;" />
-          <div>
-            <strong style="display:block; font-size:14px;">${item.name}</strong>
-            <small style="color:#6366F1;">$${item.price} x ${item.quantity}</small>
+    container.innerHTML = AppState.cart
+      .map(
+        item => `
+        <div class="cart-item-card" data-id="${item.id}">
+          <img src="${item.image || 'logo.png'}" alt="${item.name}" onerror="this.src='logo.png'">
+          <div class="cart-item-info">
+            <h4>${item.name}</h4>
+            <span class="price">$${parseFloat(item.price).toFixed(2)}</span>
           </div>
+          <div class="cart-qty-controls">
+            <button onclick="CartManager.updateQuantity('${item.id}', -1)">-</button>
+            <span>${item.quantity}</span>
+            <button onclick="CartManager.updateQuantity('${item.id}', 1)">+</button>
+          </div>
+          <button class="remove-btn" onclick="CartManager.removeItem('${item.id}')">×</button>
         </div>
-        <div style="display:flex; align-items:center; gap:8px;">
-          <button onclick="CartManager.updateQuantity(${item.id}, -1)" style="padding:2px 8px; border-radius:4px; border:1px solid #ccc;">-</button>
-          <span>${item.quantity}</span>
-          <button onclick="CartManager.updateQuantity(${item.id}, 1)" style="padding:2px 8px; border-radius:4px; border:1px solid #ccc;">+</button>
-          <button onclick="CartManager.removeItem(${item.id})" style="color:red; background:none; border:none; margin-left:5px;">×</button>
-        </div>
-      </div>
-    `).join('');
+      `
+      )
+      .join("");
+
+    const totals = this.getTotals();
+    this.updateSummaryHTML(totals.subtotal, totals.delivery, totals.total);
+  },
+
+  updateSummaryHTML(sub, del, tot) {
+    const subEl = document.getElementById("cartSubtotal");
+    const delEl = document.getElementById("cartDelivery");
+    const totEl = document.getElementById("cartTotal");
+
+    if (subEl) subEl.textContent = `$${sub.toFixed(2)}`;
+    if (delEl) delEl.textContent = `$${del.toFixed(2)}`;
+    if (totEl) totEl.textContent = `$${tot.toFixed(2)}`;
   }
 };
 
-// ==========================================================================
-// 4. UI RENDERER & INTERACTION CONTROLLER
-// ==========================================================================
+// --------------------------------------------------------------------------
+// 5. UI & ROUTING CONTROLLER
+// --------------------------------------------------------------------------
 const UI = {
-  // Show Global Loading
-  setLoading(status) {
-    AppState.isLoading = status;
-    const loader = document.getElementById('globalLoading');
-    if (loader) {
-      if (status) loader.classList.remove('hidden');
-      else loader.classList.add('hidden');
+  init() {
+    this.bindGlobalEvents();
+    this.updateCartBadge();
+    this.checkAuthStatus();
+    this.loadInitialPageData();
+  },
+
+  // Soo Muujinta Kaadhadhka Alaabta (Products Grid)
+  renderProducts(products, containerId = "productGrid") {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+
+    if (!products || products.length === 0) {
+      container.innerHTML = `<div class="no-results"><p>Wax alaab ah ma la helin.</p></div>`;
+      return;
+    }
+
+    container.innerHTML = products
+      .map(
+        p => `
+        <div class="product-card" data-id="${p.id}">
+          <div class="product-image-wrap">
+            <img src="${p.image || 'logo.png'}" alt="${p.name}" onerror="this.src='logo.png'">
+          </div>
+          <div class="product-details">
+            <span class="category-tag">${p.category || 'WaHeN'}</span>
+            <h3 class="product-title">${p.name}</h3>
+            <div class="product-bottom">
+              <span class="price">$${parseFloat(p.price || 0).toFixed(2)}</span>
+              <button class="add-to-cart-btn" onclick="CartManager.addItem(${JSON.stringify(p).replace(/"/g, '&quot;')})">🛒 +</button>
+            </div>
+          </div>
+        </div>
+      `
+      )
+      .join("");
+  },
+
+  updateCartBadge() {
+    const badge = document.getElementById("cartCount");
+    if (badge) {
+      const count = AppState.cart.reduce((total, item) => total + item.quantity, 0);
+      badge.textContent = count;
+      badge.style.display = count > 0 ? "inline-flex" : "none";
     }
   },
 
-  // Display Toast Notifications
-  showToast(message, type = 'info') {
-    const toast = document.getElementById('toast');
+  showToast(message, type = "success") {
+    const toast = document.getElementById("toast");
     if (!toast) return;
-
     toast.textContent = message;
-    toast.style.backgroundColor = type === 'error' ? '#EF4444' : '#4338CA';
-    toast.classList.add('show');
-
+    toast.className = `toast show ${type}`;
     setTimeout(() => {
-      toast.classList.remove('show');
+      toast.className = "toast";
     }, 3000);
   },
 
-  // Render Product Cards Grid
-  renderProducts(productsList, targetContainerId = 'productGrid') {
-    const container = document.getElementById(targetContainerId);
-    if (!container) return;
-
-    if (!productsList || productsList.length === 0) {
-      container.innerHTML = `
-        <div style="grid-column: 1/-1; text-align: center; padding: 40px;">
-          <p>Diman alaab ah ma la helin.</p>
+  checkAuthStatus() {
+    const guestMenu = document.getElementById("menuGuest");
+    if (guestMenu && AppState.currentUser) {
+      guestMenu.innerHTML = `
+        <div class="menu-avatar">👤</div>
+        <div>
+          <strong>${AppState.currentUser.user_metadata?.full_name || 'Macmiil'}</strong>
+          <small>${AppState.currentUser.email}</small>
         </div>
       `;
-      return;
+    }
+  },
+
+  async loadInitialPageData() {
+    const currentPage = window.location.pathname.split("/").pop();
+
+    // Loading State
+    const grid = document.getElementById("productGrid");
+    if (grid) {
+      grid.innerHTML = `<div class="loading-card"><div class="loading-spinner"></div><p>Raadinaya alaabo...</p></div>`;
     }
 
-    container.innerHTML = productsList.map(product => `
-      <div class="product-card" onclick="UI.openProductModal(${product.id})" style="cursor:pointer;">
-        <div class="product-img-wrapper" style="position:relative; width:100%; padding-top:100%; overflow:hidden; border-radius:12px; background:#f3f4f6;">
-          <img src="${product.image_url || 'https://via.placeholder.com/200'}" alt="${product.name}" style="position:absolute; top:0; left:0; width:100%; height:100%; object-fit:cover;">
-        </div>
-        <div style="padding: 10px 0;">
-          <small style="color:#6B7280; text-transform:uppercase; font-size:10px;">${product.category || 'WaHeN'}</small>
-          <h3 style="font-size:14px; margin: 4px 0; font-weight:600;">${product.name}</h3>
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px;">
-            <strong style="color:#4338CA; font-size:16px;">$${Number(product.price).toFixed(2)}</strong>
-            <button 
-              onclick="event.stopPropagation(); CartManager.addItem(${JSON.stringify(product).replace(/"/g, '&quot;')})" 
-              style="background:#4338CA; color:#fff; border:none; border-radius:6px; padding:6px 10px; cursor:pointer;"
-            >
-              🛒 +
-            </button>
-          </div>
-        </div>
-      </div>
-    `).join('');
+    // Xogta bogga Index/Home ka soo qaad
+    if (currentPage === "" || currentPage === "index.html" || currentPage === "home.html") {
+      AppState.products = await ApiService.fetchProducts();
+      AppState.filteredProducts = AppState.products;
+      this.renderProducts(AppState.filteredProducts);
+    }
   },
 
-  // Open Product Modal
-  openProductModal(productId) {
-    const product = AppState.products.find(p => p.id === productId);
-    if (!product) return;
+  // ------------------------------------------------------------------------
+  // 6. EVENT LISTENERS (Dhagaysiga Taabashada)
+  // ------------------------------------------------------------------------
+  bindGlobalEvents() {
+    // Menu Controls
+    const menuBtn = document.getElementById("menuBtn");
+    const closeMenu = document.getElementById("closeMenu");
+    const sideMenu = document.getElementById("sideMenu");
+    const overlay = document.getElementById("overlay");
 
-    const modal = document.getElementById('productModal');
-    const detailContainer = document.getElementById('productDetail');
+    const toggleMenu = (show) => {
+      if (sideMenu) sideMenu.classList.toggle("open", show);
+      if (overlay) overlay.classList.toggle("show", show);
+    };
 
-    detailContainer.innerHTML = `
-      <div style="text-align:center;">
-        <img src="${product.image_url || 'https://via.placeholder.com/300'}" style="width:100%; max-height:250px; object-fit:contain; border-radius:12px; margin-bottom:15px;">
-        <h2>${product.name}</h2>
-        <p style="color:#4338CA; font-size:22px; font-weight:bold; margin: 10px 0;">$${Number(product.price).toFixed(2)}</p>
-        <p style="color:#4B5563; margin-bottom:20px;">${product.description || 'Alaab tayo sare leh oo WaHeN Marketplace laga heli karo.'}</p>
-        <button 
-          onclick="CartManager.addItem(${JSON.stringify(product).replace(/"/g, '&quot;')}); UI.closeModal('productModal');" 
-          style="width:100%; background:#4338CA; color:white; padding:12px; border:none; border-radius:8px; font-weight:bold; font-size:16px; cursor:pointer;"
-        >
-          Ku Dar Cart-ka
-        </button>
-      </div>
-    `;
+    if (menuBtn) menuBtn.addEventListener("click", () => toggleMenu(true));
+    if (closeMenu) closeMenu.addEventListener("click", () => toggleMenu(false));
+    if (overlay) overlay.addEventListener("click", () => toggleMenu(false));
 
-    this.openModal('productModal');
+    // Cart Modal Controls
+    const cartBtn = document.getElementById("cartBtn");
+    const closeCartModal = document.getElementById("closeCartModal");
+    const cartModal = document.getElementById("cartModal");
+
+    if (cartBtn) {
+      cartBtn.addEventListener("click", () => {
+        CartManager.renderCartItems();
+        if (cartModal) cartModal.classList.add("open");
+      });
+    }
+
+    if (closeCartModal) {
+      closeCartModal.addEventListener("click", () => {
+        if (cartModal) cartModal.classList.remove("open");
+      });
+    }
+
+    // Search Input Debounce
+    const searchInput = document.getElementById("searchInput");
+    let searchTimeout;
+    if (searchInput) {
+      searchInput.addEventListener("input", (e) => {
+        clearTimeout(searchTimeout);
+        const query = e.target.value.trim();
+        searchTimeout = setTimeout(async () => {
+          if (query.length > 0) {
+            const results = await ApiService.searchProducts(query);
+            this.renderProducts(results);
+          } else {
+            this.renderProducts(AppState.products);
+          }
+        }, 350);
+      });
+    }
+
+    // Navigation Links (Routing dhammaan pages-ka HTML)
+    document.querySelectorAll("[data-menu], [data-bottom]").forEach(btn => {
+      btn.addEventListener("click", (e) => {
+        const target = btn.dataset.menu || btn.dataset.bottom;
+        this.navigateToPage(target);
+      });
+    });
+
+    // Checkout Action
+    const checkoutBtn = document.getElementById("checkoutBtn");
+    if (checkoutBtn) {
+      checkoutBtn.addEventListener("click", async () => {
+        if (AppState.cart.length === 0) {
+          this.showToast("Cart-kaagu waa faaruq!", "error");
+          return;
+        }
+        
+        const totals = CartManager.getTotals();
+        const orderData = {
+          items: AppState.cart,
+          total_amount: totals.total,
+          status: "pending",
+          user_id: AppState.currentUser ? AppState.currentUser.id : null,
+          created_at: new Date()
+        };
+
+        const res = await ApiService.createOrder(orderData);
+        if (res) {
+          this.showToast("Dalabkaaga waa la guddoomay!", "success");
+          CartManager.clearCart();
+          if (cartModal) cartModal.classList.remove("open");
+        }
+      });
+    }
   },
 
-  // Modal Controllers
-  openModal(modalId) {
-    const modal = document.getElementById(modalId);
-    const overlay = document.getElementById('overlay');
-    if (modal) modal.classList.add('active');
-    if (overlay) overlay.classList.add('active');
-  },
+  // Bogagga HTML Routing-kooda
+  navigateToPage(pageKey) {
+    const routes = {
+      home: "home.html",
+      index: "index.html",
+      admin: "admin.html",
+      buyer: "buyer.html",
+      contact: "contact.html",
+      signup: "create-account.html",
+      login: "login.html",
+      seller: "seller.html",
+      support: "support.html"
+    };
 
-  closeModal(modalId) {
-    const modal = document.getElementById(modalId);
-    const overlay = document.getElementById('overlay');
-    if (modal) modal.classList.remove('active');
-    if (overlay) overlay.classList.remove('active');
-  },
-
-  closeAllModals() {
-    document.querySelectorAll('.modal').forEach(m => m.classList.remove('active'));
-    document.getElementById('sideMenu')?.classList.remove('active');
-    document.getElementById('overlay')?.classList.remove('active');
+    if (routes[pageKey]) {
+      window.location.href = routes[pageKey];
+    }
   }
 };
 
-// ==========================================================================
-// 5. EVENT LISTENERS SETUP
-// ==========================================================================
-function setupEventListeners() {
-  // Navigation & Side Menu Toggle
-  document.getElementById('menuBtn')?.addEventListener('click', () => {
-    document.getElementById('sideMenu')?.classList.add('active');
-    document.getElementById('overlay')?.classList.add('active');
-  });
-
-  document.getElementById('closeMenu')?.addEventListener('click', () => {
-    UI.closeAllModals();
-  });
-
-  document.getElementById('overlay')?.addEventListener('click', () => {
-    UI.closeAllModals();
-  });
-
-  // Cart Modal Toggle
-  document.getElementById('cartBtn')?.addEventListener('click', () => {
-    UI.openModal('cartModal');
-  });
-
-  document.getElementById('closeCartModal')?.addEventListener('click', () => {
-    UI.closeModal('cartModal');
-  });
-
-  document.getElementById('closeProductModal')?.addEventListener('click', () => {
-    UI.closeModal('productModal');
-  });
-
-  // Category Selector Buttons
-  const categoryButtons = document.querySelectorAll('.category-card');
-  categoryButtons.forEach(btn => {
-    btn.addEventListener('click', async (e) => {
-      categoryButtons.forEach(b => b.classList.remove('active'));
-      const card = e.currentTarget;
-      card.classList.add('active');
-
-      const category = card.dataset.category;
-      AppState.currentCategory = category;
-
-      UI.setLoading(true);
-      const products = await ApiService.fetchProductsByCategory(category);
-      AppState.filteredProducts = products;
-      UI.renderProducts(products);
-      UI.setLoading(false);
-    });
-  });
-
-  // Search Input with Debounce Logic
-  const searchInput = document.getElementById('searchInput');
-  const clearSearchBtn = document.getElementById('clearSearch');
-  let searchDebounceTimeout;
-
-  searchInput?.addEventListener('input', (e) => {
-    const term = e.target.value.trim();
-    clearTimeout(searchDebounceTimeout);
-
-    searchDebounceTimeout = setTimeout(async () => {
-      if (term.length > 0) {
-        UI.setLoading(true);
-        const results = await ApiService.searchProducts(term);
-        UI.renderProducts(results);
-        UI.setLoading(false);
-      } else {
-        UI.renderProducts(AppState.products);
-      }
-    }, 350);
-  });
-
-  clearSearchBtn?.addEventListener('click', () => {
-    if (searchInput) searchInput.value = '';
-    UI.renderProducts(AppState.products);
-  });
-
-  // Auth Modal Triggers
-  document.getElementById('menuGuest')?.addEventListener('click', () => {
-    UI.openModal('authModal');
-  });
-
-  document.getElementById('closeAuthModal')?.addEventListener('click', () => {
-    UI.closeModal('authModal');
-  });
-
-  // Toggle Login / Signup Forms
-  const authSwitchBtn = document.getElementById('authSwitchBtn');
-  const loginForm = document.getElementById('loginForm');
-  const signupForm = document.getElementById('signupForm');
-  const authTitle = document.getElementById('authTitle');
-
-  authSwitchBtn?.addEventListener('click', () => {
-    const isLoginVisible = !loginForm.classList.contains('hidden');
-    if (isLoginVisible) {
-      loginForm.classList.add('hidden');
-      signupForm.classList.remove('hidden');
-      authTitle.textContent = 'Samee Account WaHeN';
-      authSwitchBtn.textContent = 'Soo Gal';
-    } else {
-      signupForm.classList.add('hidden');
-      loginForm.classList.remove('hidden');
-      authTitle.textContent = 'Ku soo dhawoow WaHeN';
-      authSwitchBtn.textContent = 'Samee Account';
-    }
-  });
-
-  // Handle Login Submit
-  loginForm?.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const email = document.getElementById('loginEmail').value;
-    const password = document.getElementById('loginPassword').value;
-
-    UI.setLoading(true);
-    const res = await ApiService.login(email, password);
-    UI.setLoading(false);
-
-    if (res.success) {
-      UI.showToast('Waad soo gashay!');
-      UI.closeModal('authModal');
-    } else {
-      UI.showToast(`Cillad: ${res.error}`, 'error');
-    }
-  });
-
-  // Checkout Button
-  document.getElementById('checkoutBtn')?.addEventListener('click', async () => {
-    if (AppState.cart.length === 0) {
-      UI.showToast('Cart-kaagu waa madhan yahay!', 'error');
-      return;
-    }
-
-    const totals = CartManager.getTotals();
-    const orderPayload = {
-      items: AppState.cart,
-      total_price: Number(totals.total),
-      delivery_address: AppState.location,
-      status: 'pending'
-    };
-
-    UI.setLoading(true);
-    const res = await ApiService.createOrder(orderPayload);
-    UI.setLoading(false);
-
-    if (res.success) {
-      UI.showToast('Dalabkaagii si guul leh ayaa loo diray! 🎉');
-      CartManager.clearCart();
-      UI.closeModal('cartModal');
-    } else {
-      UI.showToast('Dalabku ma kicin. Fadlan soo gal account-kaaga.', 'error');
-      UI.openModal('authModal');
-    }
-  });
-}
-
-// ==========================================================================
-// 6. INITIALIZATION ENGINE
-// ==========================================================================
-document.addEventListener('DOMContentLoaded', async () => {
-  console.log('[WaHeN Marketplace] Initializing core services...');
-  
-  // 1. Initialize Cart state from LocalStorage
-  CartManager.init();
-
-  // 2. Setup All Event Handlers
-  setupEventListeners();
-
-  // 3. Fetch Initial Products from Supabase
-  UI.setLoading(true);
-  const products = await ApiService.fetchProducts();
-  AppState.products = products;
-  AppState.filteredProducts = products;
-  
-  // 4. Render Initial Screen
-  UI.renderProducts(products);
-  UI.setLoading(false);
-
-  console.log('[WaHeN Marketplace] Ready!');
+// --------------------------------------------------------------------------
+// 7. INITIALIZE ENGINE ON DOM LOADED
+// --------------------------------------------------------------------------
+document.addEventListener("DOMContentLoaded", () => {
+  UI.init();
 });

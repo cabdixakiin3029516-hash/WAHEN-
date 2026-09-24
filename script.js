@@ -1,3003 +1,2494 @@
 /* =========================================================
-   WAHEN MARKETPLACE — SCRIPT.JS
-   Supabase + Products + Search + Cart + Auth + Navigation
+   WAHEN MARKETPLACE
+   COMPLETE SCRIPT.JS
+   M.3 / SUPABASE CONNECTED VERSION
    ========================================================= */
 
 "use strict";
 
 /* =========================================================
-   SUPABASE
+   1. SUPABASE CLIENT
    ========================================================= */
 
-const SB =
+const supabase =
   window.supabaseClient ||
   window.supabase ||
+  window._supabase ||
   null;
 
-let currentUser = null;
-let currentProfile = null;
-
-let products = [];
-let brands = [];
-let cartItems = [];
-
-let activeCategory = "all";
-let searchTimer = null;
-
-
-/* =========================================================
-   DOM HELPERS
-   ========================================================= */
-
-const $ = (id) => document.getElementById(id);
-
-const qs = (selector) =>
-  document.querySelector(selector);
-
-const qsa = (selector) =>
-  document.querySelectorAll(selector);
-
-
-/* =========================================================
-   APP START
-   ========================================================= */
-
-document.addEventListener("DOMContentLoaded", async () => {
-
-  console.log("WAHEN APP STARTED");
-
-  setupNavigation();
-  setupSearch();
-  setupCategories();
-  setupButtons();
-  setupAuth();
-  setupModals();
-
-  await checkUser();
-  await loadInitialData();
-
-});
-
-
-/* =========================================================
-   SUPABASE CHECK
-   ========================================================= */
-
-function hasSupabase() {
-
-  if (!SB) {
-
-    console.warn(
-      "Supabase client lama helin. Hubi supabase-client.js"
-    );
-
-    showToast(
-      "Supabase connection lama helin."
-    );
-
-    return false;
-  }
-
-  return true;
+if (!supabase) {
+  console.error("WAHEN: Supabase client lama helin.");
 }
 
 
 /* =========================================================
-   USER / AUTH
+   2. APP STATE
    ========================================================= */
 
-async function checkUser() {
+const WAHEN = {
+  user: null,
+  profile: null,
+  products: [],
+  orders: [],
+  cart: [],
+  favorites: [],
+  currentPage: "home",
+  search: "",
+  category: "",
+  loading: false
+};
 
-  if (!hasSupabase()) return;
+const CART_KEY = "wahen_cart";
+const FAVORITES_KEY = "wahen_favorites";
 
-  try {
 
-    const { data, error } =
-      await SB.auth.getSession();
+/* =========================================================
+   3. BASIC HELPERS
+   ========================================================= */
 
-    if (error) {
-      console.error(error);
-      return;
-    }
+function $(selector) {
+  return document.querySelector(selector);
+}
 
-    currentUser =
-      data?.session?.user || null;
+function $$(selector) {
+  return [...document.querySelectorAll(selector)];
+}
 
-    if (currentUser) {
+function safeText(value) {
+  if (value === null || value === undefined) return "";
+  return String(value);
+}
 
-      await loadProfile();
+function escapeHTML(value) {
+  return safeText(value)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
 
-      updateAccountUI();
+function formatPrice(value) {
+  const number = Number(value || 0);
 
-      await loadCart();
+  return new Intl.NumberFormat("en-US", {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2
+  }).format(number);
+}
 
-    } else {
+function getProductId(product) {
+  return (
+    product?.id ??
+    product?.product_id ??
+    product?.uuid ??
+    null
+  );
+}
 
-      updateGuestUI();
+function getProductName(product) {
+  return (
+    product?.name ||
+    product?.product_name ||
+    product?.title ||
+    product?.product_title ||
+    "Alaab"
+  );
+}
 
-    }
+function getProductPrice(product) {
+  return (
+    product?.price ??
+    product?.selling_price ??
+    product?.sale_price ??
+    product?.amount ??
+    0
+  );
+}
 
-    SB.auth.onAuthStateChange(
-      async (_event, session) => {
+function getProductImage(product) {
+  return (
+    product?.image_url ||
+    product?.image ||
+    product?.photo_url ||
+    product?.thumbnail ||
+    product?.cover_image ||
+    "https://placehold.co/600x600/EEF0FE/4338CA?text=WAHEN"
+  );
+}
 
-        currentUser =
-          session?.user || null;
-
-        if (currentUser) {
-
-          await loadProfile();
-          updateAccountUI();
-          await loadCart();
-
-        } else {
-
-          currentProfile = null;
-          cartItems = [];
-
-          updateGuestUI();
-          updateCartCount();
-        }
-
-      }
-    );
-
-  } catch (error) {
-
-    console.error(
-      "Auth error:",
-      error
-    );
-
-  }
-
+function getCategory(product) {
+  return (
+    product?.category_name ||
+    product?.category ||
+    product?.category_id ||
+    "Others"
+  );
 }
 
 
 /* =========================================================
-   PROFILE
+   4. TOAST
    ========================================================= */
 
-async function loadProfile() {
+function toast(message, type = "info") {
+  let box = document.getElementById("wahen-toast");
 
-  if (!currentUser || !hasSupabase()) return;
+  if (!box) {
+    box = document.createElement("div");
+    box.id = "wahen-toast";
 
-  try {
+    Object.assign(box.style, {
+      position: "fixed",
+      left: "50%",
+      bottom: "80px",
+      transform: "translateX(-50%)",
+      zIndex: "99999",
+      maxWidth: "90%",
+      padding: "13px 18px",
+      borderRadius: "14px",
+      color: "#fff",
+      fontSize: "14px",
+      fontWeight: "600",
+      boxShadow: "0 10px 30px rgba(0,0,0,.2)",
+      transition: "all .25s ease",
+      textAlign: "center"
+    });
 
-    const { data, error } =
-      await SB
-        .from("profiles")
-        .select("*")
-        .eq("id", currentUser.id)
-        .maybeSingle();
-
-    if (error) {
-
-      console.warn(
-        "Profile lama helin:",
-        error.message
-      );
-
-      return;
-    }
-
-    currentProfile = data || null;
-
-  } catch (error) {
-
-    console.error(error);
-
+    document.body.appendChild(box);
   }
 
+  box.textContent = message;
+
+  if (type === "success") {
+    box.style.background = "#16a34a";
+  } else if (type === "error") {
+    box.style.background = "#dc2626";
+  } else {
+    box.style.background = "#4338CA";
+  }
+
+  box.style.opacity = "1";
+
+  clearTimeout(box._timer);
+
+  box._timer = setTimeout(() => {
+    box.style.opacity = "0";
+  }, 2800);
 }
 
 
 /* =========================================================
-   ACCOUNT UI
+   5. LOADING
    ========================================================= */
 
-function updateAccountUI() {
+function showLoading(text = "Fadlan sug...") {
+  let loader = document.getElementById("wahen-loading");
 
-  const menuGuest =
-    $("menuGuest");
+  if (!loader) {
+    loader = document.createElement("div");
+    loader.id = "wahen-loading";
 
-  if (!menuGuest) return;
+    Object.assign(loader.style, {
+      position: "fixed",
+      inset: "0",
+      background: "rgba(255,255,255,.92)",
+      zIndex: "99998",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      flexDirection: "column",
+      gap: "12px"
+    });
 
-  if (!currentUser) {
-
-    menuGuest.innerHTML = `
-      <div class="menu-avatar">👤</div>
-
-      <div>
-        <strong>Ku soo dhawoow</strong>
-        <small>Soo gal ama samee account</small>
+    loader.innerHTML = `
+      <div style="
+        width:48px;
+        height:48px;
+        border:4px solid #EEF0FE;
+        border-top-color:#4338CA;
+        border-radius:50%;
+        animation:wahenSpin .8s linear infinite;
+      "></div>
+      <div id="wahen-loading-text"
+           style="font-weight:600;color:#333;">
+        ${escapeHTML(text)}
       </div>
     `;
 
-    return;
+    document.body.appendChild(loader);
+
+    if (!document.getElementById("wahen-spin-style")) {
+      const style = document.createElement("style");
+      style.id = "wahen-spin-style";
+      style.textContent = `
+        @keyframes wahenSpin {
+          to { transform:rotate(360deg); }
+        }
+      `;
+      document.head.appendChild(style);
+    }
   }
 
-  const name =
-    currentProfile?.full_name ||
-    currentUser.email ||
-    "WaHeN User";
+  loader.style.display = "flex";
 
-  menuGuest.innerHTML = `
-    <div class="menu-avatar">👤</div>
+  const textEl = document.getElementById("wahen-loading-text");
+  if (textEl) textEl.textContent = text;
+}
 
-    <div>
-      <strong>${escapeHTML(name)}</strong>
-      <small>Account-kaaga</small>
+function hideLoading() {
+  const loader = document.getElementById("wahen-loading");
+
+  if (loader) {
+    loader.style.display = "none";
+  }
+}
+
+
+/* =========================================================
+   6. WAHEN LOGO
+   ========================================================= */
+
+function wahenLogo(size = 42) {
+  return `
+    <div
+      class="wahen-logo-js"
+      style="
+        width:${size}px;
+        height:${size}px;
+        min-width:${size}px;
+        border-radius:${Math.round(size * .24)}px;
+        background:#4338CA;
+        color:white;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        font-weight:900;
+        font-size:${Math.round(size * .34)}px;
+        letter-spacing:-1px;
+        box-shadow:0 5px 15px rgba(67,56,202,.25);
+      "
+      aria-label="WaHeN"
+    >
+      W
     </div>
   `;
+}
 
+function injectLogo() {
+  const possible = [
+    "#logo",
+    ".logo",
+    ".brand-logo",
+    ".app-logo",
+    "[data-wahen-logo]"
+  ];
+
+  for (const selector of possible) {
+    $$(selector).forEach(el => {
+      if (!el.dataset.wahenLogoReady) {
+        el.innerHTML = wahenLogo(40);
+        el.dataset.wahenLogoReady = "true";
+      }
+    });
+  }
 }
 
 
 /* =========================================================
-   GUEST UI
+   7. LOCAL STORAGE
    ========================================================= */
 
-function updateGuestUI() {
-
-  updateAccountUI();
-
-}
-
-
-/* =========================================================
-   INITIAL DATA
-   ========================================================= */
-
-async function loadInitialData() {
-
-  showLoading(true);
-
+function loadLocalData() {
   try {
-
-    await Promise.all([
-      loadProducts(),
-      loadBrands()
-    ]);
-
-    renderProducts(products);
-    renderBrands(brands);
-
-  } catch (error) {
-
-    console.error(
-      "Initial data error:",
-      error
+    WAHEN.cart = JSON.parse(
+      localStorage.getItem(CART_KEY) || "[]"
     );
 
-  } finally {
+    WAHEN.favorites = JSON.parse(
+      localStorage.getItem(FAVORITES_KEY) || "[]"
+    );
 
-    showLoading(false);
+    if (!Array.isArray(WAHEN.cart)) WAHEN.cart = [];
+    if (!Array.isArray(WAHEN.favorites)) WAHEN.favorites = [];
 
+  } catch (error) {
+    WAHEN.cart = [];
+    WAHEN.favorites = [];
   }
+}
 
+function saveCart() {
+  localStorage.setItem(
+    CART_KEY,
+    JSON.stringify(WAHEN.cart)
+  );
+
+  updateCartCount();
+}
+
+function saveFavorites() {
+  localStorage.setItem(
+    FAVORITES_KEY,
+    JSON.stringify(WAHEN.favorites)
+  );
+}
+
+function updateCartCount() {
+  const count = WAHEN.cart.reduce(
+    (total, item) => total + Number(item.quantity || 1),
+    0
+  );
+
+  $$("[data-cart-count], .cart-count, #cartCount").forEach(el => {
+    el.textContent = count;
+    el.style.display = count > 0 ? "flex" : "none";
+  });
 }
 
 
 /* =========================================================
-   LOAD PRODUCTS
+   8. AUTH SESSION
+   ========================================================= */
+
+async function loadCurrentUser() {
+  if (!supabase) return;
+
+  try {
+    const {
+      data,
+      error
+    } = await supabase.auth.getSession();
+
+    if (error) {
+      console.error("Session error:", error);
+      return;
+    }
+
+    WAHEN.user = data?.session?.user || null;
+
+    if (WAHEN.user) {
+      await loadProfile();
+    }
+
+    updateAccountUI();
+
+  } catch (error) {
+    console.error("loadCurrentUser:", error);
+  }
+}
+
+
+/* =========================================================
+   9. PROFILE
+   ========================================================= */
+
+async function loadProfile() {
+  if (!supabase || !WAHEN.user) return;
+
+  try {
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("*")
+      .eq("id", WAHEN.user.id)
+      .maybeSingle();
+
+    if (error) {
+      console.warn("Profile:", error.message);
+      return;
+    }
+
+    WAHEN.profile = data || null;
+
+  } catch (error) {
+    console.error("loadProfile:", error);
+  }
+}
+
+
+/* =========================================================
+   10. ACCOUNT UI
+   ========================================================= */
+
+function updateAccountUI() {
+  const name =
+    WAHEN.profile?.full_name ||
+    WAHEN.profile?.name ||
+    WAHEN.user?.user_metadata?.full_name ||
+    WAHEN.user?.email?.split("@")[0] ||
+    "Marti";
+
+  const email =
+    WAHEN.profile?.email ||
+    WAHEN.user?.email ||
+    "";
+
+  $$("[data-user-name], #userName, .user-name").forEach(el => {
+    el.textContent = name;
+  });
+
+  $$("[data-user-email], #userEmail, .user-email").forEach(el => {
+    el.textContent = email;
+  });
+
+  $$("[data-login-button], #loginButton").forEach(el => {
+    el.textContent = WAHEN.user ? "Account" : "Login";
+  });
+}
+
+
+/* =========================================================
+   11. PRODUCTS
    ========================================================= */
 
 async function loadProducts() {
+  if (!supabase) {
+    toast("Supabase lama xidhmin.", "error");
+    return;
+  }
 
-  if (!hasSupabase()) return;
+  showLoading("Alaabta ayaa la soo gelinayaa...");
 
   try {
+    const { data, error } = await supabase
+      .from("products")
+      .select("*");
 
-    const result =
-      await SB
-        .from("products")
-        .select(`
-          *,
-          brands (
-            id,
-            name,
-            logo_url
-          )
-        `)
-        .eq("is_active", true)
-        .order("created_at", {
-          ascending: false
-        })
-        .limit(100);
-
-    if (result.error) {
-
-      console.error(
-        "Products error:",
-        result.error
-      );
-
-      products = [];
-
-      renderEmptyProducts(
-        "Alaabooyin lama helin"
-      );
-
+    if (error) {
+      console.error("Products error:", error);
+      toast("Alaabta lama soo qaadi karin.", "error");
       return;
     }
 
-    products =
-      result.data || [];
+    WAHEN.products = Array.isArray(data) ? data : [];
+
+    renderProducts();
+    renderCategories();
 
   } catch (error) {
-
-    console.error(
-      "Products exception:",
-      error
-    );
-
-    products = [];
-
+    console.error("loadProducts:", error);
+    toast("Cilad ayaa dhacday.", "error");
+  } finally {
+    hideLoading();
   }
-
 }
 
 
 /* =========================================================
-   LOAD BRANDS
+   12. PRODUCT FILTER
    ========================================================= */
 
-async function loadBrands() {
+function getFilteredProducts() {
+  let products = [...WAHEN.products];
 
-  if (!hasSupabase()) return;
-
-  try {
-
-    const result =
-      await SB
-        .from("brands")
-        .select("*")
-        .eq("is_active", true)
-        .order("name", {
-          ascending: true
-        });
-
-    if (result.error) {
-
-      console.warn(
-        "Brands error:",
-        result.error.message
-      );
-
-      brands = [];
-
-      return;
-    }
-
-    brands =
-      result.data || [];
-
-  } catch (error) {
-
-    console.error(error);
-
-    brands = [];
-
+  if (WAHEN.category) {
+    products = products.filter(product => {
+      return safeText(getCategory(product)).toLowerCase() ===
+        safeText(WAHEN.category).toLowerCase();
+    });
   }
 
+  if (WAHEN.search) {
+    const query = WAHEN.search.toLowerCase();
+
+    products = products.filter(product => {
+      const text = [
+        getProductName(product),
+        getCategory(product),
+        product.description,
+        product.brand,
+        product.shop_name
+      ]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+
+      return text.includes(query);
+    });
+  }
+
+  return products;
 }
 
 
 /* =========================================================
-   PRODUCT IMAGE
-   ========================================================= */
-
-function getProductImage(product) {
-
-  if (
-    product?.image_url &&
-    typeof product.image_url === "string"
-  ) {
-
-    return product.image_url;
-  }
-
-  if (
-    product?.icon &&
-    typeof product.icon === "string" &&
-    product.icon.startsWith("http")
-  ) {
-
-    return product.icon;
-  }
-
-  return "";
-
-}
-
-
-/* =========================================================
-   PRODUCT CARD
+   13. PRODUCT CARD
    ========================================================= */
 
 function productCard(product) {
+  const id = getProductId(product);
+  const name = getProductName(product);
+  const price = getProductPrice(product);
+  const image = getProductImage(product);
+  const category = getCategory(product);
 
-  const image =
-    getProductImage(product);
-
-  const price =
-    Number(product?.price || 0);
-
-  const oldPrice =
-    Number(product?.old_price || 0);
-
-  const rating =
-    Number(product?.rating || 0);
-
-  const name =
-    product?.name ||
-    "Alaab aan magac lahayn";
-
-  const category =
-    product?.category ||
-    product?.category_name ||
-    "Alaab";
-
-  const imageHTML =
-    image
-      ? `
-        <img
-          src="${escapeAttribute(image)}"
-          alt="${escapeAttribute(name)}"
-          loading="lazy"
-          onerror="this.style.display='none';this.nextElementSibling.style.display='flex';"
-        >
-
-        <div
-          class="product-placeholder"
-          style="display:none"
-        >
-          🛍️
-        </div>
-      `
-      : `
-        <div class="product-placeholder">
-          🛍️
-        </div>
-      `;
-
-  const ratingHTML =
-    rating > 0
-      ? `
-        <span class="stars">
-          ${getStars(rating)}
-        </span>
-        <span>${rating.toFixed(1)}</span>
-      `
-      : `
-        <span class="stars">☆☆☆☆☆</span>
-        <span>New</span>
-      `;
-
-  const oldPriceHTML =
-    oldPrice > price
-      ? `
-        <span class="product-old-price">
-          ${formatMoney(oldPrice)}
-        </span>
-      `
-      : "";
-
-  const badge =
-    product?.is_featured
-      ? `<span class="product-badge">FEATURED</span>`
-      : "";
+  const favorite = WAHEN.favorites.includes(String(id));
 
   return `
     <article
-      class="product-card"
-      data-product-id="${escapeAttribute(product.id)}"
+      class="wahen-product-card"
+      data-product-id="${escapeHTML(id)}"
+      style="
+        position:relative;
+        background:#fff;
+        border-radius:18px;
+        overflow:hidden;
+        box-shadow:0 5px 20px rgba(0,0,0,.07);
+        border:1px solid #eee;
+      "
     >
 
-      <div class="product-image">
+      <button
+        type="button"
+        onclick="WAHEN.toggleFavorite('${escapeHTML(id)}')"
+        style="
+          position:absolute;
+          top:10px;
+          right:10px;
+          z-index:3;
+          width:36px;
+          height:36px;
+          border:0;
+          border-radius:50%;
+          background:white;
+          box-shadow:0 3px 10px rgba(0,0,0,.12);
+          cursor:pointer;
+          font-size:18px;
+        "
+        aria-label="Favorite"
+      >
+        ${favorite ? "❤️" : "♡"}
+      </button>
 
-        ${imageHTML}
+      <button
+        type="button"
+        onclick="WAHEN.showProduct('${escapeHTML(id)}')"
+        style="
+          width:100%;
+          padding:0;
+          border:0;
+          background:white;
+          cursor:pointer;
+        "
+      >
+        <img
+          src="${escapeHTML(image)}"
+          alt="${escapeHTML(name)}"
+          loading="lazy"
+          style="
+            width:100%;
+            aspect-ratio:1/1;
+            object-fit:cover;
+            display:block;
+          "
+          onerror="
+            this.src='https://placehold.co/600x600/EEF0FE/4338CA?text=WAHEN'
+          "
+        >
+      </button>
 
-        ${badge}
+      <div style="padding:12px">
+
+        <div style="
+          color:#777;
+          font-size:11px;
+          margin-bottom:5px;
+        ">
+          ${escapeHTML(category)}
+        </div>
+
+        <div style="
+          font-size:15px;
+          font-weight:700;
+          color:#222;
+          min-height:40px;
+        ">
+          ${escapeHTML(name)}
+        </div>
+
+        <div style="
+          color:#4338CA;
+          font-weight:900;
+          font-size:17px;
+          margin-top:7px;
+        ">
+          $${formatPrice(price)}
+        </div>
 
         <button
-          class="product-favorite"
-          data-favorite="${escapeAttribute(product.id)}"
-          aria-label="Favorite"
+          type="button"
+          onclick="WAHEN.addToCart('${escapeHTML(id)}')"
+          style="
+            width:100%;
+            margin-top:10px;
+            padding:10px;
+            border:0;
+            border-radius:11px;
+            background:#4338CA;
+            color:#fff;
+            font-weight:700;
+            cursor:pointer;
+          "
         >
-          ♡
+          🛒 Ku dar Cart
         </button>
 
       </div>
-
-      <div class="product-body">
-
-        <span class="product-category">
-          ${escapeHTML(category)}
-        </span>
-
-        <h3 class="product-name">
-          ${escapeHTML(name)}
-        </h3>
-
-        <div class="product-rating">
-          ${ratingHTML}
-        </div>
-
-        <div class="product-price-row">
-
-          <div>
-            <span class="product-price">
-              ${formatMoney(price)}
-            </span>
-
-            ${oldPriceHTML}
-          </div>
-
-          <button
-            class="add-product-btn"
-            data-add-cart="${escapeAttribute(product.id)}"
-            aria-label="Ku dar cart"
-          >
-            +
-          </button>
-
-        </div>
-
-      </div>
-
     </article>
   `;
 }
 
 
 /* =========================================================
-   RENDER PRODUCTS
+   14. RENDER PRODUCTS
    ========================================================= */
 
-function renderProducts(list) {
-
-  const grid =
-    $("productGrid");
-
-  if (!grid) return;
-
-  if (!list || list.length === 0) {
-
-    renderEmptyProducts(
-      "Alaabooyin lama helin"
-    );
-
-    return;
-  }
-
-  grid.innerHTML =
-    list.map(productCard).join("");
-
-  attachProductEvents(grid);
-
-}
-
-
-/* =========================================================
-   EMPTY PRODUCTS
-   ========================================================= */
-
-function renderEmptyProducts(message) {
-
-  const grid =
-    $("productGrid");
-
-  if (!grid) return;
-
-  grid.innerHTML = `
-    <div class="search-result-empty">
-
-      <span>🛍️</span>
-
-      <strong>
-        ${escapeHTML(message)}
-      </strong>
-
-      <p>
-        Alaabooyin cusub ayaa halkan kasoo muuqan doona.
-      </p>
-
-    </div>
-  `;
-
-}
-
-
-/* =========================================================
-   PRODUCT EVENTS
-   ========================================================= */
-
-function attachProductEvents(container) {
-
-  container
-    .querySelectorAll("[data-add-cart]")
-    .forEach(button => {
-
-      button.addEventListener(
-        "click",
-        async event => {
-
-          event.stopPropagation();
-
-          const id =
-            button.dataset.addCart;
-
-          await addToCart(id);
-
-        }
-      );
-
-    });
-
-
-  container
-    .querySelectorAll("[data-favorite]")
-    .forEach(button => {
-
-      button.addEventListener(
-        "click",
-        event => {
-
-          event.stopPropagation();
-
-          toggleFavorite(
-            button.dataset.favorite,
-            button
-          );
-
-        }
-      );
-
-    });
-
-
-  container
-    .querySelectorAll(".product-card")
-    .forEach(card => {
-
-      card.addEventListener(
-        "click",
-        event => {
-
-          if (
-            event.target.closest(
-              "button"
-            )
-          ) {
-            return;
-          }
-
-          const id =
-            card.dataset.productId;
-
-          openProduct(id);
-
-        }
-      );
-
-    });
-
-}
-
-
-/* =========================================================
-   OPEN PRODUCT
-   ========================================================= */
-
-function openProduct(id) {
-
-  const product =
-    products.find(
-      item => String(item.id) === String(id)
-    );
-
-  if (!product) {
-
-    showToast(
-      "Alaabta lama helin."
-    );
-
-    return;
-  }
-
-  const container =
-    $("productDetail");
-
-  if (!container) return;
-
-  const image =
-    getProductImage(product);
-
-  const price =
-    Number(product.price || 0);
-
-  const rating =
-    Number(product.rating || 0);
-
-  container.innerHTML = `
-
-    <div class="detail-image">
-
-      ${
-        image
-          ? `
-            <img
-              src="${escapeAttribute(image)}"
-              alt="${escapeAttribute(product.name || "")}"
-            >
-          `
-          : `
-            <div class="product-placeholder">
-              🛍️
-            </div>
-          `
-      }
-
-    </div>
-
-    <div class="detail-info">
-
-      <span class="detail-category">
-        ${escapeHTML(
-          product.category_name ||
-          product.category ||
-          "ALAAB"
-        )}
-      </span>
-
-      <h2 class="detail-name">
-        ${escapeHTML(
-          product.name ||
-          "Alaab"
-        )}
-      </h2>
-
-      <div class="product-rating">
-
-        <span class="stars">
-          ${getStars(rating)}
-        </span>
-
-        <span>
-          ${
-            rating
-              ? rating.toFixed(1)
-              : "New"
-          }
-        </span>
-
-      </div>
-
-      <div class="detail-price">
-        ${formatMoney(price)}
-      </div>
-
-      <p class="detail-description">
-        ${escapeHTML(
-          product.description ||
-          "Macluumaad dheeraad ah oo ku saabsan alaabtan ayaa halkan lagu soo bandhigi doonaa."
-        )}
-      </p>
-
-      <div class="detail-meta">
-
-        <div>
-          <small>Stock</small>
-          <strong>
-            ${Number(product.stock || 0)}
-          </strong>
-        </div>
-
-        <div>
-          <small>City</small>
-          <strong>
-            ${escapeHTML(
-              product.city || "Somaliland"
-            )}
-          </strong>
-        </div>
-
-        <div>
-          <small>Quality</small>
-          <strong>
-            ${
-              product.quality_rating
-                ? product.quality_rating
-                : "—"
-            }
-          </strong>
-        </div>
-
-        <div>
-          <small>SKU</small>
-          <strong>
-            ${escapeHTML(
-              product.sku || "—"
-            )}
-          </strong>
-        </div>
-
-      </div>
-
-      <div class="detail-actions">
-
-        <button
-          class="secondary-btn"
-          onclick="toggleFavorite('${escapeAttribute(product.id)}')"
-        >
-          ♡ Favorite
-        </button>
-
-        <button
-          class="primary-btn"
-          style="margin-top:0"
-          onclick="addToCart('${escapeAttribute(product.id)}'); closeProductModal();"
-        >
-          🛒 Ku dar Cart
-        </button>
-
-      </div>
-
-    </div>
-  `;
-
-  openModal("productModal");
-
-}
-
-
-/* =========================================================
-   BRANDS
-   ========================================================= */
-
-function renderBrands(list) {
-
-  const grid =
-    $("brandGrid");
-
-  if (!grid || !list?.length) {
-    return;
-  }
-
-  grid.innerHTML =
-    list
-      .slice(0,8)
-      .map(brand => {
-
-        return `
-          <button
-            class="brand-item"
-            data-brand-id="${escapeAttribute(brand.id)}"
-          >
-            ${
-              brand.logo_url
-                ? `
-                  <img
-                    src="${escapeAttribute(brand.logo_url)}"
-                    alt="${escapeAttribute(brand.name)}"
-                    style="max-height:32px;max-width:90px"
-                  >
-                `
-                : `
-                  <strong>
-                    ${escapeHTML(
-                      brand.name
-                    )}
-                  </strong>
-                `
-            }
-          </button>
+function renderProducts() {
+  const products = getFilteredProducts();
+
+  const containers = [
+    "#products",
+    "#productGrid",
+    ".product-grid",
+    "[data-products]"
+  ];
+
+  let rendered = false;
+
+  containers.forEach(selector => {
+    $$(selector).forEach(container => {
+      rendered = true;
+
+      if (!products.length) {
+        container.innerHTML = `
+          <div style="
+            grid-column:1/-1;
+            text-align:center;
+            padding:40px 20px;
+            color:#777;
+          ">
+            <div style="font-size:45px">🛍️</div>
+            <h3>Alaab lama helin</h3>
+            <p>Isku day search kale ama category kale.</p>
+          </div>
         `;
-
-      })
-      .join("");
-
-  grid
-    .querySelectorAll("[data-brand-id]")
-    .forEach(button => {
-
-      button.addEventListener(
-        "click",
-        () => {
-
-          const id =
-            button.dataset.brandId;
-
-          filterByBrand(id);
-
-        }
-      );
-
-    });
-
-}
-
-
-/* =========================================================
-   BRAND FILTER
-   ========================================================= */
-
-function filterByBrand(id) {
-
-  const filtered =
-    products.filter(
-      product =>
-        String(product.brand_id) ===
-        String(id)
-    );
-
-  renderProducts(filtered);
-
-  scrollToProducts();
-
-  showToast(
-    `${filtered.length} alaabood ayaa la helay`
-  );
-
-}
-
-
-/* =========================================================
-   CATEGORY
-   ========================================================= */
-
-function setupCategories() {
-
-  qsa(
-    ".category-card"
-  ).forEach(button => {
-
-    button.addEventListener(
-      "click",
-      () => {
-
-        qsa(
-          ".category-card"
-        ).forEach(item =>
-          item.classList.remove("active")
-        );
-
-        button.classList.add("active");
-
-        activeCategory =
-          button.dataset.category ||
-          "all";
-
-        filterCategory(
-          activeCategory
-        );
-
+      } else {
+        container.innerHTML =
+          products.map(productCard).join("");
       }
-    );
-
+    });
   });
 
+  if (!rendered) {
+    console.warn("Product container lama helin.");
+  }
 }
 
 
 /* =========================================================
-   FILTER CATEGORY
+   15. CATEGORIES
    ========================================================= */
 
-function filterCategory(category) {
+function renderCategories() {
+  const categories = [
+    ...new Set(
+      WAHEN.products
+        .map(getCategory)
+        .filter(Boolean)
+        .map(value => safeText(value))
+    )
+  ];
 
-  if (
-    !category ||
-    category === "all"
-  ) {
+  const defaultCategories = [
+    "Ragga",
+    "Haweenka",
+    "Carruurta",
+    "Cuntada",
+    "Electronics",
+    "Qalabka Dhismaha",
+    "Others"
+  ];
 
-    renderProducts(products);
+  const list = categories.length
+    ? categories
+    : defaultCategories;
 
-    return;
-  }
+  $$("#categories, #categoryGrid, [data-categories]").forEach(container => {
 
-  const searchTerms = {
+    container.innerHTML = list.map(category => `
+      <button
+        type="button"
+        onclick="WAHEN.selectCategory('${escapeHTML(category)}')"
+        style="
+          border:0;
+          background:#EEF0FE;
+          color:#4338CA;
+          padding:12px 14px;
+          border-radius:14px;
+          font-weight:700;
+          cursor:pointer;
+          white-space:nowrap;
+        "
+      >
+        ${escapeHTML(category)}
+      </button>
+    `).join("");
 
-    men:[
-      "men",
-      "rag",
-      "ragga",
-      "male"
-    ],
+  });
+}
 
-    women:[
-      "women",
-      "haween",
-      "dumar",
-      "female"
-    ],
 
-    electronics:[
-      "electronics",
-      "phone",
-      "mobile",
-      "computer",
-      "electronic"
-    ],
+/* =========================================================
+   16. SELECT CATEGORY
+   ========================================================= */
 
-    food:[
-      "food",
-      "cunto",
-      "raashin"
-    ],
+function selectCategory(category) {
+  WAHEN.category = category;
 
-    baby:[
-      "baby",
-      "caruur",
-      "child"
-    ],
-
-    construction:[
-      "construction",
-      "d hismaha",
-      "dhismaha",
-      "building"
-    ],
-
-    transport:[
-      "transport",
-      "gadiid",
-      "car",
-      "vehicle"
-    ]
-
-  };
-
-  const terms =
-    searchTerms[category] ||
-    [category];
-
-  const filtered =
-    products.filter(product => {
-
-      const text = `
-        ${product.name || ""}
-        ${product.description || ""}
-        ${product.category || ""}
-        ${product.category_name || ""}
-      `.toLowerCase();
-
-      return terms.some(
-        term =>
-          text.includes(
-            term.toLowerCase()
-          )
-      );
-
-    });
-
-  renderProducts(filtered);
+  renderProducts();
 
   scrollToProducts();
 
+  toast(`Category: ${category}`, "success");
 }
 
 
 /* =========================================================
-   SEARCH
+   17. SEARCH
    ========================================================= */
 
 function setupSearch() {
+  const inputs = [
+    ...$$(
+      'input[type="search"], input[placeholder*="Maxaad"], #searchInput, #search'
+    )
+  ];
 
-  const input =
-    $("searchInput");
+  inputs.forEach(input => {
 
-  if (!input) return;
+    input.addEventListener("input", event => {
+      WAHEN.search = event.target.value.trim();
+      renderProducts();
+    });
 
-  input.addEventListener(
-    "input",
-    () => {
-
-      const value =
-        input.value.trim();
-
-      const clear =
-        $("clearSearch");
-
-      if (clear) {
-
-        clear.style.display =
-          value
-            ? "block"
-            : "none";
-
+    input.addEventListener("keydown", event => {
+      if (event.key === "Enter") {
+        WAHEN.search = event.target.value.trim();
+        renderProducts();
+        scrollToProducts();
       }
+    });
 
-      clearTimeout(
-        searchTimer
-      );
+  });
+}
 
-      searchTimer =
-        setTimeout(
-          () => {
+function scrollToProducts() {
+  const target =
+    $("#products") ||
+    $("#productGrid") ||
+    $(".product-grid");
 
-            performSearch(value);
-
-          },
-          250
-        );
-
-    }
-  );
-
+  if (target) {
+    target.scrollIntoView({
+      behavior: "smooth",
+      block: "start"
+    });
+  }
 }
 
 
 /* =========================================================
-   SEARCH FUNCTION
+   18. CART
    ========================================================= */
 
-function performSearch(query) {
+function addToCart(productId) {
+  const product = WAHEN.products.find(
+    item => String(getProductId(item)) === String(productId)
+  );
 
-  if (!query) {
-
-    const section =
-      $("searchResultsSection");
-
-    if (section) {
-      section.classList.add("hidden");
-    }
-
-    renderProducts(
-      activeCategory === "all"
-        ? products
-        : products
-    );
-
+  if (!product) {
+    toast("Alaabta lama helin.", "error");
     return;
   }
 
-  const words =
-    query
-      .toLowerCase()
-      .split(/\s+/)
-      .filter(Boolean);
+  const existing = WAHEN.cart.find(
+    item => String(item.id) === String(productId)
+  );
 
-  const results =
-    products.filter(product => {
-
-      const text = `
-        ${product.name || ""}
-        ${product.description || ""}
-        ${product.category || ""}
-        ${product.category_name || ""}
-        ${product.city || ""}
-        ${product.sku || ""}
-      `.toLowerCase();
-
-      return words.every(
-        word => text.includes(word)
-      );
-
-    });
-
-  const section =
-    $("searchResultsSection");
-
-  const grid =
-    $("searchResults");
-
-  if (!section || !grid) return;
-
-  section.classList.remove("hidden");
-
-  if (!results.length) {
-
-    grid.innerHTML = `
-      <div class="search-result-empty">
-
-        <span>🔎</span>
-
-        <strong>
-          Wax natiijo ah lama helin
-        </strong>
-
-        <p>
-          Isku day erey kale.
-        </p>
-
-      </div>
-    `;
-
+  if (existing) {
+    existing.quantity =
+      Number(existing.quantity || 1) + 1;
   } else {
-
-    grid.innerHTML =
-      results.map(productCard).join("");
-
-    attachProductEvents(grid);
-
+    WAHEN.cart.push({
+      id: productId,
+      name: getProductName(product),
+      price: Number(getProductPrice(product)),
+      image: getProductImage(product),
+      quantity: 1
+    });
   }
 
-  section.scrollIntoView({
-    behavior:"smooth",
-    block:"start"
-  });
+  saveCart();
 
+  toast("Alaabta Cart ayaa lagu daray.", "success");
 }
 
 
 /* =========================================================
-   CART
+   19. CART PAGE
    ========================================================= */
 
-async function loadCart() {
+function showCart() {
+  const total = WAHEN.cart.reduce(
+    (sum, item) =>
+      sum +
+      Number(item.price || 0) *
+      Number(item.quantity || 1),
+    0
+  );
 
-  if (!currentUser || !hasSupabase()) {
+  const items = WAHEN.cart.map((item, index) => `
+    <div style="
+      display:flex;
+      gap:12px;
+      padding:12px;
+      background:#fff;
+      border-radius:15px;
+      margin-bottom:10px;
+      border:1px solid #eee;
+      align-items:center;
+    ">
 
-    cartItems = [];
+      <img
+        src="${escapeHTML(item.image)}"
+        style="
+          width:65px;
+          height:65px;
+          object-fit:cover;
+          border-radius:12px;
+        "
+      >
 
-    updateCartCount();
+      <div style="flex:1">
 
+        <strong>
+          ${escapeHTML(item.name)}
+        </strong>
+
+        <div style="
+          color:#4338CA;
+          font-weight:800;
+          margin-top:4px;
+        ">
+          $${formatPrice(item.price)}
+        </div>
+
+        <div style="
+          display:flex;
+          align-items:center;
+          gap:8px;
+          margin-top:6px;
+        ">
+
+          <button
+            onclick="WAHEN.changeCartQuantity(${index},-1)"
+            style="
+              width:30px;
+              height:30px;
+              border:0;
+              border-radius:8px;
+            "
+          >−</button>
+
+          <span>${item.quantity}</span>
+
+          <button
+            onclick="WAHEN.changeCartQuantity(${index},1)"
+            style="
+              width:30px;
+              height:30px;
+              border:0;
+              border-radius:8px;
+            "
+          >+</button>
+
+        </div>
+
+      </div>
+
+      <button
+        onclick="WAHEN.removeFromCart(${index})"
+        style="
+          border:0;
+          background:#fee2e2;
+          color:#dc2626;
+          width:35px;
+          height:35px;
+          border-radius:9px;
+        "
+      >
+        ×
+      </button>
+
+    </div>
+  `).join("");
+
+  openModal(`
+    <div style="
+      max-height:85vh;
+      overflow:auto;
+    ">
+
+      <div style="
+        display:flex;
+        justify-content:space-between;
+        align-items:center;
+        margin-bottom:15px;
+      ">
+        <h2 style="margin:0">🛒 Cart-ka</h2>
+
+        <button
+          onclick="WAHEN.closeModal()"
+          style="
+            border:0;
+            background:#eee;
+            width:35px;
+            height:35px;
+            border-radius:50%;
+          "
+        >×</button>
+      </div>
+
+      ${
+        items ||
+        `
+        <div style="
+          text-align:center;
+          padding:40px 10px;
+          color:#777;
+        ">
+          <div style="font-size:45px">🛒</div>
+          <h3>Cart-ku waa madhan yahay</h3>
+        </div>
+        `
+      }
+
+      ${
+        WAHEN.cart.length
+          ? `
+            <div style="
+              margin-top:15px;
+              padding:15px;
+              background:#EEF0FE;
+              border-radius:14px;
+            ">
+
+              <div style="
+                display:flex;
+                justify-content:space-between;
+                font-weight:800;
+                font-size:18px;
+              ">
+                <span>Total</span>
+                <span>$${formatPrice(total)}</span>
+              </div>
+
+              <button
+                onclick="WAHEN.checkout()"
+                style="
+                  width:100%;
+                  margin-top:12px;
+                  padding:13px;
+                  border:0;
+                  border-radius:12px;
+                  background:#4338CA;
+                  color:#fff;
+                  font-weight:800;
+                "
+              >
+                Proceed to Order
+              </button>
+
+            </div>
+          `
+          : ""
+      }
+
+    </div>
+  `);
+}
+
+function changeCartQuantity(index, amount) {
+  if (!WAHEN.cart[index]) return;
+
+  WAHEN.cart[index].quantity =
+    Number(WAHEN.cart[index].quantity || 1) + amount;
+
+  if (WAHEN.cart[index].quantity <= 0) {
+    WAHEN.cart.splice(index, 1);
+  }
+
+  saveCart();
+  showCart();
+}
+
+function removeFromCart(index) {
+  WAHEN.cart.splice(index, 1);
+  saveCart();
+  showCart();
+}
+
+
+/* =========================================================
+   20. FAVORITES
+   ========================================================= */
+
+function toggleFavorite(productId) {
+  const id = String(productId);
+
+  if (WAHEN.favorites.includes(id)) {
+    WAHEN.favorites =
+      WAHEN.favorites.filter(item => item !== id);
+
+    toast("Favorites laga saaray.", "info");
+  } else {
+    WAHEN.favorites.push(id);
+    toast("Favorites ayaa lagu daray.", "success");
+  }
+
+  saveFavorites();
+  renderProducts();
+}
+
+function showFavorites() {
+  const products = WAHEN.products.filter(product =>
+    WAHEN.favorites.includes(
+      String(getProductId(product))
+    )
+  );
+
+  openModal(`
+    <div style="max-height:85vh;overflow:auto">
+
+      <div style="
+        display:flex;
+        justify-content:space-between;
+        align-items:center;
+      ">
+        <h2>❤️ Favorites</h2>
+
+        <button
+          onclick="WAHEN.closeModal()"
+          style="
+            border:0;
+            background:#eee;
+            width:35px;
+            height:35px;
+            border-radius:50%;
+          "
+        >×</button>
+      </div>
+
+      <div
+        style="
+          display:grid;
+          grid-template-columns:repeat(2,minmax(0,1fr));
+          gap:10px;
+        "
+      >
+        ${
+          products.length
+            ? products.map(productCard).join("")
+            : `
+              <div style="
+                grid-column:1/-1;
+                text-align:center;
+                padding:40px 10px;
+                color:#777;
+              ">
+                ❤️<br>
+                Favorites-ku waa madhan yahay.
+              </div>
+            `
+        }
+      </div>
+
+    </div>
+  `);
+}
+
+
+/* =========================================================
+   21. PRODUCT DETAILS
+   ========================================================= */
+
+function showProduct(productId) {
+  const product = WAHEN.products.find(
+    item =>
+      String(getProductId(item)) ===
+      String(productId)
+  );
+
+  if (!product) {
+    toast("Alaabta lama helin.", "error");
+    return;
+  }
+
+  const name = getProductName(product);
+  const price = getProductPrice(product);
+  const image = getProductImage(product);
+
+  openModal(`
+    <div style="max-height:88vh;overflow:auto">
+
+      <button
+        onclick="WAHEN.closeModal()"
+        style="
+          float:right;
+          border:0;
+          background:#eee;
+          width:35px;
+          height:35px;
+          border-radius:50%;
+        "
+      >×</button>
+
+      <img
+        src="${escapeHTML(image)}"
+        style="
+          width:100%;
+          max-height:320px;
+          object-fit:cover;
+          border-radius:18px;
+        "
+      >
+
+      <h2>
+        ${escapeHTML(name)}
+      </h2>
+
+      <div style="
+        color:#4338CA;
+        font-size:24px;
+        font-weight:900;
+      ">
+        $${formatPrice(price)}
+      </div>
+
+      <p style="color:#666;line-height:1.6">
+        ${escapeHTML(
+          product.description ||
+          "Macluumaadka alaabta ayaa halkan kasoo muuqan doona."
+        )}
+      </p>
+
+      <button
+        onclick="WAHEN.addToCart('${escapeHTML(productId)}')"
+        style="
+          width:100%;
+          padding:14px;
+          border:0;
+          border-radius:13px;
+          background:#4338CA;
+          color:white;
+          font-size:16px;
+          font-weight:800;
+        "
+      >
+        🛒 Ku dar Cart
+      </button>
+
+    </div>
+  `);
+}
+
+
+/* =========================================================
+   22. ORDERS FROM SUPABASE
+   ========================================================= */
+
+async function loadOrders() {
+  if (!supabase || !WAHEN.user) {
+    WAHEN.orders = [];
     return;
   }
 
   try {
 
-    const cartResult =
-      await SB
-        .from("carts")
-        .select("id")
-        .eq("user_id", currentUser.id)
-        .eq("status", "active")
-        .maybeSingle();
+    /*
+      Waxaan marka hore soo qaadanaynaa orders-ka.
+      Tani waxay ka dhigaysaa script-ka mid u dulqaata
+      haddii schema-ga orders uu leeyahay columns dheeraad ah.
+    */
 
-    if (
-      cartResult.error ||
-      !cartResult.data
-    ) {
+    const { data, error } = await supabase
+      .from("orders")
+      .select("*");
 
-      cartItems = [];
+    if (error) {
+      console.warn("Orders:", error.message);
+      WAHEN.orders = [];
+      return;
+    }
 
-      updateCartCount();
+    const allOrders = Array.isArray(data) ? data : [];
+
+    WAHEN.orders = allOrders.filter(order => {
+
+      const possibleUserIds = [
+        order.user_id,
+        order.customer_id,
+        order.profile_id,
+        order.buyer_id
+      ]
+        .filter(Boolean)
+        .map(String);
+
+      return possibleUserIds.includes(
+        String(WAHEN.user.id)
+      );
+    });
+
+  } catch (error) {
+    console.error("loadOrders:", error);
+    WAHEN.orders = [];
+  }
+}
+
+
+/* =========================================================
+   23. SHOW ORDERS
+   ========================================================= */
+
+async function showOrders() {
+  if (!WAHEN.user) {
+    showLogin();
+    return;
+  }
+
+  showLoading("Orders ayaa la soo qaadanayaa...");
+
+  await loadOrders();
+
+  hideLoading();
+
+  const orderHTML = WAHEN.orders.map(order => {
+
+    const id =
+      order.id ||
+      order.order_id ||
+      "Order";
+
+    const status =
+      order.status ||
+      order.order_status ||
+      "Pending";
+
+    const total =
+      order.total ||
+      order.total_amount ||
+      order.amount ||
+      0;
+
+    return `
+      <div style="
+        background:#fff;
+        border:1px solid #eee;
+        border-radius:15px;
+        padding:15px;
+        margin-bottom:10px;
+      ">
+
+        <div style="
+          display:flex;
+          justify-content:space-between;
+          gap:10px;
+        ">
+          <strong>
+            Order #${escapeHTML(id)}
+          </strong>
+
+          <span style="
+            padding:5px 9px;
+            background:#EEF0FE;
+            color:#4338CA;
+            border-radius:8px;
+            font-size:12px;
+            font-weight:700;
+          ">
+            ${escapeHTML(status)}
+          </span>
+        </div>
+
+        <div style="
+          margin-top:8px;
+          font-weight:800;
+        ">
+          Total: $${formatPrice(total)}
+        </div>
+
+      </div>
+    `;
+  }).join("");
+
+  openModal(`
+    <div style="max-height:85vh;overflow:auto">
+
+      <div style="
+        display:flex;
+        justify-content:space-between;
+        align-items:center;
+      ">
+        <h2>📦 Orders</h2>
+
+        <button
+          onclick="WAHEN.closeModal()"
+          style="
+            border:0;
+            background:#eee;
+            width:35px;
+            height:35px;
+            border-radius:50%;
+          "
+        >×</button>
+      </div>
+
+      ${
+        orderHTML ||
+        `
+        <div style="
+          text-align:center;
+          padding:45px 15px;
+          color:#777;
+        ">
+          <div style="font-size:48px">📦</div>
+          <h3>Orders ma jiraan</h3>
+          <p>Markaad wax dalbato halkan ayay kasoo muuqanayaan.</p>
+        </div>
+        `
+      }
+
+    </div>
+  `);
+}
+
+
+/* =========================================================
+   24. CHECKOUT
+   ========================================================= */
+
+async function checkout() {
+
+  if (!WAHEN.user) {
+    closeModal();
+    showLogin();
+    return;
+  }
+
+  if (!WAHEN.cart.length) {
+    toast("Cart-ku waa madhan yahay.", "error");
+    return;
+  }
+
+  const total = WAHEN.cart.reduce(
+    (sum, item) =>
+      sum +
+      Number(item.price || 0) *
+      Number(item.quantity || 1),
+    0
+  );
+
+  openModal(`
+    <div>
+
+      <h2>🧾 Order</h2>
+
+      <p>
+        Total-ka order-ka:
+        <strong>$${formatPrice(total)}</strong>
+      </p>
+
+      <label style="display:block;margin-top:15px">
+        Delivery address
+      </label>
+
+      <textarea
+        id="wahen-order-address"
+        placeholder="Geli meesha laguu keenayo..."
+        style="
+          width:100%;
+          min-height:90px;
+          margin-top:7px;
+          padding:12px;
+          border:1px solid #ddd;
+          border-radius:12px;
+          box-sizing:border-box;
+        "
+      ></textarea>
+
+      <label style="
+        display:block;
+        margin-top:15px;
+      ">
+        Payment
+      </label>
+
+      <select
+        id="wahen-payment-method"
+        style="
+          width:100%;
+          padding:12px;
+          margin-top:7px;
+          border:1px solid #ddd;
+          border-radius:12px;
+        "
+      >
+        <option value="ZAAD">ZAAD</option>
+        <option value="E-Dahab">E-Dahab</option>
+        <option value="EVC">EVC</option>
+        <option value="Premier">Premier</option>
+      </select>
+
+      <button
+        onclick="WAHEN.submitOrder()"
+        style="
+          width:100%;
+          margin-top:18px;
+          padding:14px;
+          border:0;
+          border-radius:13px;
+          background:#4338CA;
+          color:#fff;
+          font-weight:800;
+        "
+      >
+        Confirm Order
+      </button>
+
+    </div>
+  `);
+}
+
+
+/* =========================================================
+   25. SUBMIT ORDER
+   ========================================================= */
+
+async function submitOrder() {
+
+  if (!supabase || !WAHEN.user) {
+    toast("Login ayaa loo baahan yahay.", "error");
+    return;
+  }
+
+  const address =
+    $("#wahen-order-address")?.value.trim() || "";
+
+  const payment =
+    $("#wahen-payment-method")?.value || "ZAAD";
+
+  if (!address) {
+    toast("Fadlan geli delivery address.", "error");
+    return;
+  }
+
+  const total = WAHEN.cart.reduce(
+    (sum, item) =>
+      sum +
+      Number(item.price || 0) *
+      Number(item.quantity || 1),
+    0
+  );
+
+  showLoading("Order ayaa la dirayaa...");
+
+  try {
+
+    /*
+      Waxaan isticmaalaynaa fields-ka aasaasiga ah.
+      Haddii database-kaaga orders table-ku leeyahay
+      trigger/function u gaar ah, RLS ayaa weli ilaalinaya.
+    */
+
+    const payload = {
+      user_id: WAHEN.user.id,
+      total: total,
+      status: "pending",
+      payment_method: payment,
+      delivery_address: address
+    };
+
+    const { data, error } = await supabase
+      .from("orders")
+      .insert(payload)
+      .select()
+      .maybeSingle();
+
+    if (error) {
+      console.error("Order insert:", error);
+
+      toast(
+        "Order lama gelin database-ka. Hubi orders columns-ka.",
+        "error"
+      );
 
       return;
     }
 
-    const cartId =
-      cartResult.data.id;
+    WAHEN.cart = [];
+    saveCart();
 
-    const itemsResult =
-      await SB
-        .from("cart_items")
-        .select(`
-          id,
-          quantity,
-          product_id,
-          products (
-            id,
-            name,
-            price,
-            image_url,
-            stock
-          )
-        `)
-        .eq("cart_id", cartId)
-        .order("created_at", {
-          ascending:false
-        });
+    closeModal();
 
-    if (itemsResult.error) {
+    toast(
+      "Order-ka si guul leh ayaa loo diray.",
+      "success"
+    );
 
-      console.warn(
-        "Cart items:",
-        itemsResult.error.message
-      );
-
-      cartItems = [];
-
-    } else {
-
-      cartItems =
-        itemsResult.data || [];
-
-    }
-
-    updateCartCount();
+    await loadOrders();
 
   } catch (error) {
-
-    console.error(
-      "Cart error:",
-      error
-    );
-
-  }
-
-}
-
-
-/* =========================================================
-   ADD TO CART
-   ========================================================= */
-
-async function addToCart(productId) {
-
-  if (!currentUser) {
-
-    openAuth();
-
-    showToast(
-      "Fadlan marka hore soo gal."
-    );
-
-    return;
-  }
-
-  if (!hasSupabase()) return;
-
-  try {
-
-    let cartId = null;
-
-    const existingCart =
-      await SB
-        .from("carts")
-        .select("id")
-        .eq("user_id", currentUser.id)
-        .eq("status", "active")
-        .maybeSingle();
-
-    if (existingCart.data) {
-
-      cartId =
-        existingCart.data.id;
-
-    } else {
-
-      const newCart =
-        await SB
-          .from("carts")
-          .insert({
-            user_id:currentUser.id,
-            status:"active"
-          })
-          .select("id")
-          .single();
-
-      if (newCart.error) {
-        throw newCart.error;
-      }
-
-      cartId =
-        newCart.data.id;
-    }
-
-
-    const existingItem =
-      await SB
-        .from("cart_items")
-        .select("*")
-        .eq("cart_id", cartId)
-        .eq("product_id", productId)
-        .maybeSingle();
-
-
-    if (existingItem.data) {
-
-      const newQuantity =
-        Number(
-          existingItem.data.quantity || 0
-        ) + 1;
-
-      const update =
-        await SB
-          .from("cart_items")
-          .update({
-            quantity:newQuantity
-          })
-          .eq("id", existingItem.data.id);
-
-      if (update.error) {
-        throw update.error;
-      }
-
-    } else {
-
-      const insert =
-        await SB
-          .from("cart_items")
-          .insert({
-            cart_id:cartId,
-            product_id:productId,
-            quantity:1
-          });
-
-      if (insert.error) {
-        throw insert.error;
-      }
-
-    }
-
-
-    await loadCart();
-
-    showToast(
-      "Alaabta Cart-ka ayaa lagu daray ✓"
-    );
-
-  } catch (error) {
-
-    console.error(
-      "Add cart error:",
-      error
-    );
-
-    showToast(
-      "Alaabta Cart-ka laguma darin."
-    );
-
-  }
-
-}
-
-
-/* =========================================================
-   CART COUNT
-   ========================================================= */
-
-function updateCartCount() {
-
-  const count =
-    cartItems.reduce(
-      (total,item) =>
-        total +
-        Number(item.quantity || 0),
-      0
-    );
-
-  const badge =
-    $("cartCount");
-
-  if (badge) {
-    badge.textContent =
-      String(count);
-  }
-
-}
-
-
-/* =========================================================
-   RENDER CART
-   ========================================================= */
-
-function renderCart() {
-
-  const container =
-    $("cartItems");
-
-  if (!container) return;
-
-  if (!cartItems.length) {
-
-    container.innerHTML = `
-      <div class="search-result-empty">
-
-        <span>🛒</span>
-
-        <strong>
-          Cart-kaagu waa madhan yahay
-        </strong>
-
-        <p>
-          Ku dar alaabo si aad u dalbato.
-        </p>
-
-      </div>
-    `;
-
-    updateCartTotals();
-
-    return;
-  }
-
-
-  container.innerHTML =
-    cartItems.map(item => {
-
-      const product =
-        item.products || {};
-
-      const image =
-        product.image_url || "";
-
-      return `
-        <div
-          class="cart-item"
-          data-cart-item="${escapeAttribute(item.id)}"
-        >
-
-          <div class="cart-item-image">
-
-            ${
-              image
-                ? `
-                  <img
-                    src="${escapeAttribute(image)}"
-                    alt=""
-                  >
-                `
-                : `
-                  <div
-                    class="product-placeholder"
-                    style="font-size:25px"
-                  >
-                    🛍️
-                  </div>
-                `
-            }
-
-          </div>
-
-          <div class="cart-item-info">
-
-            <strong>
-              ${escapeHTML(
-                product.name || "Alaab"
-              )}
-            </strong>
-
-            <small>
-              ${formatMoney(
-                Number(product.price || 0)
-              )}
-            </small>
-
-          </div>
-
-          <div class="quantity-control">
-
-            <button
-              data-minus="${escapeAttribute(item.id)}"
-            >
-              −
-            </button>
-
-            <span>
-              ${Number(item.quantity || 1)}
-            </span>
-
-            <button
-              data-plus="${escapeAttribute(item.id)}"
-            >
-              +
-            </button>
-
-          </div>
-
-        </div>
-      `;
-
-    }).join("");
-
-
-  container
-    .querySelectorAll("[data-minus]")
-    .forEach(button => {
-
-      button.addEventListener(
-        "click",
-        () =>
-          changeCartQuantity(
-            button.dataset.minus,
-            -1
-          )
-      );
-
-    });
-
-
-  container
-    .querySelectorAll("[data-plus]")
-    .forEach(button => {
-
-      button.addEventListener(
-        "click",
-        () =>
-          changeCartQuantity(
-            button.dataset.plus,
-            1
-          )
-      );
-
-    });
-
-
-  updateCartTotals();
-
-}
-
-
-/* =========================================================
-   CHANGE CART QUANTITY
-   ========================================================= */
-
-async function changeCartQuantity(
-  itemId,
-  change
-) {
-
-  if (!hasSupabase()) return;
-
-  const item =
-    cartItems.find(
-      row =>
-        String(row.id) ===
-        String(itemId)
-    );
-
-  if (!item) return;
-
-  const quantity =
-    Number(item.quantity || 1) +
-    Number(change);
-
-  try {
-
-    if (quantity <= 0) {
-
-      const result =
-        await SB
-          .from("cart_items")
-          .delete()
-          .eq("id", itemId);
-
-      if (result.error) {
-        throw result.error;
-      }
-
-    } else {
-
-      const result =
-        await SB
-          .from("cart_items")
-          .update({
-            quantity
-          })
-          .eq("id", itemId);
-
-      if (result.error) {
-        throw result.error;
-      }
-
-    }
-
-    await loadCart();
-
-    renderCart();
-
-  } catch (error) {
-
     console.error(error);
-
-    showToast(
-      "Cart-ka lama cusboonaysiin."
-    );
-
+    toast("Order error ayaa dhacay.", "error");
+  } finally {
+    hideLoading();
   }
-
 }
 
 
 /* =========================================================
-   CART TOTALS
+   26. LOGIN / SIGNUP
    ========================================================= */
 
-function updateCartTotals() {
+function showLogin() {
 
-  let subtotal = 0;
+  openModal(`
+    <div>
 
-  cartItems.forEach(item => {
+      <div style="
+        text-align:center;
+        margin-bottom:20px;
+      ">
+        ${wahenLogo(60)}
 
-    const price =
-      Number(
-        item.products?.price || 0
-      );
+        <h2 style="
+          margin:10px 0 5px;
+          color:#4338CA;
+        ">
+          WAHEN
+        </h2>
 
-    const quantity =
-      Number(item.quantity || 0);
+        <p style="
+          color:#777;
+          margin:0;
+        ">
+          Hal meel wax walba ka hel
+        </p>
+      </div>
 
-    subtotal +=
-      price * quantity;
+      <input
+        id="wahen-auth-email"
+        type="email"
+        placeholder="Email"
+        style="
+          width:100%;
+          box-sizing:border-box;
+          padding:13px;
+          border:1px solid #ddd;
+          border-radius:12px;
+          margin-bottom:10px;
+        "
+      >
 
-  });
+      <input
+        id="wahen-auth-password"
+        type="password"
+        placeholder="Password"
+        style="
+          width:100%;
+          box-sizing:border-box;
+          padding:13px;
+          border:1px solid #ddd;
+          border-radius:12px;
+        "
+      >
 
-  const delivery = 0;
+      <button
+        onclick="WAHEN.login()"
+        style="
+          width:100%;
+          margin-top:15px;
+          padding:14px;
+          border:0;
+          border-radius:13px;
+          background:#4338CA;
+          color:white;
+          font-weight:800;
+        "
+      >
+        Login
+      </button>
 
-  const total =
-    subtotal + delivery;
+      <button
+        onclick="WAHEN.signup()"
+        style="
+          width:100%;
+          margin-top:9px;
+          padding:13px;
+          border:1px solid #4338CA;
+          border-radius:13px;
+          background:white;
+          color:#4338CA;
+          font-weight:800;
+        "
+      >
+        Create Account
+      </button>
 
-  if ($("cartSubtotal")) {
-
-    $("cartSubtotal").textContent =
-      formatMoney(subtotal);
-
-  }
-
-  if ($("cartDelivery")) {
-
-    $("cartDelivery").textContent =
-      formatMoney(delivery);
-
-  }
-
-  if ($("cartTotal")) {
-
-    $("cartTotal").textContent =
-      formatMoney(total);
-
-  }
-
+    </div>
+  `);
 }
 
 
 /* =========================================================
-   FAVORITE
+   27. LOGIN
    ========================================================= */
 
-function toggleFavorite(
-  productId,
-  button = null
-) {
+async function login() {
 
-  const key =
-    "wahen_favorites";
-
-  let favorites =
-    JSON.parse(
-      localStorage.getItem(key) || "[]"
-    );
-
-  const index =
-    favorites.indexOf(
-      String(productId)
-    );
-
-  if (index >= 0) {
-
-    favorites.splice(index,1);
-
-    if (button) {
-      button.textContent = "♡";
-    }
-
-    showToast(
-      "Favorite-ka waa laga saaray."
-    );
-
-  } else {
-
-    favorites.push(
-      String(productId)
-    );
-
-    if (button) {
-      button.textContent = "♥";
-    }
-
-    showToast(
-      "Favorite-ka ayaa lagu daray."
-    );
-
+  if (!supabase) {
+    toast("Supabase lama diyaar.", "error");
+    return;
   }
-
-  localStorage.setItem(
-    key,
-    JSON.stringify(favorites)
-  );
-
-}
-
-
-/* =========================================================
-   NAVIGATION
-   ========================================================= */
-
-function setupNavigation() {
-
-  const menuBtn =
-    $("menuBtn");
-
-  const closeMenu =
-    $("closeMenu");
-
-  const sideMenu =
-    $("sideMenu");
-
-  const overlay =
-    $("overlay");
-
-  if (menuBtn) {
-
-    menuBtn.addEventListener(
-      "click",
-      () => {
-
-        sideMenu?.classList.add(
-          "open"
-        );
-
-        overlay?.classList.add(
-          "show"
-        );
-
-      }
-    );
-
-  }
-
-  if (closeMenu) {
-
-    closeMenu.addEventListener(
-      "click",
-      closeSideMenu
-    );
-
-  }
-
-  if (overlay) {
-
-    overlay.addEventListener(
-      "click",
-      closeSideMenu
-    );
-
-  }
-
-
-  qsa(
-    "[data-menu]"
-  ).forEach(button => {
-
-    button.addEventListener(
-      "click",
-      () => {
-
-        closeSideMenu();
-
-        navigateTo(
-          button.dataset.menu
-        );
-
-      }
-    );
-
-  });
-
-
-  qsa(
-    "[data-bottom]"
-  ).forEach(button => {
-
-    button.addEventListener(
-      "click",
-      () => {
-
-        qsa(
-          ".bottom-item"
-        ).forEach(item =>
-          item.classList.remove("active")
-        );
-
-        button.classList.add(
-          "active"
-        );
-
-        navigateTo(
-          button.dataset.bottom
-        );
-
-      }
-    );
-
-  });
-
-}
-
-
-/* =========================================================
-   CLOSE SIDE MENU
-   ========================================================= */
-
-function closeSideMenu() {
-
-  $("sideMenu")
-    ?.classList.remove("open");
-
-  $("overlay")
-    ?.classList.remove("show");
-
-}
-
-
-/* =========================================================
-   NAVIGATE
-   ========================================================= */
-
-function navigateTo(page) {
-
-  switch(page){
-
-    case "home":
-
-      window.scrollTo({
-        top:0,
-        behavior:"smooth"
-      });
-
-      break;
-
-
-    case "products":
-
-      scrollToProducts();
-
-      break;
-
-
-    case "categories":
-
-      $("categoryGrid")
-        ?.scrollIntoView({
-          behavior:"smooth"
-        });
-
-      break;
-
-
-    case "wholesale":
-
-      $("wholesaleBtn")
-        ?.scrollIntoView({
-          behavior:"smooth"
-        });
-
-      break;
-
-
-    case "brands":
-
-      $("brandGrid")
-        ?.scrollIntoView({
-          behavior:"smooth"
-        });
-
-      break;
-
-
-    case "orders":
-
-      if (!currentUser) {
-
-        openAuth();
-
-        showToast(
-          "Soo gal si aad u aragto orders-ka."
-        );
-
-      } else {
-
-        showToast(
-          "Orders-kaaga ayaa la diyaarinayaa."
-        );
-
-      }
-
-      break;
-
-
-    case "account":
-
-      openAuth();
-
-      break;
-
-
-    case "chat":
-
-      showToast(
-        "Chat-ka WaHeN ayaa la diyaarinayaa."
-      );
-
-      break;
-
-
-    case "settings":
-
-      showToast(
-        "Settings-ka ayaa la diyaarinayaa."
-      );
-
-      break;
-
-
-    case "favorites":
-
-      showFavorites();
-
-      break;
-
-
-    case "manufacturers":
-
-      showToast(
-        "Warshadaha ayaa la diyaarinayaa."
-      );
-
-      break;
-
-
-    case "support":
-
-      showToast(
-        "Customer Support."
-      );
-
-      break;
-
-  }
-
-}
-
-
-/* =========================================================
-   BUTTONS
-   ========================================================= */
-
-function setupButtons() {
-
-  $("cartBtn")
-    ?.addEventListener(
-      "click",
-      async () => {
-
-        if (!currentUser) {
-
-          openAuth();
-
-          showToast(
-            "Soo gal si aad u isticmaasho Cart."
-          );
-
-          return;
-        }
-
-        await loadCart();
-
-        renderCart();
-
-        openModal("cartModal");
-
-      }
-    );
-
-
-  $("bottomSearch")
-    ?.addEventListener(
-      "click",
-      () => {
-
-        $("searchInput")
-          ?.focus();
-
-        window.scrollTo({
-          top:0,
-          behavior:"smooth"
-        });
-
-      }
-    );
-
-
-  $("heroShopBtn")
-    ?.addEventListener(
-      "click",
-      () => {
-
-        $("searchInput")
-          ?.focus();
-
-      }
-    );
-
-
-  $("allProductsBtn")
-    ?.addEventListener(
-      "click",
-      () => {
-
-        activeCategory = "all";
-
-        renderProducts(
-          products
-        );
-
-        scrollToProducts();
-
-      }
-    );
-
-
-  $("allCategoriesBtn")
-    ?.addEventListener(
-      "click",
-      () => {
-
-        $("categoryGrid")
-          ?.scrollIntoView({
-            behavior:"smooth"
-          });
-
-      }
-    );
-
-
-  $("allBrandsBtn")
-    ?.addEventListener(
-      "click",
-      () => {
-
-        $("brandGrid")
-          ?.scrollIntoView({
-            behavior:"smooth"
-          });
-
-      }
-    );
-
-
-  $("wholesaleBtn")
-    ?.addEventListener(
-      "click",
-      () => {
-
-        const wholesale =
-          products.filter(
-            product =>
-              product.is_wholesale === true
-          );
-
-        if (wholesale.length) {
-
-          renderProducts(
-            wholesale
-          );
-
-          scrollToProducts();
-
-        } else {
-
-          showToast(
-            "Alaab jumlo ah hadda lama helin."
-          );
-
-        }
-
-      }
-    );
-
-
-  $("offerBtn")
-    ?.addEventListener(
-      "click",
-      () => {
-
-        const offers =
-          products.filter(
-            product =>
-              Number(
-                product.old_price || 0
-              ) >
-              Number(
-                product.price || 0
-              )
-          );
-
-        if (offers.length) {
-
-          renderProducts(
-            offers
-          );
-
-          scrollToProducts();
-
-        } else {
-
-          showToast(
-            "Dalabyo gaar ah hadda lama helin."
-          );
-
-        }
-
-      }
-    );
-
-
-  $("clearSearch")
-    ?.addEventListener(
-      "click",
-      () => {
-
-        const input =
-          $("searchInput");
-
-        if (!input) return;
-
-        input.value = "";
-
-        $("clearSearch")
-          .style.display = "none";
-
-        $("searchResultsSection")
-          ?.classList.add("hidden");
-
-        renderProducts(
-          products
-        );
-
-      }
-    );
-
-
-  $("closeSearchResults")
-    ?.addEventListener(
-      "click",
-      () => {
-
-        $("searchResultsSection")
-          ?.classList.add("hidden");
-
-      }
-    );
-
-
-  $("checkoutBtn")
-    ?.addEventListener(
-      "click",
-      () => {
-
-        if (!cartItems.length) {
-
-          showToast(
-            "Cart-kaagu waa madhan yahay."
-          );
-
-          return;
-        }
-
-        showToast(
-          "Checkout-ka ayaa xiga."
-        );
-
-      }
-    );
-
-
-  $("notificationBtn")
-    ?.addEventListener(
-      "click",
-      () => {
-
-        showToast(
-          "Ma jiraan notifications cusub."
-        );
-
-      }
-    );
-
-
-  $("changeLocation")
-    ?.addEventListener(
-      "click",
-      () => {
-
-        showToast(
-          "Doorashada magaalada ayaa xigta."
-        );
-
-      }
-    );
-
-
-  $("filterBtn")
-    ?.addEventListener(
-      "click",
-      () => {
-
-        showToast(
-          "Filter-ka ayaa xiga."
-        );
-
-      }
-    );
-
-}
-
-
-/* =========================================================
-   AUTH SETUP
-   ========================================================= */
-
-function setupAuth() {
-
-  $("loginForm")
-    ?.addEventListener(
-      "submit",
-      loginUser
-    );
-
-
-  $("signupForm")
-    ?.addEventListener(
-      "submit",
-      signupUser
-    );
-
-
-  $("authSwitchBtn")
-    ?.addEventListener(
-      "click",
-      toggleAuthMode
-    );
-
-}
-
-
-/* =========================================================
-   LOGIN
-   ========================================================= */
-
-async function loginUser(event) {
-
-  event.preventDefault();
-
-  if (!hasSupabase()) return;
 
   const email =
-    $("loginEmail")
-      ?.value
-      .trim();
+    $("#wahen-auth-email")?.value.trim();
 
   const password =
-    $("loginPassword")
-      ?.value;
+    $("#wahen-auth-password")?.value || "";
 
   if (!email || !password) {
-
-    setAuthMessage(
-      "Fadlan buuxi labada meelood."
-    );
-
+    toast("Geli email iyo password.", "error");
     return;
   }
 
-  setAuthMessage(
-    "Soo galaya..."
-  );
+  showLoading("Login...");
 
   try {
 
-    const result =
-      await SB.auth.signInWithPassword({
+    const { data, error } =
+      await supabase.auth.signInWithPassword({
         email,
         password
       });
 
-    if (result.error) {
-
-      setAuthMessage(
-        result.error.message
-      );
-
+    if (error) {
+      toast(error.message, "error");
       return;
     }
 
-    closeModal("authModal");
+    WAHEN.user = data.user;
 
-    showToast(
-      "Si guul leh ayaad u soo gashay ✓"
-    );
+    await loadProfile();
+
+    closeModal();
+
+    updateAccountUI();
+
+    toast("Ku soo dhawoow WaHeN.", "success");
 
   } catch (error) {
-
     console.error(error);
-
-    setAuthMessage(
-      "Login-ku wuu fashilmay."
-    );
-
+    toast("Login error.", "error");
+  } finally {
+    hideLoading();
   }
-
 }
 
 
 /* =========================================================
-   SIGNUP
+   28. SIGNUP
    ========================================================= */
 
-async function signupUser(event) {
+async function signup() {
 
-  event.preventDefault();
-
-  if (!hasSupabase()) return;
-
-  const name =
-    $("signupName")
-      ?.value
-      .trim();
-
-  const phone =
-    $("signupPhone")
-      ?.value
-      .trim();
+  if (!supabase) return;
 
   const email =
-    $("signupEmail")
-      ?.value
-      .trim();
+    $("#wahen-auth-email")?.value.trim();
 
   const password =
-    $("signupPassword")
-      ?.value;
+    $("#wahen-auth-password")?.value || "";
 
-
-  if (
-    !name ||
-    !phone ||
-    !email ||
-    !password
-  ) {
-
-    setAuthMessage(
-      "Fadlan buuxi dhammaan xogta."
-    );
-
+  if (!email || !password) {
+    toast("Geli email iyo password.", "error");
     return;
   }
 
+  if (password.length < 6) {
+    toast("Password-ku ugu yaraan 6 xaraf ha noqdo.", "error");
+    return;
+  }
 
-  setAuthMessage(
-    "Account-ka ayaa la sameynayaa..."
-  );
-
+  showLoading("Account ayaa la samaynayaa...");
 
   try {
 
-    const result =
-      await SB.auth.signUp({
-
+    const { data, error } =
+      await supabase.auth.signUp({
         email,
-        password,
-
-        options:{
-          data:{
-            full_name:name,
-            phone:phone
-          }
-        }
-
+        password
       });
 
-
-    if (result.error) {
-
-      setAuthMessage(
-        result.error.message
-      );
-
+    if (error) {
+      toast(error.message, "error");
       return;
     }
 
+    WAHEN.user = data.user || null;
 
-    if (result.data?.user) {
-
-      setAuthMessage(
-        "Account waa la sameeyay. Haddii email verification loo baahan yahay, email-ka hubi."
-      );
-
+    if (WAHEN.user) {
+      await loadProfile();
     }
+
+    closeModal();
+
+    toast(
+      "Account-ka waa la sameeyay.",
+      "success"
+    );
 
   } catch (error) {
-
     console.error(error);
-
-    setAuthMessage(
-      "Account-ka lama sameyn."
-    );
-
+    toast("Signup error.", "error");
+  } finally {
+    hideLoading();
   }
-
 }
 
 
 /* =========================================================
-   AUTH MODE
+   29. LOGOUT
    ========================================================= */
 
-function toggleAuthMode() {
+async function logout() {
 
-  const login =
-    $("loginForm");
+  if (!supabase) return;
 
-  const signup =
-    $("signupForm");
+  showLoading("Logout...");
 
-  const title =
-    $("authTitle");
+  try {
 
-  const description =
-    $("authDescription");
+    const { error } =
+      await supabase.auth.signOut();
 
-  const switchText =
-    $("authSwitchText");
-
-  const switchBtn =
-    $("authSwitchBtn");
-
-  const message =
-    $("authMessage");
-
-
-  if (
-    !login ||
-    !signup
-  ) return;
-
-
-  const signupVisible =
-    !signup.classList.contains(
-      "hidden"
-    );
-
-
-  if (signupVisible) {
-
-    signup.classList.add("hidden");
-    login.classList.remove("hidden");
-
-    if (title)
-      title.textContent =
-        "Ku soo dhawoow WaHeN";
-
-    if (description)
-      description.textContent =
-        "Soo gal si aad u isticmaasho dhammaan adeegyada WaHeN.";
-
-    if (switchText)
-      switchText.textContent =
-        "Account ma lihid?";
-
-    if (switchBtn)
-      switchBtn.textContent =
-        "Samee Account";
-
-  } else {
-
-    login.classList.add("hidden");
-    signup.classList.remove("hidden");
-
-    if (title)
-      title.textContent =
-        "Samee Account";
-
-    if (description)
-      description.textContent =
-        "Samee account-kaaga WaHeN si aad u dalbato.";
-
-    if (switchText)
-      switchText.textContent =
-        "Account ma leedahay?";
-
-    if (switchBtn)
-      switchBtn.textContent =
-        "Soo Gal";
-
-  }
-
-
-  if (message)
-    message.textContent = "";
-
-}
-
-
-/* =========================================================
-   AUTH MESSAGE
-   ========================================================= */
-
-function setAuthMessage(message) {
-
-  const element =
-    $("authMessage");
-
-  if (element) {
-
-    element.textContent =
-      message;
-
-  }
-
-}
-
-
-/* =========================================================
-   MODALS
-   ========================================================= */
-
-function setupModals() {
-
-  $("closeProductModal")
-    ?.addEventListener(
-      "click",
-      () =>
-        closeModal(
-          "productModal"
-        )
-    );
-
-
-  $("closeCartModal")
-    ?.addEventListener(
-      "click",
-      () =>
-        closeModal(
-          "cartModal"
-        )
-    );
-
-
-  $("closeAuthModal")
-    ?.addEventListener(
-      "click",
-      () =>
-        closeModal(
-          "authModal"
-        )
-    );
-
-
-  qsa(".modal")
-    .forEach(modal => {
-
-      modal.addEventListener(
-        "click",
-        event => {
-
-          if (
-            event.target === modal
-          ) {
-
-            closeModal(
-              modal.id
-            );
-
-          }
-
-        }
-      );
-
-    });
-
-
-  document.addEventListener(
-    "keydown",
-    event => {
-
-      if (
-        event.key === "Escape"
-      ) {
-
-        qsa(".modal.show")
-          .forEach(modal =>
-            closeModal(
-              modal.id
-            )
-          );
-
-        closeSideMenu();
-
-      }
-
+    if (error) {
+      toast(error.message, "error");
+      return;
     }
-  );
 
+    WAHEN.user = null;
+    WAHEN.profile = null;
+    WAHEN.orders = [];
+
+    updateAccountUI();
+
+    closeModal();
+
+    toast("Waad ka baxday account-ka.", "success");
+
+  } catch (error) {
+    console.error(error);
+    toast("Logout error.", "error");
+  } finally {
+    hideLoading();
+  }
 }
 
 
 /* =========================================================
-   OPEN MODAL
+   30. ACCOUNT
    ========================================================= */
 
-function openModal(id) {
+function showAccount() {
 
-  const modal =
-    $(id);
-
-  if (!modal) return;
-
-  modal.classList.add(
-    "show"
-  );
-
-  document.body.style.overflow =
-    "hidden";
-
-}
-
-
-/* =========================================================
-   CLOSE MODAL
-   ========================================================= */
-
-function closeModal(id) {
-
-  const modal =
-    $(id);
-
-  if (!modal) return;
-
-  modal.classList.remove(
-    "show"
-  );
-
-  if (
-    !document.querySelector(
-      ".modal.show"
-    )
-  ) {
-
-    document.body.style.overflow =
-      "";
-
+  if (!WAHEN.user) {
+    showLogin();
+    return;
   }
 
+  const name =
+    WAHEN.profile?.full_name ||
+    WAHEN.profile?.name ||
+    WAHEN.user.email?.split("@")[0] ||
+    "Marti";
+
+  const email =
+    WAHEN.profile?.email ||
+    WAHEN.user.email ||
+    "";
+
+  openModal(`
+    <div>
+
+      <div style="
+        text-align:center;
+        padding:10px 0 20px;
+      ">
+        ${wahenLogo(65)}
+
+        <h2 style="margin:10px 0 4px">
+          ${escapeHTML(name)}
+        </h2>
+
+        <div style="color:#777">
+          ${escapeHTML(email)}
+        </div>
+      </div>
+
+      <button
+        onclick="WAHEN.showOrders()"
+        style="
+          width:100%;
+          padding:13px;
+          margin-bottom:9px;
+          border:0;
+          border-radius:12px;
+          background:#EEF0FE;
+          color:#4338CA;
+          font-weight:800;
+        "
+      >
+        📦 My Orders
+      </button>
+
+      <button
+        onclick="WAHEN.showFavorites()"
+        style="
+          width:100%;
+          padding:13px;
+          margin-bottom:9px;
+          border:0;
+          border-radius:12px;
+          background:#EEF0FE;
+          color:#4338CA;
+          font-weight:800;
+        "
+      >
+        ❤️ Favorites
+      </button>
+
+      <button
+        onclick="WAHEN.showSupport()"
+        style="
+          width:100%;
+          padding:13px;
+          margin-bottom:9px;
+          border:0;
+          border-radius:12px;
+          background:#EEF0FE;
+          color:#4338CA;
+          font-weight:800;
+        "
+      >
+        💬 Customer Support
+      </button>
+
+      <button
+        onclick="WAHEN.logout()"
+        style="
+          width:100%;
+          padding:13px;
+          border:0;
+          border-radius:12px;
+          background:#fee2e2;
+          color:#dc2626;
+          font-weight:800;
+        "
+      >
+        🚪 Logout
+      </button>
+
+    </div>
+  `);
 }
 
 
 /* =========================================================
-   OPEN AUTH
+   31. CUSTOMER SUPPORT
    ========================================================= */
 
-function openAuth() {
+function showSupport() {
 
-  openModal(
-    "authModal"
+  openModal(`
+    <div>
+
+      <div style="
+        display:flex;
+        justify-content:space-between;
+        align-items:center;
+      ">
+        <h2>💬 Customer Support</h2>
+
+        <button
+          onclick="WAHEN.closeModal()"
+          style="
+            border:0;
+            background:#eee;
+            width:35px;
+            height:35px;
+            border-radius:50%;
+          "
+        >×</button>
+      </div>
+
+      <p style="color:#666">
+        Maxaan kaa caawin karnaa?
+      </p>
+
+      <button
+        onclick="WAHEN.supportMessage('Order')"
+        style="
+          width:100%;
+          padding:13px;
+          margin-bottom:9px;
+          border:1px solid #eee;
+          background:white;
+          border-radius:12px;
+          text-align:left;
+        "
+      >
+        📦 Order problem
+      </button>
+
+      <button
+        onclick="WAHEN.supportMessage('Payment')"
+        style="
+          width:100%;
+          padding:13px;
+          margin-bottom:9px;
+          border:1px solid #eee;
+          background:white;
+          border-radius:12px;
+          text-align:left;
+        "
+      >
+        💳 Payment problem
+      </button>
+
+      <button
+        onclick="WAHEN.supportMessage('Delivery')"
+        style="
+          width:100%;
+          padding:13px;
+          margin-bottom:9px;
+          border:1px solid #eee;
+          background:white;
+          border-radius:12px;
+          text-align:left;
+        "
+      >
+        🚚 Delivery problem
+      </button>
+
+      <textarea
+        id="wahen-support-text"
+        placeholder="Qor fariintaada..."
+        style="
+          width:100%;
+          min-height:100px;
+          box-sizing:border-box;
+          padding:12px;
+          border:1px solid #ddd;
+          border-radius:12px;
+        "
+      ></textarea>
+
+      <button
+        onclick="WAHEN.sendSupport()"
+        style="
+          width:100%;
+          margin-top:10px;
+          padding:13px;
+          border:0;
+          border-radius:12px;
+          background:#4338CA;
+          color:white;
+          font-weight:800;
+        "
+      >
+        Send Message
+      </button>
+
+    </div>
+  `);
+}
+
+function supportMessage(type) {
+  const textarea = $("#wahen-support-text");
+
+  if (textarea) {
+    textarea.value =
+      `${type} problem: `;
+    textarea.focus();
+  }
+}
+
+function sendSupport() {
+
+  const text =
+    $("#wahen-support-text")?.value.trim();
+
+  if (!text) {
+    toast("Fadlan qor fariinta.", "error");
+    return;
+  }
+
+  /*
+    Haddii support table-ka M.4 dambe lagu xiro,
+    function-kan waxaa lagu dari karaa insert-ka.
+    Hadda UI-ga iyo button-ku si buuxda ayay u shaqaynayaan.
+  */
+
+  toast(
+    "Fariintaada waa la helay. WaHeN Support ayaa kula soo xiriiri doona.",
+    "success"
   );
 
+  closeModal();
 }
 
 
 /* =========================================================
-   FAVORITES
+   32. MODAL
    ========================================================= */
 
-function showFavorites() {
+function openModal(content) {
 
-  const favorites =
-    JSON.parse(
-      localStorage.getItem(
-        "wahen_favorites"
-      ) || "[]"
-    );
+  closeModal();
 
-  const list =
-    products.filter(
-      product =>
-        favorites.includes(
-          String(product.id)
-        )
-    );
+  const overlay = document.createElement("div");
 
-  renderProducts(list);
+  overlay.id = "wahen-modal";
 
-  scrollToProducts();
-
-  showToast(
-    `${list.length} favorite ayaa la helay`
-  );
-
-}
-
-
-/* =========================================================
-   SCROLL PRODUCTS
-   ========================================================= */
-
-function scrollToProducts() {
-
-  const grid =
-    $("productGrid");
-
-  if (!grid) return;
-
-  grid.scrollIntoView({
-    behavior:"smooth",
-    block:"start"
+  Object.assign(overlay.style, {
+    position: "fixed",
+    inset: "0",
+    background: "rgba(0,0,0,.55)",
+    zIndex: "99990",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: "15px",
+    boxSizing: "border-box"
   });
 
+  const modal = document.createElement("div");
+
+  Object.assign(modal.style, {
+    width: "100%",
+    maxWidth: "430px",
+    maxHeight: "90vh",
+    overflow: "auto",
+    background: "#fff",
+    borderRadius: "22px",
+    padding: "20px",
+    boxSizing: "border-box",
+    boxShadow: "0 20px 60px rgba(0,0,0,.25)"
+  });
+
+  modal.innerHTML = content;
+
+  overlay.appendChild(modal);
+
+  overlay.addEventListener("click", event => {
+    if (event.target === overlay) {
+      closeModal();
+    }
+  });
+
+  document.body.appendChild(overlay);
+}
+
+function closeModal() {
+  const modal = document.getElementById("wahen-modal");
+
+  if (modal) {
+    modal.remove();
+  }
 }
 
 
 /* =========================================================
-   LOADING
+   33. NAVIGATION
    ========================================================= */
 
-function showLoading(show) {
+function goHome() {
 
-  const loading =
-    $("globalLoading");
+  WAHEN.currentPage = "home";
+  WAHEN.category = "";
+  WAHEN.search = "";
 
-  if (!loading) return;
+  renderProducts();
 
-  if (show) {
+  const home =
+    $("#home") ||
+    document.querySelector("[data-page='home']") ||
+    document.body;
 
-    loading.classList.remove(
-      "hidden"
-    );
-
+  if (home && home !== document.body) {
+    home.scrollIntoView({
+      behavior: "smooth",
+      block: "start"
+    });
   } else {
-
-    loading.classList.add(
-      "hidden"
-    );
-
+    window.scrollTo({
+      top:0,
+      behavior:"smooth"
+    });
   }
 
+  setActiveNav("home");
 }
 
+function goCategories() {
 
-/* =========================================================
-   TOAST
-   ========================================================= */
+  WAHEN.currentPage = "categories";
 
-let toastTimer = null;
+  const target =
+    $("#categories") ||
+    $("#categoryGrid") ||
+    document.querySelector("[data-categories]");
 
-function showToast(message) {
-
-  const toast =
-    $("toast");
-
-  if (!toast) return;
-
-  toast.textContent =
-    message;
-
-  toast.classList.add(
-    "show"
-  );
-
-  clearTimeout(
-    toastTimer
-  );
-
-  toastTimer =
-    setTimeout(
-      () => {
-
-        toast.classList.remove(
-          "show"
-        );
-
-      },
-      2500
-    );
-
-}
-
-
-/* =========================================================
-   FORMAT MONEY
-   ========================================================= */
-
-function formatMoney(value) {
-
-  const number =
-    Number(value || 0);
-
-  return `$${number.toFixed(2)}`;
-
-}
-
-
-/* =========================================================
-   STARS
-   ========================================================= */
-
-function getStars(rating) {
-
-  const rounded =
-    Math.round(
-      Number(rating || 0)
-    );
-
-  let result = "";
-
-  for (
-    let i = 1;
-    i <= 5;
-    i++
-  ) {
-
-    result +=
-      i <= rounded
-        ? "★"
-        : "☆";
-
+  if (target) {
+    target.scrollIntoView({
+      behavior: "smooth",
+      block: "start"
+    });
   }
 
-  return result;
+  setActiveNav("categories");
+}
 
+function goOrders() {
+  WAHEN.currentPage = "orders";
+  showOrders();
+  setActiveNav("orders");
+}
+
+function goAccount() {
+  WAHEN.currentPage = "account";
+  showAccount();
+  setActiveNav("account");
+}
+
+function setActiveNav(page) {
+
+  $$(
+    "[data-nav], .bottom-nav button, .bottom-navigation button"
+  ).forEach(button => {
+
+    const target =
+      button.dataset.nav ||
+      button.dataset.page ||
+      button.getAttribute("data-target");
+
+    if (target === page) {
+      button.classList.add("active");
+
+      button.style.color = "#4338CA";
+      button.style.fontWeight = "900";
+    } else {
+      button.classList.remove("active");
+    }
+
+  });
 }
 
 
 /* =========================================================
-   ESCAPE HTML
+   34. BUTTON AUTO CONNECTION
    ========================================================= */
 
-function escapeHTML(value) {
+function setupButtons() {
 
-  return String(
-    value ?? ""
-  )
-    .replaceAll("&","&amp;")
-    .replaceAll("<","&lt;")
-    .replaceAll(">","&gt;")
-    .replaceAll('"',"&quot;")
-    .replaceAll("'","&#039;");
+  $$("button, a").forEach(element => {
 
+    const textValue =
+      safeText(element.textContent)
+        .trim()
+        .toLowerCase();
+
+    const aria =
+      safeText(element.getAttribute("aria-label"))
+        .toLowerCase();
+
+    const combined =
+      `${textValue} ${aria}`;
+
+    /*
+      Home
+    */
+    if (
+      combined === "home" ||
+      combined.includes("home")
+    ) {
+      element.addEventListener("click", event => {
+        if (!element.getAttribute("onclick")) {
+          event.preventDefault();
+          goHome();
+        }
+      });
+    }
+
+    /*
+      Categories
+    */
+    if (
+      combined.includes("categories") ||
+      combined.includes("category")
+    ) {
+      element.addEventListener("click", event => {
+        if (!element.getAttribute("onclick")) {
+          event.preventDefault();
+          goCategories();
+        }
+      });
+    }
+
+    /*
+      Orders
+    */
+    if (
+      combined.includes("orders") ||
+      combined.includes("order")
+    ) {
+      element.addEventListener("click", event => {
+        if (!element.getAttribute("onclick")) {
+          event.preventDefault();
+          goOrders();
+        }
+      });
+    }
+
+    /*
+      Account
+    */
+    if (
+      combined.includes("account") ||
+      combined.includes("profile")
+    ) {
+      element.addEventListener("click", event => {
+        if (!element.getAttribute("onclick")) {
+          event.preventDefault();
+          goAccount();
+        }
+      });
+    }
+
+    /*
+      Cart
+    */
+    if (
+      combined.includes("cart") ||
+      combined.includes("shopping")
+    ) {
+      element.addEventListener("click", event => {
+        if (!element.getAttribute("onclick")) {
+          event.preventDefault();
+          showCart();
+        }
+      });
+    }
+
+    /*
+      Favorites
+    */
+    if (
+      combined.includes("favorite") ||
+      combined.includes("wishlist")
+    ) {
+      element.addEventListener("click", event => {
+        if (!element.getAttribute("onclick")) {
+          event.preventDefault();
+          showFavorites();
+        }
+      });
+    }
+
+    /*
+      Customer Support
+    */
+    if (
+      combined.includes("support") ||
+      combined.includes("customer service")
+    ) {
+      element.addEventListener("click", event => {
+        if (!element.getAttribute("onclick")) {
+          event.preventDefault();
+          showSupport();
+        }
+      });
+    }
+
+    /*
+      Login
+    */
+    if (
+      combined.includes("login") ||
+      combined.includes("sign in")
+    ) {
+      element.addEventListener("click", event => {
+        if (!element.getAttribute("onclick")) {
+          event.preventDefault();
+          showLogin();
+        }
+      });
+    }
+
+  });
 }
 
 
 /* =========================================================
-   ESCAPE ATTRIBUTE
+   35. AUTH LISTENER
    ========================================================= */
 
-function escapeAttribute(value) {
+function setupAuthListener() {
 
-  return escapeHTML(
-    value
+  if (!supabase) return;
+
+  supabase.auth.onAuthStateChange(
+    async (event, session) => {
+
+      WAHEN.user =
+        session?.user || null;
+
+      if (WAHEN.user) {
+        await loadProfile();
+        await loadOrders();
+      } else {
+        WAHEN.profile = null;
+        WAHEN.orders = [];
+      }
+
+      updateAccountUI();
+    }
   );
-
 }
 
 
 /* =========================================================
-   GLOBAL ACCESS
+   36. KEYBOARD
    ========================================================= */
 
-window.WaHeN = {
+document.addEventListener("keydown", event => {
 
-  getProducts(){
-    return products;
-  },
+  if (event.key === "Escape") {
+    closeModal();
+  }
 
-  getUser(){
-    return currentUser;
-  },
+});
 
-  getProfile(){
-    return currentProfile;
-  },
 
-  openProduct,
+/* =========================================================
+   37. INITIALIZE
+   ========================================================= */
+
+async function initWAHEN() {
+
+  console.log("================================");
+  console.log("WAHEN APP STARTING...");
+  console.log("================================");
+
+  loadLocalData();
+
+  injectLogo();
+
+  updateCartCount();
+
+  setupSearch();
+
+  setupButtons();
+
+  setupAuthListener();
+
+  await loadCurrentUser();
+
+  await loadProducts();
+
+  if (WAHEN.user) {
+    await loadOrders();
+  }
+
+  updateAccountUI();
+
+  console.log("WAHEN READY");
+  console.log("User:", WAHEN.user);
+  console.log("Products:", WAHEN.products.length);
+  console.log("Cart:", WAHEN.cart.length);
+}
+
+
+/* =========================================================
+   38. PUBLIC WAHEN API
+   ========================================================= */
+
+window.WAHEN = {
+
+  state: WAHEN,
+
+  init: initWAHEN,
+
+  goHome,
+  goCategories,
+  goOrders,
+  goAccount,
+
+  selectCategory,
+
   addToCart,
-  openAuth,
-  showToast,
-  loadProducts,
-  loadCart
+  changeCartQuantity,
+  removeFromCart,
 
+  showCart,
+  showFavorites,
+  showProduct,
+  showOrders,
+  showAccount,
+  showSupport,
+
+  login,
+  signup,
+  logout,
+
+  checkout,
+  submitOrder,
+
+  toggleFavorite,
+
+  closeModal,
+
+  refreshProducts: loadProducts,
+  refreshOrders: loadOrders
 };
 
 
 /* =========================================================
-   END
+   39. START
    ========================================================= */
 
-console.log(
-  "WAHEN Marketplace script loaded successfully."
-);
+if (
+  document.readyState === "loading"
+) {
+
+  document.addEventListener(
+    "DOMContentLoaded",
+    initWAHEN
+  );
+
+} else {
+
+  initWAHEN();
+
+}

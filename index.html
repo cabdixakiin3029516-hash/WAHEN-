@@ -2,570 +2,1931 @@
 <html lang="so">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>WaHeN Marketplace</title>
-  
-  <!-- Supabase Official SDK -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  
-  <style>
-    /* ==========================================================================
-       WAHEN CORE THEME: GREEN (#00a651), YELLOW (#ffd700), WHITE (#ffffff)
-       ========================================================================== */
-    :root {
-      --primary-green: #00a651;
-      --green-hover: #008d44;
-      --accent-yellow: #ffd700;
-      --yellow-light: #fff9c4;
-      --bg-white: #ffffff;
-      --card-bg: #f8fafc;
-      --text-dark: #0f172a;
-      --text-muted: #64748b;
-      --border-color: #e2e8f0;
-      --radius: 12px;
-      --shadow: 0 4px 12px rgba(0,0,0,0.08);
-      --bottom-nav-height: 65px;
-    }
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+  >
+  <meta name="theme-color" content="#0B2A5B">
+  <meta
+    name="description"
+    content="WaHeN Marketplace — Wax kasta hal meel ka hel."
+  >
+  <meta
+    name="keywords"
+    content="WaHeN, Marketplace, Somaliland, Shopping, Jumlo, Shops"
+  >
 
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      -webkit-tap-highlight-color: transparent;
-    }
+  <title>WaHeN — Marketplace</title>
 
-    body {
-      background-color: var(--bg-white);
-      color: var(--text-dark);
-      padding-top: 70px;
-      padding-bottom: calc(var(--bottom-nav-height) + 20px);
-      min-height: 100vh;
-    }
-
-    /* --------------------------------------------------------------------------
-       1. TOP HEADER (LOGO, MENU, CART, AUTH)
-       -------------------------------------------------------------------------- */
-    .app-header {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 70px;
-      background: var(--bg-white);
-      border-bottom: 3px solid var(--accent-yellow);
-      z-index: 1000;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0 16px;
-      box-shadow: var(--shadow);
-    }
-
-    .header-left {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    /* LOGO DESIGN: WAHEN WITH GREEN & YELLOW */
-    .logo-container {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .logo-icon {
-      width: 38px;
-      height: 38px;
-      background: var(--primary-green);
-      color: var(--accent-yellow);
-      font-weight: 900;
-      font-size: 1.2rem;
-      border-radius: 10px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border: 2px solid var(--accent-yellow);
-    }
-
-    .logo-text {
-      font-size: 1.4rem;
-      font-weight: 900;
-      color: var(--primary-green);
-      letter-spacing: -0.5px;
-    }
-
-    .logo-text span {
-      color: var(--accent-yellow);
-      background: var(--primary-green);
-      padding: 0 4px;
-      border-radius: 4px;
-    }
-
-    .header-actions {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .btn-icon {
-      background: #f1f5f9;
-      border: none;
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      font-size: 1.2rem;
-      cursor: pointer;
-      position: relative;
-    }
-
-    .badge {
-      position: absolute;
-      top: -2px;
-      right: -2px;
-      background: var(--primary-green);
-      color: var(--accent-yellow);
-      font-size: 0.7rem;
-      font-weight: 800;
-      padding: 2px 6px;
-      border-radius: 10px;
-      border: 1px solid var(--bg-white);
-    }
-
-    /* --------------------------------------------------------------------------
-       2. SINGLE PAGE VIEWS (SWITCHING SYSTEM)
-       -------------------------------------------------------------------------- */
-    .page-view {
-      display: none;
-      max-width: 800px;
-      margin: 0 auto;
-      padding: 16px;
-      animation: fadeIn 0.25s ease-in-out;
-    }
-
-    .page-view.active {
-      display: block;
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(5px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    /* BANNER & CARDS */
-    .hero-banner {
-      background: linear-gradient(135deg, var(--primary-green), #007a3b);
-      color: #fff;
-      padding: 20px;
-      border-radius: var(--radius);
-      border-bottom: 4px solid var(--accent-yellow);
-      margin-bottom: 20px;
-    }
-
-    .search-box {
-      margin-top: 12px;
-      display: flex;
-      gap: 8px;
-    }
-
-    .search-box input {
-      flex: 1;
-      padding: 12px;
-      border-radius: 8px;
-      border: 2px solid var(--accent-yellow);
-      outline: none;
-      font-size: 0.9rem;
-    }
-
-    .product-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 12px;
-    }
-
-    @media (min-width: 600px) {
-      .product-grid { grid-template-columns: repeat(3, 1fr); gap: 16px; }
-    }
-
-    .product-card {
-      background: var(--bg-white);
-      border: 1px solid var(--border-color);
-      border-radius: var(--radius);
-      overflow: hidden;
-      box-shadow: var(--shadow);
-      display: flex;
-      flex-direction: column;
-    }
-
-    .product-img {
-      width: 100%;
-      height: 130px;
-      object-fit: cover;
-      background: #f8fafc;
-    }
-
-    .product-info {
-      padding: 10px;
-      display: flex;
-      flex-direction: column;
-      flex-grow: 1;
-    }
-
-    .product-title { font-size: 0.85rem; font-weight: 700; margin-bottom: 4px; }
-    .product-price { color: var(--primary-green); font-weight: 800; font-size: 1rem; }
-
-    .btn-add {
-      background: var(--primary-green);
-      color: var(--accent-yellow);
-      border: none;
-      padding: 8px;
-      border-radius: 6px;
-      font-weight: 700;
-      cursor: pointer;
-      margin-top: 8px;
-      width: 100%;
-    }
-
-    /* --------------------------------------------------------------------------
-       3. BOTTOM NAVIGATION BAR (5 TAB SWITCHER)
-       -------------------------------------------------------------------------- */
-    .bottom-nav {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      width: 100%;
-      height: var(--bottom-nav-height);
-      background: var(--bg-white);
-      border-top: 2px solid var(--accent-yellow);
-      display: flex;
-      justify-content: space-around;
-      align-items: center;
-      z-index: 1000;
-      box-shadow: 0 -4px 10px rgba(0,0,0,0.05);
-    }
-
-    .nav-item {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 3px;
-      background: none;
-      border: none;
-      color: var(--text-muted);
-      font-size: 0.7rem;
-      font-weight: 600;
-      cursor: pointer;
-      flex: 1;
-      padding: 6px 0;
-    }
-
-    .nav-item .icon { font-size: 1.3rem; }
-
-    .nav-item.active {
-      color: var(--primary-green);
-      font-weight: 800;
-    }
-
-    .nav-item.active .icon {
-      transform: translateY(-2px);
-      transition: transform 0.2s;
-    }
-
-    /* UI FOR FORMS & MODALS */
-    .form-group { margin-bottom: 12px; }
-    .form-group label { display: block; font-size: 0.8rem; font-weight: 700; margin-bottom: 4px; }
-    .form-control {
-      width: 100%;
-      padding: 10px;
-      border: 1px solid var(--border-color);
-      border-radius: 8px;
-      font-size: 0.9rem;
-    }
-
-    .btn-primary {
-      background: var(--primary-green);
-      color: var(--accent-yellow);
-      border: none;
-      padding: 12px;
-      border-radius: 8px;
-      font-weight: 800;
-      width: 100%;
-      cursor: pointer;
-    }
-
-    /* DRAWER MENU */
-    .drawer-overlay {
-      position: fixed;
-      top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(0,0,0,0.5);
-      z-index: 2000;
-      display: none;
-    }
-    .drawer {
-      position: fixed;
-      top: 0; left: -280px; width: 280px; height: 100%;
-      background: var(--bg-white);
-      z-index: 2001;
-      transition: left 0.3s;
-      padding: 20px;
-    }
-    .drawer.open { left: 0; }
-  </style>
+  <!-- MAIN CSS -->
+  <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
 
-  <!-- 1. TOP HEADER WITH LOGO & MENU -->
-  <header class="app-header">
-    <div class="header-left">
-      <button class="btn-icon" id="openMenuBtn">☰</button>
-      <div class="logo-container">
-        <div class="logo-icon">W</div>
-        <div class="logo-text">WaHeN<span>.</span></div>
-      </div>
-    </div>
-    
-    <div class="header-actions">
-      <button class="btn-icon" onclick="switchPage('chatsView')">💬</button>
-      <button class="btn-icon" id="openCartBtn">
-        🛒 <span class="badge" id="cartBadge">0</span>
+<!-- =========================================================
+     APP
+========================================================= -->
+
+<div id="app">
+
+  <!-- =======================================================
+       TOP HEADER
+  ======================================================== -->
+
+  <header class="top-header">
+
+    <div class="brand-area">
+
+      <button
+        id="menuBtn"
+        class="icon-btn"
+        type="button"
+        aria-label="Fur menu"
+      >
+        ☰
       </button>
+
+      <div class="brand">
+
+        <span class="brand-main">
+          WaHeN
+        </span>
+
+        <span class="brand-sub">
+          MARKETPLACE
+        </span>
+
+      </div>
+
     </div>
+
+
+    <div class="header-actions">
+
+      <button
+        id="notificationBtn"
+        class="icon-btn"
+        type="button"
+        aria-label="Notifications"
+      >
+        🔔
+        <span class="notification-dot"></span>
+      </button>
+
+
+      <button
+        id="cartBtn"
+        class="icon-btn cart-btn"
+        type="button"
+        aria-label="Cart"
+      >
+        🛒
+        <span
+          id="cartCount"
+          class="cart-count"
+        >
+          0
+        </span>
+      </button>
+
+    </div>
+
   </header>
 
-  <!-- 2. SIDE MENU DRAWER (CONTACT & ACCOUNT) -->
-  <div class="drawer-overlay" id="drawerOverlay"></div>
-  <aside class="drawer" id="sideDrawer">
-    <h2 style="color:var(--primary-green); margin-bottom:15px;">WaHeN Menu</h2>
-    <hr style="margin-bottom:15px;">
-    <div style="display:flex; flex-direction:column; gap:15px;">
-      <button class="btn-primary" onclick="switchPage('authView'); closeDrawer();">🔑 Login / Register</button>
-      <button class="btn-primary" style="background:#f1f5f9; color:var(--text-dark);" onclick="switchPage('supportView'); closeDrawer();">📞 Nala Soo Xidhiidh (Contact)</button>
+
+  <!-- =======================================================
+       SEARCH
+  ======================================================== -->
+
+  <section class="search-section">
+
+    <div class="search-box">
+
+      <span class="search-icon">
+        🔎
+      </span>
+
+      <input
+        id="searchInput"
+        type="search"
+        placeholder="Maxaad raadineysaa?"
+        autocomplete="off"
+      >
+
+      <button
+        id="clearSearch"
+        class="clear-search"
+        type="button"
+        aria-label="Nadiifi raadinta"
+      >
+        ×
+      </button>
+
     </div>
+
+
+    <button
+      id="filterBtn"
+      class="filter-btn"
+      type="button"
+      aria-label="Filter"
+    >
+      ⚙️
+    </button>
+
+  </section>
+
+
+  <!-- =======================================================
+       LOCATION
+  ======================================================== -->
+
+  <section class="location-bar">
+
+    <div class="location-icon">
+      📍
+    </div>
+
+    <div class="location-info">
+
+      <small>
+        Goobta delivery-ga
+      </small>
+
+      <strong id="userLocation">
+        Hargeysa
+      </strong>
+
+    </div>
+
+    <button
+      id="changeLocation"
+      type="button"
+    >
+      Beddel
+    </button>
+
+  </section>
+
+
+  <!-- =======================================================
+       MAIN
+  ======================================================== -->
+
+  <main>
+
+
+    <!-- =====================================================
+         HERO
+    ====================================================== -->
+
+    <section class="hero">
+
+      <div class="hero-content">
+
+        <span class="hero-label">
+          WAHEN MARKETPLACE
+        </span>
+
+        <h1>
+          Wax kasta
+          <br>
+          <strong>
+            hal meel ka hel.
+          </strong>
+        </h1>
+
+        <p>
+          Alaabo, ganacsiyo, brands,
+          jumlo iyo adeegyo
+          meel keliya ka raadi.
+        </p>
+
+
+        <div class="hero-actions">
+
+          <button
+            id="heroShopBtn"
+            class="hero-button"
+            type="button"
+          >
+            Bilow Raadinta
+            <span>→</span>
+          </button>
+
+
+          <button
+            id="heroWholesaleBtn"
+            class="hero-secondary-button"
+            type="button"
+          >
+            Jumlo
+          </button>
+
+        </div>
+
+      </div>
+
+
+      <div class="hero-art">
+
+        <div class="hero-circle hero-circle-one"></div>
+        <div class="hero-circle hero-circle-two"></div>
+
+        <div class="hero-shopping-bag">
+          🛍️
+        </div>
+
+        <div class="hero-product-card hero-card-one">
+          📱
+        </div>
+
+        <div class="hero-product-card hero-card-two">
+          👟
+        </div>
+
+        <div class="hero-product-card hero-card-three">
+          💻
+        </div>
+
+      </div>
+
+
+      <div class="hero-shape"></div>
+
+    </section>
+
+
+    <!-- =====================================================
+         QUICK STATS
+    ====================================================== -->
+
+    <section class="quick-stats">
+
+      <div class="quick-stat">
+
+        <span class="quick-stat-icon">
+          🛍️
+        </span>
+
+        <div>
+          <strong>
+            Alaabooyin
+          </strong>
+
+          <small>
+            Meel keliya
+          </small>
+        </div>
+
+      </div>
+
+
+      <div class="quick-stat">
+
+        <span class="quick-stat-icon">
+          🏪
+        </span>
+
+        <div>
+          <strong>
+            Ganacsiyo
+          </strong>
+
+          <small>
+            Iibiyayaal badan
+          </small>
+        </div>
+
+      </div>
+
+
+      <div class="quick-stat">
+
+        <span class="quick-stat-icon">
+          🚚
+        </span>
+
+        <div>
+          <strong>
+            Delivery
+          </strong>
+
+          <small>
+            Meeshaada
+          </small>
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         CATEGORIES
+    ====================================================== -->
+
+    <section class="section">
+
+      <div class="section-header">
+
+        <div>
+
+          <span class="section-label">
+            RAADI
+          </span>
+
+          <h2>
+            Qaybaha
+          </h2>
+
+        </div>
+
+
+        <button
+          id="allCategoriesBtn"
+          class="see-all"
+          type="button"
+        >
+          Dhammaan →
+        </button>
+
+      </div>
+
+
+      <div
+        id="categoryGrid"
+        class="category-grid"
+      >
+
+        <button
+          class="category-card active"
+          data-category="all"
+          type="button"
+        >
+          <span>✨</span>
+          <strong>Dhammaan</strong>
+          <small>All</small>
+        </button>
+
+        <button
+          class="category-card"
+          data-category="men"
+          type="button"
+        >
+          <span>👔</span>
+          <strong>Ragga</strong>
+          <small>Men's</small>
+        </button>
+
+        <button
+          class="category-card"
+          data-category="women"
+          type="button"
+        >
+          <span>👗</span>
+          <strong>Haween</strong>
+          <small>Women's</small>
+        </button>
+
+        <button
+          class="category-card"
+          data-category="electronics"
+          type="button"
+        >
+          <span>📱</span>
+          <strong>Electronics</strong>
+          <small>Tech</small>
+        </button>
+
+        <button
+          class="category-card"
+          data-category="food"
+          type="button"
+        >
+          <span>🍎</span>
+          <strong>Cunto</strong>
+          <small>Food</small>
+        </button>
+
+        <button
+          class="category-card"
+          data-category="baby"
+          type="button"
+        >
+          <span>👶</span>
+          <strong>Caruur</strong>
+          <small>Baby</small>
+        </button>
+
+        <button
+          class="category-card"
+          data-category="construction"
+          type="button"
+        >
+          <span>🧱</span>
+          <strong>Dhismaha</strong>
+          <small>Construction</small>
+        </button>
+
+        <button
+          class="category-card"
+          data-category="transport"
+          type="button"
+        >
+          <span>🚗</span>
+          <strong>Gadiidka</strong>
+          <small>Transport</small>
+        </button>
+
+        <button
+          class="category-card"
+          data-category="beauty"
+          type="button"
+        >
+          <span>💄</span>
+          <strong>Beauty</strong>
+          <small>Qurux</small>
+        </button>
+
+        <button
+          class="category-card"
+          data-category="home"
+          type="button"
+        >
+          <span>🏠</span>
+          <strong>Guriga</strong>
+          <small>Home</small>
+        </button>
+
+        <button
+          class="category-card"
+          data-category="sports"
+          type="button"
+        >
+          <span>⚽</span>
+          <strong>Sports</strong>
+          <small>Ciyaaro</small>
+        </button>
+
+        <button
+          class="category-card"
+          data-category="other"
+          type="button"
+        >
+          <span>⋯</span>
+          <strong>Kale</strong>
+          <small>Others</small>
+        </button>
+
+      </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         GOLD OFFER
+    ====================================================== -->
+
+    <section class="offer-banner">
+
+      <div class="offer-content">
+
+        <span class="offer-label">
+          ✦ DALAB GAAR AH
+        </span>
+
+        <h2>
+          Ilaa
+          <strong>
+            30%
+          </strong>
+          dhimis
+        </h2>
+
+        <p>
+          Alaabooyin la doortay
+          oo qiimo gaar ah leh.
+        </p>
+
+        <button
+          id="offerBtn"
+          type="button"
+        >
+          Eeg hadda →
+        </button>
+
+      </div>
+
+
+      <div class="offer-art">
+
+        <div class="offer-circle"></div>
+
+        <div class="offer-tag">
+          🏷️
+        </div>
+
+        <div class="offer-percent">
+          30%
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         PRODUCTS
+    ====================================================== -->
+
+    <section class="section">
+
+      <div class="section-header">
+
+        <div>
+
+          <span class="section-label">
+            WAHEN
+          </span>
+
+          <h2>
+            Ugu Iibsan
+          </h2>
+
+        </div>
+
+
+        <button
+          id="allProductsBtn"
+          class="see-all"
+          type="button"
+        >
+          Dhammaan →
+        </button>
+
+      </div>
+
+
+      <div
+        id="productGrid"
+        class="product-grid"
+      >
+
+        <div class="loading-card">
+
+          <div class="loading-spinner"></div>
+
+          <p>
+            Raadinaya alaabo...
+          </p>
+
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         SHOP / SELLER DISCOVERY
+    ====================================================== -->
+
+    <section class="shop-discovery">
+
+      <div class="shop-discovery-icon">
+        🏪
+      </div>
+
+      <div class="shop-discovery-content">
+
+        <span class="section-label">
+          GANACSI
+        </span>
+
+        <h2>
+          Ka hel
+          <strong>
+            Dukaamada
+          </strong>
+        </h2>
+
+        <p>
+          Isbarbar dhig alaabooyinka
+          iyo qiimaha ganacsatada.
+        </p>
+
+      </div>
+
+      <button
+        id="shopsBtn"
+        type="button"
+      >
+        Dukaamo →
+      </button>
+
+    </section>
+
+
+    <!-- =====================================================
+         WHOLESALE
+    ====================================================== -->
+
+    <section class="wholesale-section">
+
+      <div class="wholesale-content">
+
+        <span class="section-label">
+          GANACSIGA
+        </span>
+
+        <h2>
+          Ma rabtaa
+          <br>
+          <strong>
+            Jumlo?
+          </strong>
+        </h2>
+
+        <p>
+          Ka hel alaabo tiro badan
+          iyo qiimaha jumlada
+          ee ganacsatada.
+        </p>
+
+        <button
+          id="wholesaleBtn"
+          type="button"
+        >
+          Raadi Jumlo →
+        </button>
+
+      </div>
+
+
+      <div class="wholesale-art">
+
+        <div class="box box-one">
+          📦
+        </div>
+
+        <div class="box box-two">
+          📦
+        </div>
+
+        <div class="box box-three">
+          📦
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         MANUFACTURERS
+    ====================================================== -->
+
+    <section class="section manufacturers-preview">
+
+      <div class="section-header">
+
+        <div>
+
+          <span class="section-label">
+            WARSHADO
+          </span>
+
+          <h2>
+            Warshadaha
+          </h2>
+
+        </div>
+
+
+        <button
+          id="allManufacturersBtn"
+          class="see-all"
+          type="button"
+        >
+          Dhammaan →
+        </button>
+
+      </div>
+
+
+      <div
+        id="manufacturerGrid"
+        class="manufacturer-grid"
+      >
+
+        <button
+          class="manufacturer-card"
+          data-manufacturer="local"
+          type="button"
+        >
+          <span>🏭</span>
+          <strong>Warshado</strong>
+          <small>Soo saarayaal</small>
+        </button>
+
+        <button
+          class="manufacturer-card"
+          data-manufacturer="importers"
+          type="button"
+        >
+          <span>🚢</span>
+          <strong>Importers</strong>
+          <small>Alaab dibadda</small>
+        </button>
+
+        <button
+          class="manufacturer-card"
+          data-manufacturer="suppliers"
+          type="button"
+        >
+          <span>📦</span>
+          <strong>Suppliers</strong>
+          <small>Suppliers</small>
+        </button>
+
+      </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         BRANDS
+    ====================================================== -->
+
+    <section class="section">
+
+      <div class="section-header">
+
+        <div>
+
+          <span class="section-label">
+            BRANDS
+          </span>
+
+          <h2>
+            Brands-ka
+          </h2>
+
+        </div>
+
+
+        <button
+          id="allBrandsBtn"
+          class="see-all"
+          type="button"
+        >
+          Dhammaan →
+        </button>
+
+      </div>
+
+
+      <div
+        id="brandGrid"
+        class="brand-grid"
+      >
+
+        <button
+          class="brand-item"
+          data-brand="Samsung"
+          type="button"
+        >
+          <span class="brand-symbol">S</span>
+          <strong>SAMSUNG</strong>
+        </button>
+
+        <button
+          class="brand-item"
+          data-brand="Apple"
+          type="button"
+        >
+          <span class="brand-symbol"></span>
+          <strong>APPLE</strong>
+        </button>
+
+        <button
+          class="brand-item"
+          data-brand="Xiaomi"
+          type="button"
+        >
+          <span class="brand-symbol">X</span>
+          <strong>XIAOMI</strong>
+        </button>
+
+        <button
+          class="brand-item"
+          data-brand="Oraimo"
+          type="button"
+        >
+          <span class="brand-symbol">O</span>
+          <strong>ORAIMO</strong>
+        </button>
+
+        <button
+          class="brand-item"
+          data-brand="Nike"
+          type="button"
+        >
+          <span class="brand-symbol">✓</span>
+          <strong>NIKE</strong>
+        </button>
+
+        <button
+          class="brand-item"
+          data-brand="Adidas"
+          type="button"
+        >
+          <span class="brand-symbol">A</span>
+          <strong>ADIDAS</strong>
+        </button>
+
+      </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         PAYMENT METHODS
+    ====================================================== -->
+
+    <section class="payment-section">
+
+      <div class="section-header">
+
+        <div>
+
+          <span class="section-label">
+            PAYMENT
+          </span>
+
+          <h2>
+            Lacag-bixinta
+          </h2>
+
+        </div>
+
+      </div>
+
+
+      <div class="payment-grid">
+
+        <div class="payment-card">
+          <span>💳</span>
+          <strong>ZAAD</strong>
+          <small>Telesom</small>
+        </div>
+
+        <div class="payment-card">
+          <span>💰</span>
+          <strong>E-Dahab</strong>
+          <small>Somtel</small>
+        </div>
+
+        <div class="payment-card">
+          <span>📱</span>
+          <strong>EVC Plus</strong>
+          <small>Hormuud</small>
+        </div>
+
+        <div class="payment-card">
+          <span>🏦</span>
+          <strong>Bank</strong>
+          <small>Payment</small>
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         TRUST
+    ====================================================== -->
+
+    <section class="trust-section">
+
+      <div class="trust-title">
+
+        <span class="section-label">
+          MAXAA LAGU KALSOON YAHAY?
+        </span>
+
+        <h2>
+          WaHeN waa
+          <strong>
+            fudeydiyahaaga.
+          </strong>
+        </h2>
+
+        <p>
+          Waxaan isku keenaynaa
+          iibsadaha, iibiyaha iyo
+          adeegga delivery-ga.
+        </p>
+
+      </div>
+
+
+      <div class="trust-grid">
+
+        <div class="trust-card">
+          <span>🛡️</span>
+          <strong>Ammaan</strong>
+          <p>Xogtaada iyo account-kaaga si ammaan ah ayaa loo ilaaliyaa.</p>
+        </div>
+
+        <div class="trust-card">
+          <span>⭐</span>
+          <strong>Qiimeyn</strong>
+          <p>Arag qiimeynta iyo reviews-ka alaabta iyo iibiyaha.</p>
+        </div>
+
+        <div class="trust-card">
+          <span>🚚</span>
+          <strong>Delivery</strong>
+          <p>Dalabkaaga waxaa laguugu keenayaa meesha aad doorato.</p>
+        </div>
+
+        <div class="trust-card">
+          <span>🔄</span>
+          <strong>Returns</strong>
+          <p>Nidaam cad oo loogu talagalay returns iyo refunds.</p>
+        </div>
+
+        <div class="trust-card">
+          <span>💬</span>
+          <strong>Support</strong>
+          <p>Customer Support ayaa kaa caawinaya markaad u baahato.</p>
+        </div>
+
+        <div class="trust-card">
+          <span>🔍</span>
+          <strong>Transparency</strong>
+          <p>Qiimo, sawir, description iyo seller si cad u arag.</p>
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         CALL TO ACTION
+    ====================================================== -->
+
+    <section class="cta-section">
+
+      <div class="cta-icon">
+        ✦
+      </div>
+
+      <span>
+        WAHEN MARKETPLACE
+      </span>
+
+      <h2>
+        Waxaad raadineysaa?
+        <br>
+        <strong>
+          Halkaan ka bilow.
+        </strong>
+      </h2>
+
+      <p>
+        Raadi alaabtaada,
+        barbar dhig qiimaha,
+        kadib dalbo.
+      </p>
+
+      <button
+        id="ctaSearchBtn"
+        type="button"
+      >
+        Raadi Alaab →
+      </button>
+
+    </section>
+
+
+    <!-- =====================================================
+         SEARCH RESULTS
+    ====================================================== -->
+
+    <section
+      id="searchResultsSection"
+      class="section hidden"
+    >
+
+      <div class="section-header">
+
+        <div>
+
+          <span class="section-label">
+            SEARCH
+          </span>
+
+          <h2>
+            Natiijooyinka
+          </h2>
+
+        </div>
+
+
+        <button
+          id="closeSearchResults"
+          class="see-all"
+          type="button"
+        >
+          Xir
+        </button>
+
+      </div>
+
+
+      <div
+        id="searchResults"
+        class="product-grid"
+      ></div>
+
+    </section>
+
+
+  </main>
+
+
+  <!-- =======================================================
+       SIDE MENU
+  ======================================================== -->
+
+  <aside
+    id="sideMenu"
+    class="side-menu"
+  >
+
+    <div class="side-menu-header">
+
+      <div class="brand">
+
+        <span class="brand-main">
+          WaHeN
+        </span>
+
+        <span class="brand-sub">
+          MARKETPLACE
+        </span>
+
+      </div>
+
+
+      <button
+        id="closeMenu"
+        class="icon-btn"
+        type="button"
+      >
+        ×
+      </button>
+
+    </div>
+
+
+    <!-- GUEST ACCOUNT -->
+
+    <div
+      id="menuGuest"
+      class="menu-account"
+    >
+
+      <div class="menu-avatar">
+        👤
+      </div>
+
+      <div>
+
+        <strong>
+          Ku soo dhawoow
+        </strong>
+
+        <small>
+          Soo gal ama samee account
+        </small>
+
+      </div>
+
+      <button
+        id="menuLoginBtn"
+        type="button"
+      >
+        Soo Gal
+      </button>
+
+    </div>
+
+
+    <!-- LOGGED ACCOUNT -->
+
+    <div
+      id="menuUser"
+      class="menu-account hidden"
+    >
+
+      <div class="menu-avatar">
+        👤
+      </div>
+
+      <div>
+
+        <strong id="menuUserName">
+          User
+        </strong>
+
+        <small id="menuUserEmail">
+          user@example.com
+        </small>
+
+      </div>
+
+    </div>
+
+
+    <!-- NAVIGATION -->
+
+    <nav class="side-navigation">
+
+      <button data-menu="home" type="button">
+        🏠 <span>Home</span>
+      </button>
+
+      <button data-menu="products" type="button">
+        🛍️ <span>Alaabooyinka</span>
+      </button>
+
+      <button data-menu="categories" type="button">
+        📂 <span>Qaybaha</span>
+      </button>
+
+      <button data-menu="wholesale" type="button">
+        📦 <span>Jumlo</span>
+      </button>
+
+      <button data-menu="brands" type="button">
+        🏷️ <span>Brands</span>
+      </button>
+
+      <button data-menu="manufacturers" type="button">
+        🏭 <span>Warshado</span>
+      </button>
+
+      <button data-menu="shops" type="button">
+        🏪 <span>Dukaamo</span>
+      </button>
+
+      <button data-menu="orders" type="button">
+        📋 <span>Dalabyadayda</span>
+      </button>
+
+      <button data-menu="favorites" type="button">
+        ❤️ <span>Waxaan jeclahay</span>
+      </button>
+
+      <button data-menu="chat" type="button">
+        💬 <span>Chat</span>
+      </button>
+
+      <button data-menu="account" type="button">
+        👤 <span>Account</span>
+      </button>
+
+    </nav>
+
+
+    <!-- MENU FOOTER -->
+
+    <div class="side-menu-footer">
+
+      <button data-menu="support" type="button">
+        🎧 <span>Customer Support</span>
+      </button>
+
+      <button data-menu="contact" type="button">
+        📞 <span>Contact Us</span>
+      </button>
+
+      <button data-menu="settings" type="button">
+        ⚙️ <span>Settings</span>
+      </button>
+
+      <button
+        id="menuLogoutBtn"
+        class="logout-menu-btn hidden"
+        type="button"
+      >
+        🚪 <span>Ka Bax</span>
+      </button>
+
+    </div>
+
   </aside>
 
-  <!-- ==========================================================================
-     PAGE 1: HOYGA (HOME MARKETPLACE)
-     ========================================================================== -->
-  <div id="homeView" class="page-view active">
-    <div class="hero-banner">
-      <h2>Soo Dhaawow WaHeN Marketplace!</h2>
-      <p>Aaladda ganacsiga ugu casrisan ee Somaliland.</p>
-      <div class="search-box">
-        <input type="text" id="searchInput" placeholder="Raadi alaab, jumlad ama naadir...">
-      </div>
+
+  <!-- =======================================================
+       OVERLAY
+  ======================================================== -->
+
+  <div
+    id="overlay"
+    class="overlay"
+  ></div>
+
+
+  <!-- =======================================================
+       PRODUCT DETAIL MODAL
+  ======================================================== -->
+
+  <div
+    id="productModal"
+    class="modal"
+    role="dialog"
+    aria-modal="true"
+  >
+
+    <div class="modal-content product-modal-content">
+
+      <button
+        id="closeProductModal"
+        class="modal-close"
+        type="button"
+        aria-label="Xir"
+      >
+        ×
+      </button>
+
+
+      <div
+        id="productDetail"
+        class="product-detail"
+      ></div>
+
     </div>
 
-    <h3 style="margin-bottom:12px; color:var(--primary-green);">Alaabaha Cusub</h3>
-    <div class="product-grid" id="homeProductGrid">
-      <!-- Products loaded dynamically -->
-    </div>
   </div>
 
-  <!-- ==========================================================================
-     PAGE 2: CHATS & CUSTOMER SUPPORT
-     ========================================================================== -->
-  <div id="chatsView" class="page-view">
-    <h2 style="color:var(--primary-green); margin-bottom:15px;">💬 Wada-hadallada & Taageerada</h2>
-    
-    <div style="background:var(--card-bg); padding:15px; border-radius:var(--radius); margin-bottom:15px;">
-      <h4>Customer Support (24/7)</h4>
-      <p style="font-size:0.85rem; color:var(--text-muted); margin:5px 0 10px 0;">Fariin toos ah u dir maamulka ama shaqalaha WAHEN.</p>
-      <textarea id="msgInput" class="form-control" rows="3" placeholder="Qor fariintaada ama dalabkaaga..."></textarea>
-      <button class="btn-primary" style="margin-top:8px;" onclick="sendSupportMessage()">Dir Fariinta 📩</button>
-    </div>
-  </div>
 
-  <!-- ==========================================================================
-     PAGE 3: NAADIR (EXCLUSIVES) & JUMLAD (WHOLESALE)
-     ========================================================================== -->
-  <div id="wholesaleView" class="page-view">
-    <h2 style="color:var(--primary-green); margin-bottom:10px;">💎 Naadir & Jumlad (Wholesale)</h2>
-    <p style="color:var(--text-muted); font-size:0.85rem; margin-bottom:15px;">Ka eeg alaabaha guud, jumladaha iyo alaabaha naadirka ah.</p>
-    
-    <div class="product-grid" id="wholesaleProductGrid">
-      <!-- Wholesale items dynamically -->
-    </div>
-  </div>
+  <!-- =======================================================
+       CART MODAL
+  ======================================================== -->
 
-  <!-- ==========================================================================
-     PAGE 4: BRANDS & VENDORS
-     ========================================================================== -->
-  <div id="brandsView" class="page-view">
-    <h2 style="color:var(--primary-green); margin-bottom:15px;">🏷️ Summadaha & Ganacsatada (Brands)</h2>
-    <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
-      <div style="border:1px solid var(--border-color); padding:15px; border-radius:var(--radius); text-align:center;">
-        <h3 style="color:var(--primary-green);">WaHeN Official</h3>
-        <p style="font-size:0.75rem; color:var(--text-muted);">Verified Store</p>
-      </div>
-      <div style="border:1px solid var(--border-color); padding:15px; border-radius:var(--radius); text-align:center;">
-        <h3 style="color:var(--primary-green);">Electronics Som</h3>
-        <p style="font-size:0.75rem; color:var(--text-muted);">Partner Merchant</p>
-      </div>
-    </div>
-  </div>
+  <div
+    id="cartModal"
+    class="modal"
+    role="dialog"
+    aria-modal="true"
+  >
 
-  <!-- ==========================================================================
-     PAGE 5: SETTINGS & ACCOUNT (INCL. LOGIN/REGISTER)
-     ========================================================================== -->
-  <div id="settingsView" class="page-view">
-    <h2 style="color:var(--primary-green); margin-bottom:15px;">⚙️ Mideynta & Akownka (Settings)</h2>
-    
-    <div style="background:var(--card-bg); padding:15px; border-radius:var(--radius); margin-bottom:15px;">
-      <h3>Xaalada Akownka</h3>
-      <p id="userStatusText" style="color:var(--text-muted); font-size:0.85rem; margin:5px 0 10px 0;">Guest User (Aan la soo galin)</p>
-      <button class="btn-primary" onclick="switchPage('authView')">Soo Gal / Is-diiwaangeli</button>
-    </div>
-  </div>
+    <div class="modal-content cart-modal-content">
 
-  <!-- AUTH VIEW (LOGIN / CREATE ACCOUNT) -->
-  <div id="authView" class="page-view">
-    <h2 style="color:var(--primary-green); margin-bottom:15px;" id="authTitle">Soo Gal Akownka</h2>
-    
-    <form id="authForm">
-      <div class="form-group">
-        <label>Email-kaaga</label>
-        <input type="email" id="authEmail" class="form-control" required placeholder="name@example.com">
-      </div>
-      <div class="form-group">
-        <label>Password-ka</label>
-        <input type="password" id="authPassword" class="form-control" required placeholder="******">
-      </div>
-      
-      <div id="registerExtraFields" style="display:none;">
-        <div class="form-group">
-          <label>Magaca Buuxa</label>
-          <input type="text" id="authFullName" class="form-control" placeholder="Magacaaga">
+      <button
+        id="closeCartModal"
+        class="modal-close"
+        type="button"
+      >
+        ×
+      </button>
+
+
+      <div class="modal-title">
+
+        <span>
+          🛒
+        </span>
+
+        <div>
+
+          <small>
+            WAHEN
+          </small>
+
+          <h2>
+            Cart-kaaga
+          </h2>
+
         </div>
+
       </div>
 
-      <button type="submit" class="btn-primary" style="margin-top:10px;">Gudbi (Submit)</button>
-      <p style="text-align:center; margin-top:10px; font-size:0.85rem;">
-        <a href="#" id="toggleAuthModeBtn" style="color:var(--primary-green); font-weight:700;">Miyaanad lahayn Akown? Is-diiwaangeli</a>
-      </p>
-    </form>
+
+      <div
+        id="cartItems"
+        class="cart-items"
+      ></div>
+
+
+      <div class="cart-summary">
+
+        <div>
+          <span>
+            Subtotal
+          </span>
+
+          <strong id="cartSubtotal">
+            $0.00
+          </strong>
+        </div>
+
+
+        <div>
+          <span>
+            Delivery
+          </span>
+
+          <strong id="cartDelivery">
+            $0.00
+          </strong>
+        </div>
+
+
+        <div class="cart-total">
+
+          <span>
+            Wadarta
+          </span>
+
+          <strong id="cartTotal">
+            $0.00
+          </strong>
+
+        </div>
+
+
+        <button
+          id="checkoutBtn"
+          class="primary-btn"
+          type="button"
+        >
+          Checkout →
+        </button>
+
+      </div>
+
+    </div>
+
   </div>
 
-  <!-- 3. BOTTOM NAVIGATION BAR (5 TAB MENU) -->
+
+  <!-- =======================================================
+       AUTH MODAL
+  ======================================================== -->
+
+  <div
+    id="authModal"
+    class="modal"
+    role="dialog"
+    aria-modal="true"
+  >
+
+    <div class="modal-content auth-content">
+
+      <button
+        id="closeAuthModal"
+        class="modal-close"
+        type="button"
+      >
+        ×
+      </button>
+
+
+      <div class="auth-logo">
+
+        <span>
+          W
+        </span>
+
+      </div>
+
+
+      <span class="auth-label">
+        WAHEN MARKETPLACE
+      </span>
+
+
+      <h2 id="authTitle">
+        Ku soo dhawoow WaHeN
+      </h2>
+
+
+      <p id="authDescription">
+        Soo gal si aad u isticmaasho
+        dhammaan adeegyada WaHeN.
+      </p>
+
+
+      <!-- LOGIN -->
+
+      <form
+        id="loginForm"
+        class="auth-form"
+      >
+
+        <label>
+          Email
+          <input
+            id="loginEmail"
+            type="email"
+            required
+            placeholder="email@example.com"
+            autocomplete="email"
+          >
+        </label>
+
+
+        <label>
+          Password
+          <div class="password-field">
+
+            <input
+              id="loginPassword"
+              type="password"
+              required
+              placeholder="••••••••"
+              autocomplete="current-password"
+            >
+
+            <button
+              type="button"
+              data-toggle-password="loginPassword"
+            >
+              👁️
+            </button>
+
+          </div>
+
+        </label>
+
+
+        <button
+          type="submit"
+          class="primary-btn"
+        >
+          Soo Gal →
+        </button>
+
+      </form>
+
+
+      <!-- SIGN UP -->
+
+      <form
+        id="signupForm"
+        class="auth-form hidden"
+      >
+
+        <label>
+          Magaca oo buuxa
+          <input
+            id="signupName"
+            type="text"
+            required
+            placeholder="Magacaaga"
+            autocomplete="name"
+          >
+        </label>
+
+
+        <label>
+          Phone
+          <input
+            id="signupPhone"
+            type="tel"
+            required
+            placeholder="63xxxxxxx"
+            autocomplete="tel"
+          >
+        </label>
+
+
+        <label>
+          Email
+          <input
+            id="signupEmail"
+            type="email"
+            required
+            placeholder="email@example.com"
+            autocomplete="email"
+          >
+        </label>
+
+
+        <label>
+          Password
+          <div class="password-field">
+
+            <input
+              id="signupPassword"
+              type="password"
+              required
+              minlength="6"
+              placeholder="••••••••"
+              autocomplete="new-password"
+            >
+
+            <button
+              type="button"
+              data-toggle-password="signupPassword"
+            >
+              👁️
+            </button>
+
+          </div>
+
+        </label>
+
+
+        <button
+          type="submit"
+          class="primary-btn"
+        >
+          Samee Account →
+        </button>
+
+      </form>
+
+
+      <!-- AUTH SWITCH -->
+
+      <div class="auth-switch">
+
+        <span id="authSwitchText">
+          Account ma lihid?
+        </span>
+
+
+        <button
+          id="authSwitchBtn"
+          type="button"
+        >
+          Samee Account
+        </button>
+
+      </div>
+
+
+      <p
+        id="authMessage"
+        class="auth-message"
+      ></p>
+
+    </div>
+
+  </div>
+
+
+  <!-- =======================================================
+       FILTER MODAL
+  ======================================================== -->
+
+  <div
+    id="filterModal"
+    class="modal"
+  >
+
+    <div class="modal-content filter-content">
+
+      <button
+        id="closeFilterModal"
+        class="modal-close"
+        type="button"
+      >
+        ×
+      </button>
+
+
+      <div class="modal-title">
+
+        <span>
+          ⚙️
+        </span>
+
+        <div>
+
+          <small>
+            WAHEN
+          </small>
+
+          <h2>
+            Filter
+          </h2>
+
+        </div>
+
+      </div>
+
+
+      <div class="filter-group">
+
+        <label>
+          Qiimaha ugu yar
+        </label>
+
+        <input
+          id="minPrice"
+          type="number"
+          min="0"
+          placeholder="$0"
+        >
+
+      </div>
+
+
+      <div class="filter-group">
+
+        <label>
+          Qiimaha ugu badan
+        </label>
+
+        <input
+          id="maxPrice"
+          type="number"
+          min="0"
+          placeholder="$1000"
+        >
+
+      </div>
+
+
+      <div class="filter-group">
+
+        <label>
+          Kala saar
+        </label>
+
+        <select id="sortProducts">
+
+          <option value="popular">
+            Ugu caansan
+          </option>
+
+          <option value="newest">
+            Ugu cusub
+          </option>
+
+          <option value="price-low">
+            Qiimo hoose
+          </option>
+
+          <option value="price-high">
+            Qiimo sare
+          </option>
+
+          <option value="rating">
+            Rating
+          </option>
+
+        </select>
+
+      </div>
+
+
+      <button
+        id="applyFilterBtn"
+        class="primary-btn"
+        type="button"
+      >
+        Apply Filter
+      </button>
+
+    </div>
+
+  </div>
+
+
+  <!-- =======================================================
+       NOTIFICATIONS
+  ======================================================== -->
+
+  <div
+    id="notificationPanel"
+    class="notification-panel"
+  >
+
+    <div class="notification-header">
+
+      <div>
+
+        <small>
+          WAHEN
+        </small>
+
+        <h2>
+          Notifications
+        </h2>
+
+      </div>
+
+
+      <button
+        id="closeNotificationPanel"
+        type="button"
+      >
+        ×
+      </button>
+
+    </div>
+
+
+    <div
+      id="notificationList"
+      class="notification-list"
+    >
+
+      <div class="empty-notification">
+
+        <span>
+          🔔
+        </span>
+
+        <strong>
+          Wax notification ah ma jiraan
+        </strong>
+
+        <small>
+          Halkan ayaad ku arki doontaa
+          updates-kaaga.
+        </small>
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- =======================================================
+       BOTTOM NAVIGATION
+  ======================================================== -->
+
   <nav class="bottom-nav">
-    <button class="nav-item active" onclick="switchPage('homeView', this)">
-      <span class="icon">🏠</span>
-      <span>Home</span>
+
+    <button
+      class="bottom-item active"
+      data-bottom="home"
+      type="button"
+    >
+      <span>⌂</span>
+      <small>Home</small>
     </button>
-    <button class="nav-item" onclick="switchPage('chatsView', this)">
-      <span class="icon">💬</span>
-      <span>Chats</span>
+
+
+    <button
+      class="bottom-item"
+      data-bottom="categories"
+      type="button"
+    >
+      <span>◈</span>
+      <small>Qaybo</small>
     </button>
-    <button class="nav-item" onclick="switchPage('wholesaleView', this)">
-      <span class="icon">💎</span>
-      <span>Naadir/Jumlad</span>
+
+
+    <button
+      class="bottom-item bottom-main"
+      id="bottomSearch"
+      type="button"
+      aria-label="Search"
+    >
+      <span>🔎</span>
     </button>
-    <button class="nav-item" onclick="switchPage('brandsView', this)">
-      <span class="icon">🏷️</span>
-      <span>Brands</span>
+
+
+    <button
+      class="bottom-item"
+      data-bottom="orders"
+      type="button"
+    >
+      <span>▣</span>
+      <small>Orders</small>
     </button>
-    <button class="nav-item" onclick="switchPage('settingsView', this)">
-      <span class="icon">⚙️</span>
-      <span>Settings</span>
+
+
+    <button
+      class="bottom-item"
+      data-bottom="account"
+      type="button"
+    >
+      <span>◯</span>
+      <small>Account</small>
     </button>
+
   </nav>
 
-  <!-- JAVASCRIPT CORE LOGIC -->
-  <script>
-    // 1. SUPABASE CLIENT SETUP
-    const SUPABASE_URL = "https://hkmtlyknwsqxuxmvfaqv.supabase.co";
-    const SUPABASE_ANON_KEY = "GELI_SUPABASE_ANON_KEY_GAAGA_HALKAN";
-    const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    // SAMPLE DATA FOR HOME & JUMLAD
-    const sampleProducts = [
-      { id: 1, name: "iPhone 15 Pro Max", price: 1199, img: "https://via.placeholder.com/150", type: "home" },
-      { id: 2, name: "Dharka Hidaha iyo Dhaqanka", price: 45, img: "https://via.placeholder.com/150", type: "home" },
-      { id: 3, name: "Kartoon Saliid ah (Jumlad)", price: 120, img: "https://via.placeholder.com/150", type: "wholesale" },
-      { id: 4, name: "Saacad Naadir ah (Gold Edition)", price: 350, img: "https://via.placeholder.com/150", type: "wholesale" }
-    ];
+  <!-- =======================================================
+       TOAST
+  ======================================================== -->
 
-    let cartCount = 0;
-    let isRegister = false;
+  <div
+    id="toast"
+    class="toast"
+    role="status"
+    aria-live="polite"
+  ></div>
 
-    // PAGE SWITCHING SYSTEM
-    function switchPage(pageId, navBtn = null) {
-      document.querySelectorAll('.page-view').forEach(p => p.classList.remove('active'));
-      document.getElementById(pageId).classList.add('active');
 
-      if (navBtn) {
-        document.querySelectorAll('.nav-item').forEach(btn => btn.classList.remove('active'));
-        navBtn.classList.add('active');
-      }
-      window.scrollTo(0,0);
-    }
+  <!-- =======================================================
+       GLOBAL LOADING
+  ======================================================== -->
 
-    // DRAWER CONTROL
-    const drawer = document.getElementById('sideDrawer');
-    const overlay = document.getElementById('drawerOverlay');
-    document.getElementById('openMenuBtn').addEventListener('click', () => {
-      drawer.classList.add('open');
-      overlay.style.display = 'block';
-    });
-    overlay.addEventListener('click', closeDrawer);
-    function closeDrawer() {
-      drawer.classList.remove('open');
-      overlay.style.display = 'none';
-    }
+  <div
+    id="globalLoading"
+    class="global-loading hidden"
+  >
 
-    // AUTH SWITCH TOGGLE
-    const toggleBtn = document.getElementById('toggleAuthModeBtn');
-    toggleBtn.addEventListener('click', (e) => {
-      e.preventDefault();
-      isRegister = !isRegister;
-      document.getElementById('authTitle').textContent = isRegister ? "Is-diiwaangeli WaHeN" : "Soo Gal Akownka";
-      document.getElementById('registerExtraFields').style.display = isRegister ? "block" : "none";
-      toggleBtn.textContent = isRegister ? "Zuu leedahay Akown? Soo gal" : "Miyaanad lahayn Akown? Is-diiwaangeli";
-    });
+    <div class="loading-spinner"></div>
 
-    // RENDER PRODUCTS
-    function renderProducts() {
-      const homeGrid = document.getElementById('homeProductGrid');
-      const wholesaleGrid = document.getElementById('wholesaleProductGrid');
+    <strong>
+      WaHeN
+    </strong>
 
-      homeGrid.innerHTML = sampleProducts.filter(p => p.type === 'home').map(p => `
-        <div class="product-card">
-          <img src="${p.img}" class="product-img">
-          <div class="product-info">
-            <div class="product-title">${p.name}</div>
-            <div class="product-price">$${p.price}</div>
-            <button class="btn-add" onclick="addToCart()">+ Ku darso</button>
-          </div>
-        </div>
-      `).join('');
+    <p>
+      WaHeN ayaa shaqaynaya...
+    </p>
 
-      wholesaleGrid.innerHTML = sampleProducts.filter(p => p.type === 'wholesale').map(p => `
-        <div class="product-card">
-          <img src="${p.img}" class="product-img">
-          <div class="product-info">
-            <div class="product-title">${p.name}</div>
-            <div class="product-price">$${p.price}</div>
-            <button class="btn-add" onclick="addToCart()">+ Dalbo Jumlad</button>
-          </div>
-        </div>
-      `).join('');
-    }
+  </div>
 
-    function addToCart() {
-      cartCount++;
-      document.getElementById('cartBadge').textContent = cartCount;
-      alert("Alaabta waa la ku daray!");
-    }
 
-    function sendSupportMessage() {
-      const txt = document.getElementById('msgInput').value;
-      if(!txt) return alert("Fadlan qor fariinta!");
-      alert("Fariintaada waa la diray! Waanu kuu soo jawaabi doonaa.");
-      document.getElementById('msgInput').value = "";
-    }
+  <!-- =======================================================
+       DYNAMIC APP VIEW
+       script.js ayaa halkan ku shaqayn kara
+  ======================================================== -->
 
-    // INIT
-    renderProducts();
-  </script>
+  <section
+    id="dynamicView"
+    class="dynamic-view hidden"
+  ></section>
+
+
+  <!-- =======================================================
+       FOOTER
+  ======================================================== -->
+
+  <footer class="app-footer">
+
+    <div class="footer-brand">
+
+      <span class="brand-main">
+        WaHeN
+      </span>
+
+      <span class="brand-sub">
+        MARKETPLACE
+      </span>
+
+      <p>
+        Wax kasta hal meel ka hel.
+      </p>
+
+    </div>
+
+
+    <div class="footer-links">
+
+      <button data-footer="support" type="button">Customer Support</button>
+      <button data-footer="contact" type="button">Contact</button>
+      <button data-footer="privacy" type="button">Privacy</button>
+      <button data-footer="terms" type="button">Terms</button>
+
+    </div>
+
+
+    <div class="footer-bottom">
+
+      <span>
+        © 2026 WaHeN
+      </span>
+
+      <span>
+        Somaliland Marketplace
+      </span>
+
+    </div>
+
+  </footer>
+
+</div>
+
+
+<!-- =========================================================
+     SUPABASE & SCRIPTS
+========================================================= -->
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase-config.js"></script>
+<script src="supabase-client.js"></script>
+<script src="script.js"></script>
+
 </body>
 </html>

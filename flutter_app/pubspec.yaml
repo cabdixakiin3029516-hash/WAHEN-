@@ -1,16 +1,16 @@
-name: wa_hen
-
-description: WaHeN marketplace mobile app.
+name: wahen_marketplace
+description: "WaHeN Marketplace Mobile App"
 publish_to: 'none'
 version: 1.0.0+1
 
 environment:
-  sdk: '>=3.3.0 <4.0.0'
+  sdk: '>=3.0.0 <4.0.0'
 
 dependencies:
   flutter:
     sdk: flutter
-  cupertino_icons: ^1.0.0
+  supabase_flutter: ^2.0.0
+  cupertino_icons: ^1.0.8
 
 dev_dependencies:
   flutter_test:

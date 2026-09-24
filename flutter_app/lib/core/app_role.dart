@@ -1,31 +1,15 @@
-enum AppRole {
-  customer,
-  seller,
-  admin,
-}
+enum AppRole { buyer, seller, admin }
 
 extension AppRoleExtension on AppRole {
-  String get value => switch (this) {
-        AppRole.customer => 'customer',
-        AppRole.seller => 'seller',
-        AppRole.admin => 'admin',
-      };
-
-  String get label => switch (this) {
-        AppRole.customer => 'Customer',
-        AppRole.seller => 'Seller',
-        AppRole.admin => 'Admin',
-      };
-
-  static AppRole fromValue(String? value) {
-    switch (value) {
-      case 'seller':
-        return AppRole.seller;
-      case 'admin':
-        return AppRole.admin;
-      case 'customer':
+  String get name {
+    switch (this) {
+      case AppRole.admin:
+        return 'Admin';
+      case AppRole.seller:
+        return 'Seller';
+      case AppRole.buyer:
       default:
-        return AppRole.customer;
+        return 'Buyer';
     }
   }
 }

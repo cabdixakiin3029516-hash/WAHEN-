@@ -1,108 +1,97 @@
 import 'package:flutter/material.dart';
-
 import '../models/product.dart';
 
-class CartScreen extends StatelessWidget {
-  final List<Product> cart;
+class CartScreen extends StatefulWidget {
+  final List<Product> cartItems;
 
-  const CartScreen({
-    super.key,
-    required this.cart,
-  });
-
-  double get totalPrice {
-    return cart.fold(0, (sum, product) => sum + product.price);
-  }
+  const CartScreen({super.key, required this.cartItems});
 
   @override
+  State<CartScreen> createState() => _CartScreenState();
+}
+
+class _CartScreenState extends State<CartScreen> {
+  @override
   Widget build(BuildContext context) {
+    double total = widget.cartItems.fold(0, (sum, item) => sum + item.price);
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Cart'),
-        backgroundColor: const Color(0xFF4338CA),
-        foregroundColor: Colors.white,
+        backgroundColor: const Color(0xFF0F172A),
+        iconTheme: const IconThemeData(color: Colors.white),
+        title: const Text('Basket-kaaga (Cart)', style: TextStyle(color: Colors.white)),
       ),
-      body: cart.isEmpty
-          ? const Center(
-              child: Text('Your cart is empty'),
-            )
-          : Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                children: [
-                  Expanded(
-                    child: ListView.separated(
-                      itemCount: cart.length,
-                      separatorBuilder: (_, __) => const Divider(),
-                      itemBuilder: (context, index) {
-                        final product = cart[index];
-                        return ListTile(
-                          leading: CircleAvatar(
-                            radius: 22,
-                            backgroundColor: const Color(0xFFEAF0FF),
-                            child: Text(product.imageEmoji, style: const TextStyle(fontSize: 26)),
-                          ),
-                          title: Text(product.name),
-                          subtitle: Text(product.seller),
-                          trailing: Text('\$${product.price.toStringAsFixed(2)}'),
-                        );
-                      },
-                    ),
+      body: widget.cartItems.isEmpty
+          ? const Center(child: Text('Cart-kaagu waa faaruq!'))
+          : Column(
+              children: [
+                Expanded(
+                  child: ListView.builder(
+                    itemCount: widget.cartItems.length,
+                    itemBuilder: (context, index) {
+                      final item = widget.cartItems[index];
+                      return ListTile(
+                        leading: Container(
+                          width: 50,
+                          height: 50,
+                          color: Colors.grey[200],
+                          child: item.imageUrl.isNotEmpty
+                              ? Image.network(item.imageUrl, fit: BoxFit.cover)
+                              : const Icon(Icons.shopping_bag),
+                        ),
+                        title: Text(item.name, style: const TextStyle(fontWeight: FontWeight.bold)),
+                        subtitle: Text('\$${item.price.toStringAsFixed(2)}'),
+                        trailing: IconButton(
+                          icon: const Icon(Icons.delete, color: Colors.red),
+                          onPressed: () {
+                            setState(() {
+                              widget.cartItems.removeAt(index);
+                            });
+                          },
+                        ),
+                      );
+                    },
                   ),
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFF5F6FF),
-                      borderRadius: BorderRadius.circular(18),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'Payment method',
-                          style: TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                        const SizedBox(height: 8),
-                        const Wrap(
-                          spacing: 8,
-                          children: [
-                            Chip(label: Text('Zaad')),
-                            Chip(label: Text('E-Dahab')),
-                            Chip(label: Text('Visa')),
-                          ],
-                        ),
-                        const SizedBox(height: 16),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            const Text('Total', style: TextStyle(fontWeight: FontWeight.bold)),
-                            Text(
-                              '\$${totalPrice.toStringAsFixed(2)}',
-                              style: const TextStyle(
-                                fontWeight: FontWeight.w800,
-                                color: Color(0xFF4338CA),
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 14),
-                        SizedBox(
-                          width: double.infinity,
-                          child: FilledButton(
-                            onPressed: () {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('Checkout started successfully')),
-                              );
-                            },
-                            child: const Text('Checkout'),
-                          ),
-                        ),
-                      ],
-                    ),
+                ),
+                Container(
+                  padding: const EdgeInsets.all(20.0),
+                  decoration: const BoxDecoration(
+                    color: Colors.white,
+                    boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 10)],
                   ),
-                ],
-              ),
+                  child: Column(
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text('Warta Guud (Total):', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                          Text('\$${total.toStringAsFixed(2)}', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF2563EB))),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF2563EB),
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                          ),
+                          onPressed: () {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Order-ka waa la gudbiyay!')),
+                            );
+                            setState(() {
+                              widget.cartItems.clear();
+                            });
+                          },
+                          child: const Text('Dhammaystir Iibsiga', style: TextStyle(color: Colors.white, fontSize: 16)),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
     );
   }

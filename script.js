@@ -5,7 +5,7 @@
 // --------------------------------------------------------------------------
 // 1. SUPABASE CONFIGURATION & INITIALIZATION
 // --------------------------------------------------------------------------
-// Ogow: Ku beddel URL-kaaga iyo Anon Key-gaaga rasmiga ah ee Supabase Dashboard
+// OGOW: Ku beddel URL-kaaga iyo Anon Key-gaaga rasmiga ah ee Supabase Dashboard
 const SUPABASE_URL = "https://YOUR-PROJECT-REF.supabase.co";
 const SUPABASE_ANON_KEY = "YOUR-SUPABASE-ANON-KEY-HERE";
 
@@ -18,7 +18,7 @@ if (typeof supabase !== "undefined") {
 }
 
 // --------------------------------------------------------------------------
-// 2. STATE MANAGEMENT (Xogta Guud ee App-ka)
+// 2. STATE MANAGEMENT
 // --------------------------------------------------------------------------
 const AppState = {
   products: [],
@@ -32,10 +32,9 @@ const AppState = {
 };
 
 // --------------------------------------------------------------------------
-// 3. API SERVICE (Isku Xidhka Supabase Database-ka)
+// 3. API SERVICE (Supabase Database Calls)
 // --------------------------------------------------------------------------
 const ApiService = {
-  // Soo qaadida Dhammaan Alaabooyinka
   async fetchProducts() {
     if (!supabaseClient) return [];
     try {
@@ -53,7 +52,6 @@ const ApiService = {
     }
   },
 
-  // Soo qaadida Alaabta loo eego Qaybta (Category)
   async fetchProductsByCategory(category) {
     if (!supabaseClient) return [];
     try {
@@ -70,7 +68,6 @@ const ApiService = {
     }
   },
 
-  // Raadinta Alaabta (Search)
   async searchProducts(keyword) {
     if (!supabaseClient) return [];
     try {
@@ -87,7 +84,6 @@ const ApiService = {
     }
   },
 
-  // Abuurida Dalab Cusub (Checkout / Order)
   async createOrder(orderData) {
     if (!supabaseClient) return null;
     try {
@@ -105,30 +101,23 @@ const ApiService = {
     }
   },
 
-  // Auth: Soo Gal / Login
   async login(email, password) {
-    if (!supabaseClient) return { error: "Supabase laguma xidhin" };
-    const { data, error } = await supabaseClient.auth.signInWithPassword({
-      email,
-      password
-    });
-    return { data, error };
+    if (!supabaseClient) return { error: { message: "Supabase laguma xidhin" } };
+    return await supabaseClient.auth.signInWithPassword({ email, password });
   },
 
-  // Auth: Account Samaysasho / SignUp
   async signUp(email, password, userData) {
-    if (!supabaseClient) return { error: "Supabase laguma xidhin" };
-    const { data, error } = await supabaseClient.auth.signUp({
+    if (!supabaseClient) return { error: { message: "Supabase laguma xidhin" } };
+    return await supabaseClient.auth.signUp({
       email,
       password,
       options: { data: userData }
     });
-    return { data, error };
   }
 };
 
 // --------------------------------------------------------------------------
-// 4. CART MANAGER (Maareynta Gaadhiga Iibsiga)
+// 4. CART MANAGER
 // --------------------------------------------------------------------------
 const CartManager = {
   addItem(product) {
@@ -204,11 +193,11 @@ const CartManager = {
             <span class="price">$${parseFloat(item.price).toFixed(2)}</span>
           </div>
           <div class="cart-qty-controls">
-            <button onclick="CartManager.updateQuantity('${item.id}', -1)">-</button>
+            <button type="button" onclick="CartManager.updateQuantity('${item.id}', -1)">-</button>
             <span>${item.quantity}</span>
-            <button onclick="CartManager.updateQuantity('${item.id}', 1)">+</button>
+            <button type="button" onclick="CartManager.updateQuantity('${item.id}', 1)">+</button>
           </div>
-          <button class="remove-btn" onclick="CartManager.removeItem('${item.id}')">×</button>
+          <button type="button" class="remove-btn" onclick="CartManager.removeItem('${item.id}')">×</button>
         </div>
       `
       )
@@ -230,7 +219,7 @@ const CartManager = {
 };
 
 // --------------------------------------------------------------------------
-// 5. UI & ROUTING CONTROLLER
+// 5. UI CONTROLLER & EVENT BINDINGS
 // --------------------------------------------------------------------------
 const UI = {
   init() {
@@ -240,7 +229,6 @@ const UI = {
     this.loadInitialPageData();
   },
 
-  // Soo Muujinta Kaadhadhka Alaabta (Products Grid)
   renderProducts(products, containerId = "productGrid") {
     const container = document.getElementById(containerId);
     if (!container) return;
@@ -262,7 +250,7 @@ const UI = {
             <h3 class="product-title">${p.name}</h3>
             <div class="product-bottom">
               <span class="price">$${parseFloat(p.price || 0).toFixed(2)}</span>
-              <button class="add-to-cart-btn" onclick="CartManager.addItem(${JSON.stringify(p).replace(/"/g, '&quot;')})">🛒 +</button>
+              <button type="button" class="add-to-cart-btn" onclick='CartManager.addItem(${JSON.stringify(p).replace(/'/g, "&apos;")})'>🛒 +</button>
             </div>
           </div>
         </div>
@@ -306,13 +294,11 @@ const UI = {
   async loadInitialPageData() {
     const currentPage = window.location.pathname.split("/").pop();
 
-    // Loading State
     const grid = document.getElementById("productGrid");
     if (grid) {
       grid.innerHTML = `<div class="loading-card"><div class="loading-spinner"></div><p>Raadinaya alaabo...</p></div>`;
     }
 
-    // Xogta bogga Index/Home ka soo qaad
     if (currentPage === "" || currentPage === "index.html" || currentPage === "home.html") {
       AppState.products = await ApiService.fetchProducts();
       AppState.filteredProducts = AppState.products;
@@ -320,11 +306,8 @@ const UI = {
     }
   },
 
-  // ------------------------------------------------------------------------
-  // 6. EVENT LISTENERS (Dhagaysiga Taabashada)
-  // ------------------------------------------------------------------------
   bindGlobalEvents() {
-    // Menu Controls
+    // 1. Menu Controls
     const menuBtn = document.getElementById("menuBtn");
     const closeMenu = document.getElementById("closeMenu");
     const sideMenu = document.getElementById("sideMenu");
@@ -337,9 +320,12 @@ const UI = {
 
     if (menuBtn) menuBtn.addEventListener("click", () => toggleMenu(true));
     if (closeMenu) closeMenu.addEventListener("click", () => toggleMenu(false));
-    if (overlay) overlay.addEventListener("click", () => toggleMenu(false));
+    if (overlay) overlay.addEventListener("click", () => {
+      toggleMenu(false);
+      this.closeAllModals();
+    });
 
-    // Cart Modal Controls
+    // 2. Cart Modal Controls
     const cartBtn = document.getElementById("cartBtn");
     const closeCartModal = document.getElementById("closeCartModal");
     const cartModal = document.getElementById("cartModal");
@@ -348,18 +334,41 @@ const UI = {
       cartBtn.addEventListener("click", () => {
         CartManager.renderCartItems();
         if (cartModal) cartModal.classList.add("open");
+        if (overlay) overlay.classList.add("show");
       });
     }
 
     if (closeCartModal) {
       closeCartModal.addEventListener("click", () => {
         if (cartModal) cartModal.classList.remove("open");
+        if (overlay) overlay.classList.remove("show");
       });
     }
 
-    // Search Input Debounce
+    // 3. Category Buttons Event Listener
+    document.querySelectorAll(".category-card").forEach(btn => {
+      btn.addEventListener("click", async (e) => {
+        document.querySelectorAll(".category-card").forEach(b => b.classList.remove("active"));
+        const card = e.currentTarget;
+        card.classList.add("active");
+
+        const category = card.dataset.category;
+        AppState.activeCategory = category;
+
+        if (category === "all") {
+          this.renderProducts(AppState.products);
+        } else {
+          const filtered = await ApiService.fetchProductsByCategory(category);
+          this.renderProducts(filtered);
+        }
+      });
+    });
+
+    // 4. Search Input Debounce & Clear
     const searchInput = document.getElementById("searchInput");
+    const clearSearch = document.getElementById("clearSearch");
     let searchTimeout;
+
     if (searchInput) {
       searchInput.addEventListener("input", (e) => {
         clearTimeout(searchTimeout);
@@ -371,19 +380,43 @@ const UI = {
           } else {
             this.renderProducts(AppState.products);
           }
-        }, 350);
+        }, 300);
       });
     }
 
-    // Navigation Links (Routing dhammaan pages-ka HTML)
+    if (clearSearch && searchInput) {
+      clearSearch.addEventListener("click", () => {
+        searchInput.value = "";
+        this.renderProducts(AppState.products);
+      });
+    }
+
+    // 5. Navigation Links (Side Menu & Bottom Navigation)
     document.querySelectorAll("[data-menu], [data-bottom]").forEach(btn => {
-      btn.addEventListener("click", (e) => {
+      btn.addEventListener("click", () => {
         const target = btn.dataset.menu || btn.dataset.bottom;
         this.navigateToPage(target);
       });
     });
 
-    // Checkout Action
+    // 6. Action Buttons (Hero Shop, Offer, Wholesale)
+    const heroShopBtn = document.getElementById("heroShopBtn");
+    const offerBtn = document.getElementById("offerBtn");
+    const wholesaleBtn = document.getElementById("wholesaleBtn");
+
+    if (heroShopBtn) heroShopBtn.addEventListener("click", () => {
+      document.getElementById("categoryGrid")?.scrollIntoView({ behavior: "smooth" });
+    });
+
+    if (offerBtn) offerBtn.addEventListener("click", () => {
+      document.getElementById("productGrid")?.scrollIntoView({ behavior: "smooth" });
+    });
+
+    if (wholesaleBtn) wholesaleBtn.addEventListener("click", () => {
+      this.navigateToPage("wholesale");
+    });
+
+    // 7. Checkout Action
     const checkoutBtn = document.getElementById("checkoutBtn");
     if (checkoutBtn) {
       checkoutBtn.addEventListener("click", async () => {
@@ -391,7 +424,7 @@ const UI = {
           this.showToast("Cart-kaagu waa faaruq!", "error");
           return;
         }
-        
+
         const totals = CartManager.getTotals();
         const orderData = {
           items: AppState.cart,
@@ -406,12 +439,42 @@ const UI = {
           this.showToast("Dalabkaaga waa la guddoomay!", "success");
           CartManager.clearCart();
           if (cartModal) cartModal.classList.remove("open");
+          if (overlay) overlay.classList.remove("show");
+        }
+      });
+    }
+
+    // 8. Auth Switch Forms (Login / Signup Toggle)
+    const authSwitchBtn = document.getElementById("authSwitchBtn");
+    const loginForm = document.getElementById("loginForm");
+    const signupForm = document.getElementById("signupForm");
+    const authTitle = document.getElementById("authTitle");
+
+    if (authSwitchBtn) {
+      authSwitchBtn.addEventListener("click", () => {
+        if (loginForm.classList.contains("hidden")) {
+          loginForm.classList.remove("hidden");
+          signupForm.classList.add("hidden");
+          if (authTitle) authTitle.textContent = "Ku soo dhawoow WaHeN";
+          authSwitchBtn.textContent = "Samee Account";
+        } else {
+          loginForm.classList.add("hidden");
+          signupForm.classList.remove("hidden");
+          if (authTitle) authTitle.textContent = "Samee Account Cusub";
+          authSwitchBtn.textContent = "Soo Gal";
         }
       });
     }
   },
 
-  // Bogagga HTML Routing-kooda
+  closeAllModals() {
+    document.querySelectorAll(".modal").forEach(m => m.classList.remove("open"));
+    const sideMenu = document.getElementById("sideMenu");
+    const overlay = document.getElementById("overlay");
+    if (sideMenu) sideMenu.classList.remove("open");
+    if (overlay) overlay.classList.remove("show");
+  },
+
   navigateToPage(pageKey) {
     const routes = {
       home: "home.html",
@@ -422,7 +485,13 @@ const UI = {
       signup: "create-account.html",
       login: "login.html",
       seller: "seller.html",
-      support: "support.html"
+      support: "support.html",
+      chat: "support.html",
+      wholesale: "buyer.html",
+      jumlo: "buyer.html",
+      naadir: "home.html",
+      warshado: "seller.html",
+      settings: "contact.html"
     };
 
     if (routes[pageKey]) {
@@ -432,7 +501,7 @@ const UI = {
 };
 
 // --------------------------------------------------------------------------
-// 7. INITIALIZE ENGINE ON DOM LOADED
+// 6. INITIALIZE ENGINE ON DOM LOADED
 // --------------------------------------------------------------------------
 document.addEventListener("DOMContentLoaded", () => {
   UI.init();

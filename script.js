@@ -1,294 +1,545 @@
 /* =========================================================
-   WAHEN MARKETPLACE — MAIN APP
+   WAHEN MARKETPLACE — SCRIPT.JS
+   Supabase + Products + Search + Cart + Auth + Navigation
    ========================================================= */
 
-const SB = window.wahenSupabase;
+"use strict";
+
+/* =========================================================
+   SUPABASE
+   ========================================================= */
+
+const SB =
+  window.supabaseClient ||
+  window.supabase ||
+  null;
 
 let currentUser = null;
-let products = [];
-let categories = [];
-let cart = [];
-let currentProduct = null;
-let authMode = "login";
+let currentProfile = null;
 
-const $ = id => document.getElementById(id);
+let products = [];
+let brands = [];
+let cartItems = [];
+
+let activeCategory = "all";
+let searchTimer = null;
 
 
 /* =========================================================
-   START
+   DOM HELPERS
+   ========================================================= */
+
+const $ = (id) => document.getElementById(id);
+
+const qs = (selector) =>
+  document.querySelector(selector);
+
+const qsa = (selector) =>
+  document.querySelectorAll(selector);
+
+
+/* =========================================================
+   APP START
    ========================================================= */
 
 document.addEventListener("DOMContentLoaded", async () => {
 
-  if (!SB) {
-    toast("Supabase lama xiriirin.");
-    return;
-  }
+  console.log("WAHEN APP STARTED");
 
   setupNavigation();
-  setupButtons();
   setupSearch();
+  setupCategories();
+  setupButtons();
   setupAuth();
+  setupModals();
 
-  loadLocalCart();
-
-  await checkSession();
-  await loadCategories();
-  await loadProducts();
+  await checkUser();
+  await loadInitialData();
 
 });
 
 
 /* =========================================================
-   SESSION
+   SUPABASE CHECK
    ========================================================= */
 
-async function checkSession() {
+function hasSupabase() {
 
-  const { data, error } = await SB.auth.getSession();
+  if (!SB) {
 
-  if (error) {
-    console.error(error);
-    return;
+    console.warn(
+      "Supabase client lama helin. Hubi supabase-client.js"
+    );
+
+    showToast(
+      "Supabase connection lama helin."
+    );
+
+    return false;
   }
 
-  currentUser = data.session?.user || null;
+  return true;
+}
 
-  updateAccountUI();
 
-  SB.auth.onAuthStateChange(async (_event, session) => {
+/* =========================================================
+   USER / AUTH
+   ========================================================= */
 
-    currentUser = session?.user || null;
+async function checkUser() {
 
-    updateAccountUI();
+  if (!hasSupabase()) return;
 
-    if (currentUser) {
-      await loadProfile();
+  try {
+
+    const { data, error } =
+      await SB.auth.getSession();
+
+    if (error) {
+      console.error(error);
+      return;
     }
 
-  });
+    currentUser =
+      data?.session?.user || null;
+
+    if (currentUser) {
+
+      await loadProfile();
+
+      updateAccountUI();
+
+      await loadCart();
+
+    } else {
+
+      updateGuestUI();
+
+    }
+
+    SB.auth.onAuthStateChange(
+      async (_event, session) => {
+
+        currentUser =
+          session?.user || null;
+
+        if (currentUser) {
+
+          await loadProfile();
+          updateAccountUI();
+          await loadCart();
+
+        } else {
+
+          currentProfile = null;
+          cartItems = [];
+
+          updateGuestUI();
+          updateCartCount();
+        }
+
+      }
+    );
+
+  } catch (error) {
+
+    console.error(
+      "Auth error:",
+      error
+    );
+
+  }
 
 }
 
 
 /* =========================================================
-   PRODUCTS
+   PROFILE
    ========================================================= */
 
-async function loadProducts() {
+async function loadProfile() {
 
-  const { data, error } = await SB
-    .from("products")
-    .select(`
-      id,
-      seller_id,
-      category_id,
-      brand_id,
-      manufacturer_id,
-      name,
-      slug,
-      description,
-      price,
-      old_price,
-      stock,
-      sku,
-      condition,
-      rating,
-      total_reviews,
-      city,
-      icon,
-      is_active,
-      is_featured,
-      is_wholesale,
-      wholesale_price,
-      min_wholesale_quantity,
-      views_count,
-      sales_count,
-      quality_rating,
-      image_url,
-      created_at
-    `)
-    .eq("is_active", true)
-    .order("created_at", { ascending: false });
+  if (!currentUser || !hasSupabase()) return;
 
-  if (error) {
+  try {
 
-    console.error("Products:", error);
+    const { data, error } =
+      await SB
+        .from("profiles")
+        .select("*")
+        .eq("id", currentUser.id)
+        .maybeSingle();
 
-    renderProducts([], $("homeProducts"));
-    renderProducts([], $("productsList"));
+    if (error) {
 
-    toast("Alaabaha lama soo qaadi karin.");
-    return;
-  }
-
-  products = data || [];
-
-  renderProducts(products.slice(0, 12), $("homeProducts"));
-  renderProducts(products, $("productsList"));
-}
-
-
-/* =========================================================
-   CATEGORIES
-   ========================================================= */
-
-async function loadCategories() {
-
-  const { data, error } = await SB
-    .from("categories")
-    .select("*")
-    .limit(100);
-
-  if (error) {
-    console.error("Categories:", error);
-    return;
-  }
-
-  categories = data || [];
-
-  renderCategories();
-}
-
-
-function renderCategories() {
-
-  const box = $("categories");
-
-  if (!box) return;
-
-  const icons = [
-    "💎","👔","👗","📱","🚗",
-    "🍎","👶","🧱","📦"
-  ];
-
-  box.innerHTML = categories.slice(0, 9).map((c, i) => {
-
-    return `
-      <button class="category"
-        data-category-id="${c.id}">
-        <span>${icons[i] || "📦"}</span>
-        <span>${escapeHTML(c.name || "Qayb")}</span>
-      </button>
-    `;
-
-  }).join("");
-
-  box.querySelectorAll(".category").forEach(btn => {
-
-    btn.addEventListener("click", () => {
-
-      const id = btn.dataset.categoryId;
-
-      const result = products.filter(
-        p => String(p.category_id) === String(id)
+      console.warn(
+        "Profile lama helin:",
+        error.message
       );
 
-      showPage("productsPage");
+      return;
+    }
 
-      renderProducts(result, $("productsList"));
+    currentProfile = data || null;
 
-    });
+  } catch (error) {
 
-  });
+    console.error(error);
+
+  }
 
 }
 
 
 /* =========================================================
-   PRODUCT UI
+   ACCOUNT UI
    ========================================================= */
 
-function renderProducts(list, container) {
+function updateAccountUI() {
 
-  if (!container) return;
+  const menuGuest =
+    $("menuGuest");
 
-  if (!list || !list.length) {
+  if (!menuGuest) return;
 
-    container.innerHTML = `
-      <div class="empty">
-        <div style="font-size:40px">📦</div>
-        <p>Weli alaab lama helin.</p>
+  if (!currentUser) {
+
+    menuGuest.innerHTML = `
+      <div class="menu-avatar">👤</div>
+
+      <div>
+        <strong>Ku soo dhawoow</strong>
+        <small>Soo gal ama samee account</small>
       </div>
     `;
 
     return;
   }
 
-  container.innerHTML = list.map(productCard).join("");
+  const name =
+    currentProfile?.full_name ||
+    currentUser.email ||
+    "WaHeN User";
 
-  container.querySelectorAll("[data-product]").forEach(btn => {
+  menuGuest.innerHTML = `
+    <div class="menu-avatar">👤</div>
 
-    btn.addEventListener("click", () => {
-
-      const product = products.find(
-        p => p.id === btn.dataset.product
-      );
-
-      if (product) openProduct(product);
-
-    });
-
-  });
-
-  container.querySelectorAll("[data-cart]").forEach(btn => {
-
-    btn.addEventListener("click", event => {
-
-      event.stopPropagation();
-
-      const product = products.find(
-        p => p.id === btn.dataset.cart
-      );
-
-      if (product) addToCart(product);
-
-    });
-
-  });
+    <div>
+      <strong>${escapeHTML(name)}</strong>
+      <small>Account-kaaga</small>
+    </div>
+  `;
 
 }
 
 
-function productCard(p) {
+/* =========================================================
+   GUEST UI
+   ========================================================= */
 
-  const image = p.image_url;
+function updateGuestUI() {
+
+  updateAccountUI();
+
+}
+
+
+/* =========================================================
+   INITIAL DATA
+   ========================================================= */
+
+async function loadInitialData() {
+
+  showLoading(true);
+
+  try {
+
+    await Promise.all([
+      loadProducts(),
+      loadBrands()
+    ]);
+
+    renderProducts(products);
+    renderBrands(brands);
+
+  } catch (error) {
+
+    console.error(
+      "Initial data error:",
+      error
+    );
+
+  } finally {
+
+    showLoading(false);
+
+  }
+
+}
+
+
+/* =========================================================
+   LOAD PRODUCTS
+   ========================================================= */
+
+async function loadProducts() {
+
+  if (!hasSupabase()) return;
+
+  try {
+
+    const result =
+      await SB
+        .from("products")
+        .select(`
+          *,
+          brands (
+            id,
+            name,
+            logo_url
+          )
+        `)
+        .eq("is_active", true)
+        .order("created_at", {
+          ascending: false
+        })
+        .limit(100);
+
+    if (result.error) {
+
+      console.error(
+        "Products error:",
+        result.error
+      );
+
+      products = [];
+
+      renderEmptyProducts(
+        "Alaabooyin lama helin"
+      );
+
+      return;
+    }
+
+    products =
+      result.data || [];
+
+  } catch (error) {
+
+    console.error(
+      "Products exception:",
+      error
+    );
+
+    products = [];
+
+  }
+
+}
+
+
+/* =========================================================
+   LOAD BRANDS
+   ========================================================= */
+
+async function loadBrands() {
+
+  if (!hasSupabase()) return;
+
+  try {
+
+    const result =
+      await SB
+        .from("brands")
+        .select("*")
+        .eq("is_active", true)
+        .order("name", {
+          ascending: true
+        });
+
+    if (result.error) {
+
+      console.warn(
+        "Brands error:",
+        result.error.message
+      );
+
+      brands = [];
+
+      return;
+    }
+
+    brands =
+      result.data || [];
+
+  } catch (error) {
+
+    console.error(error);
+
+    brands = [];
+
+  }
+
+}
+
+
+/* =========================================================
+   PRODUCT IMAGE
+   ========================================================= */
+
+function getProductImage(product) {
+
+  if (
+    product?.image_url &&
+    typeof product.image_url === "string"
+  ) {
+
+    return product.image_url;
+  }
+
+  if (
+    product?.icon &&
+    typeof product.icon === "string" &&
+    product.icon.startsWith("http")
+  ) {
+
+    return product.icon;
+  }
+
+  return "";
+
+}
+
+
+/* =========================================================
+   PRODUCT CARD
+   ========================================================= */
+
+function productCard(product) {
+
+  const image =
+    getProductImage(product);
+
+  const price =
+    Number(product?.price || 0);
+
+  const oldPrice =
+    Number(product?.old_price || 0);
+
+  const rating =
+    Number(product?.rating || 0);
+
+  const name =
+    product?.name ||
+    "Alaab aan magac lahayn";
+
+  const category =
+    product?.category ||
+    product?.category_name ||
+    "Alaab";
+
+  const imageHTML =
+    image
+      ? `
+        <img
+          src="${escapeAttribute(image)}"
+          alt="${escapeAttribute(name)}"
+          loading="lazy"
+          onerror="this.style.display='none';this.nextElementSibling.style.display='flex';"
+        >
+
+        <div
+          class="product-placeholder"
+          style="display:none"
+        >
+          🛍️
+        </div>
+      `
+      : `
+        <div class="product-placeholder">
+          🛍️
+        </div>
+      `;
+
+  const ratingHTML =
+    rating > 0
+      ? `
+        <span class="stars">
+          ${getStars(rating)}
+        </span>
+        <span>${rating.toFixed(1)}</span>
+      `
+      : `
+        <span class="stars">☆☆☆☆☆</span>
+        <span>New</span>
+      `;
+
+  const oldPriceHTML =
+    oldPrice > price
+      ? `
+        <span class="product-old-price">
+          ${formatMoney(oldPrice)}
+        </span>
+      `
+      : "";
+
+  const badge =
+    product?.is_featured
+      ? `<span class="product-badge">FEATURED</span>`
+      : "";
 
   return `
-    <article class="product" data-product="${p.id}">
+    <article
+      class="product-card"
+      data-product-id="${escapeAttribute(product.id)}"
+    >
 
-      ${
-        image
-        ? `<img class="product-img"
-             src="${escapeAttr(image)}"
-             alt="${escapeAttr(p.name)}"
-             loading="lazy">`
-        : `<div class="product-placeholder">${escapeHTML(p.icon || "🛍️")}</div>`
-      }
+      <div class="product-image">
+
+        ${imageHTML}
+
+        ${badge}
+
+        <button
+          class="product-favorite"
+          data-favorite="${escapeAttribute(product.id)}"
+          aria-label="Favorite"
+        >
+          ♡
+        </button>
+
+      </div>
 
       <div class="product-body">
 
-        <div class="product-name">
-          ${escapeHTML(p.name || "Alaab")}
+        <span class="product-category">
+          ${escapeHTML(category)}
+        </span>
+
+        <h3 class="product-name">
+          ${escapeHTML(name)}
+        </h3>
+
+        <div class="product-rating">
+          ${ratingHTML}
         </div>
 
-        <div class="price">
-          $${Number(p.price || 0).toFixed(2)}
-        </div>
+        <div class="product-price-row">
 
-        <div class="product-meta">
-          <span>⭐ ${Number(p.rating || 0).toFixed(1)}</span>
-          <span>${Number(p.stock || 0)} stock</span>
-        </div>
+          <div>
+            <span class="product-price">
+              ${formatMoney(price)}
+            </span>
 
-        <div class="product-actions">
+            ${oldPriceHTML}
+          </div>
 
-          <button data-cart="${p.id}">
-            🛒 Ku dar
-          </button>
-
-          <button data-product="${p.id}">
-            Arag
+          <button
+            class="add-product-btn"
+            data-add-cart="${escapeAttribute(product.id)}"
+            aria-label="Ku dar cart"
+          >
+            +
           </button>
 
         </div>
@@ -301,664 +552,529 @@ function productCard(p) {
 
 
 /* =========================================================
-   PRODUCT DETAIL
+   RENDER PRODUCTS
    ========================================================= */
 
-function openProduct(product) {
+function renderProducts(list) {
 
-  currentProduct = product;
+  const grid =
+    $("productGrid");
 
-  showPage("detailPage");
+  if (!grid) return;
 
-  const box = $("productDetail");
+  if (!list || list.length === 0) {
 
-  box.innerHTML = `
-
-    ${
-      product.image_url
-      ? `<img class="detail-image"
-           src="${escapeAttr(product.image_url)}"
-           alt="${escapeAttr(product.name)}">`
-      : `<div class="product-placeholder"
-           style="border-radius:24px">
-           ${escapeHTML(product.icon || "🛍️")}
-         </div>`
-    }
-
-    <h1 class="detail-title">
-      ${escapeHTML(product.name)}
-    </h1>
-
-    <div class="detail-price">
-      $${Number(product.price || 0).toFixed(2)}
-    </div>
-
-    <div class="product-meta">
-      <span>⭐ ${Number(product.rating || 0).toFixed(1)}</span>
-      <span>Stock: ${Number(product.stock || 0)}</span>
-    </div>
-
-    <p class="detail-description">
-      ${escapeHTML(product.description || "Faahfaahin alaabta lama gelin.")}
-    </p>
-
-    <button class="primary full"
-      id="detailAddCart">
-      🛒 Ku dar Gaadhiga
-    </button>
-
-  `;
-
-  $("detailAddCart").onclick = () => addToCart(product);
-}
-
-
-/* =========================================================
-   CART
-   ========================================================= */
-
-function loadLocalCart() {
-
-  try {
-
-    cart = JSON.parse(
-      localStorage.getItem("wahen_cart") || "[]"
+    renderEmptyProducts(
+      "Alaabooyin lama helin"
     );
 
-  } catch {
-
-    cart = [];
-
-  }
-
-  updateCartCount();
-}
-
-
-function saveLocalCart() {
-
-  localStorage.setItem(
-    "wahen_cart",
-    JSON.stringify(cart)
-  );
-
-}
-
-
-function addToCart(product) {
-
-  const existing = cart.find(
-    item => item.product_id === product.id
-  );
-
-  if (existing) {
-
-    existing.quantity += 1;
-
-  } else {
-
-    cart.push({
-      product_id: product.id,
-      name: product.name,
-      price: Number(product.price || 0),
-      image_url: product.image_url || null,
-      quantity: 1
-    });
-
-  }
-
-  saveLocalCart();
-  updateCartCount();
-
-  toast("Alaabta gaadhiga ayaa lagu daray.");
-
-}
-
-
-function updateCartCount() {
-
-  const count = cart.reduce(
-    (sum, item) => sum + Number(item.quantity),
-    0
-  );
-
-  if ($("cartCount")) {
-    $("cartCount").textContent = count;
-  }
-
-}
-
-
-function renderCart() {
-
-  const box = $("cartItems");
-
-  if (!box) return;
-
-  if (!cart.length) {
-
-    box.innerHTML = `
-      <div class="empty">
-        🛒
-        <p>Gaadhigaagu waa madhan yahay.</p>
-      </div>
-    `;
-
-    $("cartSummary").innerHTML = "";
     return;
   }
 
-  box.innerHTML = cart.map((item, index) => {
+  grid.innerHTML =
+    list.map(productCard).join("");
 
-    return `
-      <div class="order-card">
+  attachProductEvents(grid);
 
-        <div class="order-top">
+}
 
-          <strong>
-            ${escapeHTML(item.name)}
-          </strong>
 
-          <span class="status">
-            $${(item.price * item.quantity).toFixed(2)}
-          </span>
+/* =========================================================
+   EMPTY PRODUCTS
+   ========================================================= */
 
-        </div>
+function renderEmptyProducts(message) {
 
-        <p style="margin-top:8px;color:#777">
-          Qty: ${item.quantity}
-        </p>
+  const grid =
+    $("productGrid");
 
-        <div class="product-actions">
+  if (!grid) return;
 
-          <button onclick="changeCart(${index},-1)">
-            −
-          </button>
+  grid.innerHTML = `
+    <div class="search-result-empty">
 
-          <button onclick="changeCart(${index},1)">
-            +
-          </button>
+      <span>🛍️</span>
 
-          <button onclick="removeCart(${index})">
-            🗑
-          </button>
-
-        </div>
-
-      </div>
-    `;
-
-  }).join("");
-
-  const total = cart.reduce(
-    (sum, item) =>
-      sum + item.price * item.quantity,
-    0
-  );
-
-  $("cartSummary").innerHTML = `
-
-    <div style="display:flex;justify-content:space-between">
-      <strong>Total</strong>
-      <strong style="color:#4338CA">
-        $${total.toFixed(2)}
+      <strong>
+        ${escapeHTML(message)}
       </strong>
+
+      <p>
+        Alaabooyin cusub ayaa halkan kasoo muuqan doona.
+      </p>
+
     </div>
-
-    <button class="primary full"
-      style="margin-top:14px"
-      id="checkoutBtn">
-      Checkout →
-    </button>
-
   `;
 
-  $("checkoutBtn").onclick = () => {
-
-    if (!currentUser) {
-
-      toast("Fadlan marka hore login samee.");
-      showPage("authPage");
-      return;
-
-    }
-
-    showPage("checkoutPage");
-
-  };
-
 }
 
 
-window.changeCart = function(index, amount) {
-
-  cart[index].quantity += amount;
-
-  if (cart[index].quantity <= 0) {
-    cart.splice(index, 1);
-  }
-
-  saveLocalCart();
-  updateCartCount();
-  renderCart();
-
-};
-
-
-window.removeCart = function(index) {
-
-  cart.splice(index, 1);
-
-  saveLocalCart();
-  updateCartCount();
-  renderCart();
-
-};
-
-
 /* =========================================================
-   CHECKOUT / ORDER
+   PRODUCT EVENTS
    ========================================================= */
 
-async function createOrder(event) {
+function attachProductEvents(container) {
 
-  event.preventDefault();
+  container
+    .querySelectorAll("[data-add-cart]")
+    .forEach(button => {
 
-  if (!currentUser) {
+      button.addEventListener(
+        "click",
+        async event => {
 
-    toast("Login ayaa loo baahan yahay.");
-    return;
+          event.stopPropagation();
 
-  }
+          const id =
+            button.dataset.addCart;
 
-  if (!cart.length) {
+          await addToCart(id);
 
-    toast("Gaadhigaagu waa madhan yahay.");
-    return;
+        }
+      );
 
-  }
-
-  const name = $("deliveryName").value.trim();
-  const phone = $("deliveryPhone").value.trim();
-  const city = $("deliveryCity").value.trim();
-  const region = $("deliveryRegion").value.trim();
-  const address = $("deliveryAddress").value.trim();
-  const note = $("deliveryNote").value.trim();
-  const method = $("paymentMethod").value;
-
-  const subtotal = cart.reduce(
-    (sum, item) =>
-      sum + item.price * item.quantity,
-    0
-  );
-
-  const deliveryFee = 0;
-
-  const total = subtotal + deliveryFee;
+    });
 
 
-  const { data: order, error } = await SB
-    .from("orders")
-    .insert({
-      user_id: currentUser.id,
-      status: "pending",
-      payment_status: "unpaid",
-      payment_method: method,
-      subtotal,
-      delivery_fee: deliveryFee,
-      total_amount: total,
-      delivery_name: name,
-      delivery_phone: phone,
-      delivery_city: city,
-      delivery_region: region,
-      delivery_address: address,
-      delivery_note: note
-    })
-    .select()
-    .single();
+  container
+    .querySelectorAll("[data-favorite]")
+    .forEach(button => {
+
+      button.addEventListener(
+        "click",
+        event => {
+
+          event.stopPropagation();
+
+          toggleFavorite(
+            button.dataset.favorite,
+            button
+          );
+
+        }
+      );
+
+    });
 
 
-  if (error) {
+  container
+    .querySelectorAll(".product-card")
+    .forEach(card => {
 
-    console.error(error);
-    toast("Order-ka lama samayn. Hubi login/RLS.");
-    return;
+      card.addEventListener(
+        "click",
+        event => {
 
-  }
+          if (
+            event.target.closest(
+              "button"
+            )
+          ) {
+            return;
+          }
 
+          const id =
+            card.dataset.productId;
 
-  const orderItems = cart.map(item => ({
+          openProduct(id);
 
-    order_id: order.id,
-    product_id: item.product_id,
-    product_name: item.name,
-    unit_price: item.price,
-    quantity: item.quantity,
-    line_total: item.price * item.quantity
+        }
+      );
 
-  }));
-
-
-  const { error: itemError } = await SB
-    .from("order_items")
-    .insert(orderItems);
-
-
-  if (itemError) {
-
-    console.error(itemError);
-    toast("Order waa la sameeyay laakiin items-ka lama gelin.");
-    return;
-
-  }
-
-
-  cart = [];
-
-  saveLocalCart();
-  updateCartCount();
-
-  $("checkoutForm").reset();
-
-  toast("🎉 Dalabkaaga waa la diray.");
-
-  await loadOrders();
-
-  showPage("ordersPage");
+    });
 
 }
 
 
 /* =========================================================
-   ORDERS
+   OPEN PRODUCT
    ========================================================= */
 
-async function loadOrders() {
+function openProduct(id) {
 
-  const box = $("ordersList");
+  const product =
+    products.find(
+      item => String(item.id) === String(id)
+    );
 
-  if (!box || !currentUser) return;
+  if (!product) {
 
-  const { data, error } = await SB
-    .from("orders")
-    .select("*")
-    .eq("user_id", currentUser.id)
-    .order("created_at", { ascending: false });
-
-  if (error) {
-
-    console.error(error);
-
-    box.innerHTML = `
-      <div class="empty">
-        Dalabyada lama soo qaadi karin.
-      </div>
-    `;
+    showToast(
+      "Alaabta lama helin."
+    );
 
     return;
   }
 
-  if (!data?.length) {
+  const container =
+    $("productDetail");
 
-    box.innerHTML = `
-      <div class="empty">
-        📦
-        <p>Weli ma lihid dalab.</p>
-      </div>
-    `;
+  if (!container) return;
 
-    return;
+  const image =
+    getProductImage(product);
 
-  }
+  const price =
+    Number(product.price || 0);
 
-  box.innerHTML = data.map(order => `
+  const rating =
+    Number(product.rating || 0);
 
-    <div class="order-card">
+  container.innerHTML = `
 
-      <div class="order-top">
+    <div class="detail-image">
 
-        <strong>
-          Order #${String(order.id).slice(0,8)}
-        </strong>
+      ${
+        image
+          ? `
+            <img
+              src="${escapeAttribute(image)}"
+              alt="${escapeAttribute(product.name || "")}"
+            >
+          `
+          : `
+            <div class="product-placeholder">
+              🛍️
+            </div>
+          `
+      }
 
-        <span class="status">
-          ${escapeHTML(order.status)}
+    </div>
+
+    <div class="detail-info">
+
+      <span class="detail-category">
+        ${escapeHTML(
+          product.category_name ||
+          product.category ||
+          "ALAAB"
+        )}
+      </span>
+
+      <h2 class="detail-name">
+        ${escapeHTML(
+          product.name ||
+          "Alaab"
+        )}
+      </h2>
+
+      <div class="product-rating">
+
+        <span class="stars">
+          ${getStars(rating)}
+        </span>
+
+        <span>
+          ${
+            rating
+              ? rating.toFixed(1)
+              : "New"
+          }
         </span>
 
       </div>
 
-      <p style="margin-top:10px">
-        Total:
-        <strong>
-          $${Number(order.total_amount || 0).toFixed(2)}
-        </strong>
+      <div class="detail-price">
+        ${formatMoney(price)}
+      </div>
+
+      <p class="detail-description">
+        ${escapeHTML(
+          product.description ||
+          "Macluumaad dheeraad ah oo ku saabsan alaabtan ayaa halkan lagu soo bandhigi doonaa."
+        )}
       </p>
 
-      <p style="margin-top:5px;color:#777;font-size:11px">
-        ${new Date(order.created_at).toLocaleString()}
-      </p>
+      <div class="detail-meta">
+
+        <div>
+          <small>Stock</small>
+          <strong>
+            ${Number(product.stock || 0)}
+          </strong>
+        </div>
+
+        <div>
+          <small>City</small>
+          <strong>
+            ${escapeHTML(
+              product.city || "Somaliland"
+            )}
+          </strong>
+        </div>
+
+        <div>
+          <small>Quality</small>
+          <strong>
+            ${
+              product.quality_rating
+                ? product.quality_rating
+                : "—"
+            }
+          </strong>
+        </div>
+
+        <div>
+          <small>SKU</small>
+          <strong>
+            ${escapeHTML(
+              product.sku || "—"
+            )}
+          </strong>
+        </div>
+
+      </div>
+
+      <div class="detail-actions">
+
+        <button
+          class="secondary-btn"
+          onclick="toggleFavorite('${escapeAttribute(product.id)}')"
+        >
+          ♡ Favorite
+        </button>
+
+        <button
+          class="primary-btn"
+          style="margin-top:0"
+          onclick="addToCart('${escapeAttribute(product.id)}'); closeProductModal();"
+        >
+          🛒 Ku dar Cart
+        </button>
+
+      </div>
 
     </div>
+  `;
 
-  `).join("");
+  openModal("productModal");
 
 }
 
 
 /* =========================================================
-   AUTH
+   BRANDS
    ========================================================= */
 
-function setupAuth() {
+function renderBrands(list) {
 
-  $("authForm").addEventListener(
-    "submit",
-    handleAuth
-  );
+  const grid =
+    $("brandGrid");
 
-  $("authSwitch").onclick = () => {
-
-    authMode =
-      authMode === "login"
-      ? "register"
-      : "login";
-
-    updateAuthUI();
-
-  };
-
-  $("loginBtn").onclick = () => {
-
-    authMode = "login";
-    updateAuthUI();
-    showPage("authPage");
-
-  };
-
-  $("registerBtn").onclick = () => {
-
-    authMode = "register";
-    updateAuthUI();
-    showPage("authPage");
-
-  };
-
-  $("logoutBtn").onclick = logout;
-
-}
-
-
-function updateAuthUI() {
-
-  const register = authMode === "register";
-
-  $("authTitle").textContent =
-    register
-    ? "Samee Account"
-    : "Ku soo gal WaHeN";
-
-  $("authSubtitle").textContent =
-    register
-    ? "Samee account cusub oo WaHeN ah."
-    : "Geli account-kaaga si aad u sii wadato.";
-
-  $("authSubmit").textContent =
-    register
-    ? "Create Account"
-    : "Login";
-
-  $("fullNameWrap").classList.toggle(
-    "hidden",
-    !register
-  );
-
-  $("authSwitch").textContent =
-    register
-    ? "Waxaan hore u leeyahay account"
-    : "Samee account cusub";
-
-}
-
-
-async function handleAuth(event) {
-
-  event.preventDefault();
-
-  const email = $("authEmail").value.trim();
-  const password = $("authPassword").value;
-  const fullName = $("authFullName").value.trim();
-
-  $("authMessage").textContent = "Fadlan sug...";
-
-  if (authMode === "register") {
-
-    const { data, error } =
-      await SB.auth.signUp({
-
-        email,
-        password,
-
-        options: {
-          data: {
-            full_name: fullName
-          }
-        }
-
-      });
-
-    if (error) {
-
-      $("authMessage").textContent = error.message;
-      return;
-
-    }
-
-    $("authMessage").textContent =
-      data.session
-      ? "Account-ka waa la sameeyay."
-      : "Account-ka waa la sameeyay. Hubi email-ka haddii loo baahdo.";
-
+  if (!grid || !list?.length) {
     return;
   }
 
+  grid.innerHTML =
+    list
+      .slice(0,8)
+      .map(brand => {
 
-  const { error } =
-    await SB.auth.signInWithPassword({
-      email,
-      password
+        return `
+          <button
+            class="brand-item"
+            data-brand-id="${escapeAttribute(brand.id)}"
+          >
+            ${
+              brand.logo_url
+                ? `
+                  <img
+                    src="${escapeAttribute(brand.logo_url)}"
+                    alt="${escapeAttribute(brand.name)}"
+                    style="max-height:32px;max-width:90px"
+                  >
+                `
+                : `
+                  <strong>
+                    ${escapeHTML(
+                      brand.name
+                    )}
+                  </strong>
+                `
+            }
+          </button>
+        `;
+
+      })
+      .join("");
+
+  grid
+    .querySelectorAll("[data-brand-id]")
+    .forEach(button => {
+
+      button.addEventListener(
+        "click",
+        () => {
+
+          const id =
+            button.dataset.brandId;
+
+          filterByBrand(id);
+
+        }
+      );
+
     });
 
-
-  if (error) {
-
-    $("authMessage").textContent = error.message;
-    return;
-
-  }
-
-  $("authMessage").textContent =
-    "Login waa guulaystay.";
-
-  showPage("accountPage");
-
 }
 
 
-async function logout() {
+/* =========================================================
+   BRAND FILTER
+   ========================================================= */
 
-  await SB.auth.signOut();
+function filterByBrand(id) {
 
-  currentUser = null;
+  const filtered =
+    products.filter(
+      product =>
+        String(product.brand_id) ===
+        String(id)
+    );
 
-  updateAccountUI();
+  renderProducts(filtered);
 
-  toast("Waad ka baxday account-ka.");
+  scrollToProducts();
 
-  showPage("homePage");
+  showToast(
+    `${filtered.length} alaabood ayaa la helay`
+  );
 
 }
 
 
 /* =========================================================
-   PROFILE
+   CATEGORY
    ========================================================= */
 
-async function loadProfile() {
+function setupCategories() {
 
-  if (!currentUser) return;
+  qsa(
+    ".category-card"
+  ).forEach(button => {
 
-  const { data, error } = await SB
-    .from("profiles")
-    .select("*")
-    .eq("id", currentUser.id)
-    .maybeSingle();
+    button.addEventListener(
+      "click",
+      () => {
 
-  if (error) {
+        qsa(
+          ".category-card"
+        ).forEach(item =>
+          item.classList.remove("active")
+        );
 
-    console.error("Profile:", error);
-    return;
+        button.classList.add("active");
 
-  }
+        activeCategory =
+          button.dataset.category ||
+          "all";
 
-  if (data) {
+        filterCategory(
+          activeCategory
+        );
 
-    $("accountName").textContent =
-      data.full_name ||
-      currentUser.email ||
-      "User";
+      }
+    );
 
-    $("accountPhone").textContent =
-      data.phone ||
-      currentUser.email ||
-      "";
-
-  }
+  });
 
 }
 
 
-function updateAccountUI() {
+/* =========================================================
+   FILTER CATEGORY
+   ========================================================= */
 
-  const logged =
-    !!currentUser;
+function filterCategory(category) {
 
-  $("guestActions")
-    .classList.toggle("hidden", logged);
+  if (
+    !category ||
+    category === "all"
+  ) {
 
-  $("userActions")
-    .classList.toggle("hidden", !logged);
+    renderProducts(products);
 
-  $("accountName").textContent =
-    logged
-    ? (currentUser.user_metadata?.full_name ||
-       currentUser.email ||
-       "User")
-    : "Guest";
+    return;
+  }
 
-  $("accountPhone").textContent =
-    logged
-    ? currentUser.email
-    : "Soo gal ama samee account";
+  const searchTerms = {
+
+    men:[
+      "men",
+      "rag",
+      "ragga",
+      "male"
+    ],
+
+    women:[
+      "women",
+      "haween",
+      "dumar",
+      "female"
+    ],
+
+    electronics:[
+      "electronics",
+      "phone",
+      "mobile",
+      "computer",
+      "electronic"
+    ],
+
+    food:[
+      "food",
+      "cunto",
+      "raashin"
+    ],
+
+    baby:[
+      "baby",
+      "caruur",
+      "child"
+    ],
+
+    construction:[
+      "construction",
+      "d hismaha",
+      "dhismaha",
+      "building"
+    ],
+
+    transport:[
+      "transport",
+      "gadiid",
+      "car",
+      "vehicle"
+    ]
+
+  };
+
+  const terms =
+    searchTerms[category] ||
+    [category];
+
+  const filtered =
+    products.filter(product => {
+
+      const text = `
+        ${product.name || ""}
+        ${product.description || ""}
+        ${product.category || ""}
+        ${product.category_name || ""}
+      `.toLowerCase();
+
+      return terms.some(
+        term =>
+          text.includes(
+            term.toLowerCase()
+          )
+      );
+
+    });
+
+  renderProducts(filtered);
+
+  scrollToProducts();
 
 }
 
@@ -969,57 +1085,710 @@ function updateAccountUI() {
 
 function setupSearch() {
 
-  $("searchInput").addEventListener(
+  const input =
+    $("searchInput");
+
+  if (!input) return;
+
+  input.addEventListener(
     "input",
-    event => {
+    () => {
 
-      const query =
-        event.target.value
-          .trim()
-          .toLowerCase();
+      const value =
+        input.value.trim();
 
-      if (!query) {
+      const clear =
+        $("clearSearch");
 
-        renderProducts(
-          products,
-          $("productsList")
-        );
+      if (clear) {
 
-        return;
+        clear.style.display =
+          value
+            ? "block"
+            : "none";
 
       }
 
-      const result = products.filter(p =>
-
-        String(p.name || "")
-          .toLowerCase()
-          .includes(query)
-
-        ||
-
-        String(p.description || "")
-          .toLowerCase()
-          .includes(query)
-
-        ||
-
-        String(p.city || "")
-          .toLowerCase()
-          .includes(query)
-
+      clearTimeout(
+        searchTimer
       );
 
-      showPage("productsPage");
+      searchTimer =
+        setTimeout(
+          () => {
 
-      $("productResultText").textContent =
-        `${result.length} alaab ayaa la helay`;
+            performSearch(value);
 
-      renderProducts(
-        result,
-        $("productsList")
-      );
+          },
+          250
+        );
 
     }
+  );
+
+}
+
+
+/* =========================================================
+   SEARCH FUNCTION
+   ========================================================= */
+
+function performSearch(query) {
+
+  if (!query) {
+
+    const section =
+      $("searchResultsSection");
+
+    if (section) {
+      section.classList.add("hidden");
+    }
+
+    renderProducts(
+      activeCategory === "all"
+        ? products
+        : products
+    );
+
+    return;
+  }
+
+  const words =
+    query
+      .toLowerCase()
+      .split(/\s+/)
+      .filter(Boolean);
+
+  const results =
+    products.filter(product => {
+
+      const text = `
+        ${product.name || ""}
+        ${product.description || ""}
+        ${product.category || ""}
+        ${product.category_name || ""}
+        ${product.city || ""}
+        ${product.sku || ""}
+      `.toLowerCase();
+
+      return words.every(
+        word => text.includes(word)
+      );
+
+    });
+
+  const section =
+    $("searchResultsSection");
+
+  const grid =
+    $("searchResults");
+
+  if (!section || !grid) return;
+
+  section.classList.remove("hidden");
+
+  if (!results.length) {
+
+    grid.innerHTML = `
+      <div class="search-result-empty">
+
+        <span>🔎</span>
+
+        <strong>
+          Wax natiijo ah lama helin
+        </strong>
+
+        <p>
+          Isku day erey kale.
+        </p>
+
+      </div>
+    `;
+
+  } else {
+
+    grid.innerHTML =
+      results.map(productCard).join("");
+
+    attachProductEvents(grid);
+
+  }
+
+  section.scrollIntoView({
+    behavior:"smooth",
+    block:"start"
+  });
+
+}
+
+
+/* =========================================================
+   CART
+   ========================================================= */
+
+async function loadCart() {
+
+  if (!currentUser || !hasSupabase()) {
+
+    cartItems = [];
+
+    updateCartCount();
+
+    return;
+  }
+
+  try {
+
+    const cartResult =
+      await SB
+        .from("carts")
+        .select("id")
+        .eq("user_id", currentUser.id)
+        .eq("status", "active")
+        .maybeSingle();
+
+    if (
+      cartResult.error ||
+      !cartResult.data
+    ) {
+
+      cartItems = [];
+
+      updateCartCount();
+
+      return;
+    }
+
+    const cartId =
+      cartResult.data.id;
+
+    const itemsResult =
+      await SB
+        .from("cart_items")
+        .select(`
+          id,
+          quantity,
+          product_id,
+          products (
+            id,
+            name,
+            price,
+            image_url,
+            stock
+          )
+        `)
+        .eq("cart_id", cartId)
+        .order("created_at", {
+          ascending:false
+        });
+
+    if (itemsResult.error) {
+
+      console.warn(
+        "Cart items:",
+        itemsResult.error.message
+      );
+
+      cartItems = [];
+
+    } else {
+
+      cartItems =
+        itemsResult.data || [];
+
+    }
+
+    updateCartCount();
+
+  } catch (error) {
+
+    console.error(
+      "Cart error:",
+      error
+    );
+
+  }
+
+}
+
+
+/* =========================================================
+   ADD TO CART
+   ========================================================= */
+
+async function addToCart(productId) {
+
+  if (!currentUser) {
+
+    openAuth();
+
+    showToast(
+      "Fadlan marka hore soo gal."
+    );
+
+    return;
+  }
+
+  if (!hasSupabase()) return;
+
+  try {
+
+    let cartId = null;
+
+    const existingCart =
+      await SB
+        .from("carts")
+        .select("id")
+        .eq("user_id", currentUser.id)
+        .eq("status", "active")
+        .maybeSingle();
+
+    if (existingCart.data) {
+
+      cartId =
+        existingCart.data.id;
+
+    } else {
+
+      const newCart =
+        await SB
+          .from("carts")
+          .insert({
+            user_id:currentUser.id,
+            status:"active"
+          })
+          .select("id")
+          .single();
+
+      if (newCart.error) {
+        throw newCart.error;
+      }
+
+      cartId =
+        newCart.data.id;
+    }
+
+
+    const existingItem =
+      await SB
+        .from("cart_items")
+        .select("*")
+        .eq("cart_id", cartId)
+        .eq("product_id", productId)
+        .maybeSingle();
+
+
+    if (existingItem.data) {
+
+      const newQuantity =
+        Number(
+          existingItem.data.quantity || 0
+        ) + 1;
+
+      const update =
+        await SB
+          .from("cart_items")
+          .update({
+            quantity:newQuantity
+          })
+          .eq("id", existingItem.data.id);
+
+      if (update.error) {
+        throw update.error;
+      }
+
+    } else {
+
+      const insert =
+        await SB
+          .from("cart_items")
+          .insert({
+            cart_id:cartId,
+            product_id:productId,
+            quantity:1
+          });
+
+      if (insert.error) {
+        throw insert.error;
+      }
+
+    }
+
+
+    await loadCart();
+
+    showToast(
+      "Alaabta Cart-ka ayaa lagu daray ✓"
+    );
+
+  } catch (error) {
+
+    console.error(
+      "Add cart error:",
+      error
+    );
+
+    showToast(
+      "Alaabta Cart-ka laguma darin."
+    );
+
+  }
+
+}
+
+
+/* =========================================================
+   CART COUNT
+   ========================================================= */
+
+function updateCartCount() {
+
+  const count =
+    cartItems.reduce(
+      (total,item) =>
+        total +
+        Number(item.quantity || 0),
+      0
+    );
+
+  const badge =
+    $("cartCount");
+
+  if (badge) {
+    badge.textContent =
+      String(count);
+  }
+
+}
+
+
+/* =========================================================
+   RENDER CART
+   ========================================================= */
+
+function renderCart() {
+
+  const container =
+    $("cartItems");
+
+  if (!container) return;
+
+  if (!cartItems.length) {
+
+    container.innerHTML = `
+      <div class="search-result-empty">
+
+        <span>🛒</span>
+
+        <strong>
+          Cart-kaagu waa madhan yahay
+        </strong>
+
+        <p>
+          Ku dar alaabo si aad u dalbato.
+        </p>
+
+      </div>
+    `;
+
+    updateCartTotals();
+
+    return;
+  }
+
+
+  container.innerHTML =
+    cartItems.map(item => {
+
+      const product =
+        item.products || {};
+
+      const image =
+        product.image_url || "";
+
+      return `
+        <div
+          class="cart-item"
+          data-cart-item="${escapeAttribute(item.id)}"
+        >
+
+          <div class="cart-item-image">
+
+            ${
+              image
+                ? `
+                  <img
+                    src="${escapeAttribute(image)}"
+                    alt=""
+                  >
+                `
+                : `
+                  <div
+                    class="product-placeholder"
+                    style="font-size:25px"
+                  >
+                    🛍️
+                  </div>
+                `
+            }
+
+          </div>
+
+          <div class="cart-item-info">
+
+            <strong>
+              ${escapeHTML(
+                product.name || "Alaab"
+              )}
+            </strong>
+
+            <small>
+              ${formatMoney(
+                Number(product.price || 0)
+              )}
+            </small>
+
+          </div>
+
+          <div class="quantity-control">
+
+            <button
+              data-minus="${escapeAttribute(item.id)}"
+            >
+              −
+            </button>
+
+            <span>
+              ${Number(item.quantity || 1)}
+            </span>
+
+            <button
+              data-plus="${escapeAttribute(item.id)}"
+            >
+              +
+            </button>
+
+          </div>
+
+        </div>
+      `;
+
+    }).join("");
+
+
+  container
+    .querySelectorAll("[data-minus]")
+    .forEach(button => {
+
+      button.addEventListener(
+        "click",
+        () =>
+          changeCartQuantity(
+            button.dataset.minus,
+            -1
+          )
+      );
+
+    });
+
+
+  container
+    .querySelectorAll("[data-plus]")
+    .forEach(button => {
+
+      button.addEventListener(
+        "click",
+        () =>
+          changeCartQuantity(
+            button.dataset.plus,
+            1
+          )
+      );
+
+    });
+
+
+  updateCartTotals();
+
+}
+
+
+/* =========================================================
+   CHANGE CART QUANTITY
+   ========================================================= */
+
+async function changeCartQuantity(
+  itemId,
+  change
+) {
+
+  if (!hasSupabase()) return;
+
+  const item =
+    cartItems.find(
+      row =>
+        String(row.id) ===
+        String(itemId)
+    );
+
+  if (!item) return;
+
+  const quantity =
+    Number(item.quantity || 1) +
+    Number(change);
+
+  try {
+
+    if (quantity <= 0) {
+
+      const result =
+        await SB
+          .from("cart_items")
+          .delete()
+          .eq("id", itemId);
+
+      if (result.error) {
+        throw result.error;
+      }
+
+    } else {
+
+      const result =
+        await SB
+          .from("cart_items")
+          .update({
+            quantity
+          })
+          .eq("id", itemId);
+
+      if (result.error) {
+        throw result.error;
+      }
+
+    }
+
+    await loadCart();
+
+    renderCart();
+
+  } catch (error) {
+
+    console.error(error);
+
+    showToast(
+      "Cart-ka lama cusboonaysiin."
+    );
+
+  }
+
+}
+
+
+/* =========================================================
+   CART TOTALS
+   ========================================================= */
+
+function updateCartTotals() {
+
+  let subtotal = 0;
+
+  cartItems.forEach(item => {
+
+    const price =
+      Number(
+        item.products?.price || 0
+      );
+
+    const quantity =
+      Number(item.quantity || 0);
+
+    subtotal +=
+      price * quantity;
+
+  });
+
+  const delivery = 0;
+
+  const total =
+    subtotal + delivery;
+
+  if ($("cartSubtotal")) {
+
+    $("cartSubtotal").textContent =
+      formatMoney(subtotal);
+
+  }
+
+  if ($("cartDelivery")) {
+
+    $("cartDelivery").textContent =
+      formatMoney(delivery);
+
+  }
+
+  if ($("cartTotal")) {
+
+    $("cartTotal").textContent =
+      formatMoney(total);
+
+  }
+
+}
+
+
+/* =========================================================
+   FAVORITE
+   ========================================================= */
+
+function toggleFavorite(
+  productId,
+  button = null
+) {
+
+  const key =
+    "wahen_favorites";
+
+  let favorites =
+    JSON.parse(
+      localStorage.getItem(key) || "[]"
+    );
+
+  const index =
+    favorites.indexOf(
+      String(productId)
+    );
+
+  if (index >= 0) {
+
+    favorites.splice(index,1);
+
+    if (button) {
+      button.textContent = "♡";
+    }
+
+    showToast(
+      "Favorite-ka waa laga saaray."
+    );
+
+  } else {
+
+    favorites.push(
+      String(productId)
+    );
+
+    if (button) {
+      button.textContent = "♥";
+    }
+
+    showToast(
+      "Favorite-ka ayaa lagu daray."
+    );
+
+  }
+
+  localStorage.setItem(
+    key,
+    JSON.stringify(favorites)
   );
 
 }
@@ -1031,59 +1800,246 @@ function setupSearch() {
 
 function setupNavigation() {
 
-  document.querySelectorAll(".nav")
-    .forEach(btn => {
+  const menuBtn =
+    $("menuBtn");
 
-      btn.addEventListener("click", () => {
+  const closeMenu =
+    $("closeMenu");
 
-        showPage(btn.dataset.page);
+  const sideMenu =
+    $("sideMenu");
 
-      });
+  const overlay =
+    $("overlay");
 
-    });
+  if (menuBtn) {
+
+    menuBtn.addEventListener(
+      "click",
+      () => {
+
+        sideMenu?.classList.add(
+          "open"
+        );
+
+        overlay?.classList.add(
+          "show"
+        );
+
+      }
+    );
+
+  }
+
+  if (closeMenu) {
+
+    closeMenu.addEventListener(
+      "click",
+      closeSideMenu
+    );
+
+  }
+
+  if (overlay) {
+
+    overlay.addEventListener(
+      "click",
+      closeSideMenu
+    );
+
+  }
+
+
+  qsa(
+    "[data-menu]"
+  ).forEach(button => {
+
+    button.addEventListener(
+      "click",
+      () => {
+
+        closeSideMenu();
+
+        navigateTo(
+          button.dataset.menu
+        );
+
+      }
+    );
+
+  });
+
+
+  qsa(
+    "[data-bottom]"
+  ).forEach(button => {
+
+    button.addEventListener(
+      "click",
+      () => {
+
+        qsa(
+          ".bottom-item"
+        ).forEach(item =>
+          item.classList.remove("active")
+        );
+
+        button.classList.add(
+          "active"
+        );
+
+        navigateTo(
+          button.dataset.bottom
+        );
+
+      }
+    );
+
+  });
 
 }
 
 
-function showPage(pageId) {
+/* =========================================================
+   CLOSE SIDE MENU
+   ========================================================= */
 
-  document.querySelectorAll(".page")
-    .forEach(page =>
-      page.classList.remove("active")
-    );
+function closeSideMenu() {
 
-  const page = $(pageId);
+  $("sideMenu")
+    ?.classList.remove("open");
 
-  if (page) {
-    page.classList.add("active");
-  }
+  $("overlay")
+    ?.classList.remove("show");
 
-  document.querySelectorAll(".nav")
-    .forEach(nav => {
+}
 
-      nav.classList.toggle(
-        "active",
-        nav.dataset.page === pageId
+
+/* =========================================================
+   NAVIGATE
+   ========================================================= */
+
+function navigateTo(page) {
+
+  switch(page){
+
+    case "home":
+
+      window.scrollTo({
+        top:0,
+        behavior:"smooth"
+      });
+
+      break;
+
+
+    case "products":
+
+      scrollToProducts();
+
+      break;
+
+
+    case "categories":
+
+      $("categoryGrid")
+        ?.scrollIntoView({
+          behavior:"smooth"
+        });
+
+      break;
+
+
+    case "wholesale":
+
+      $("wholesaleBtn")
+        ?.scrollIntoView({
+          behavior:"smooth"
+        });
+
+      break;
+
+
+    case "brands":
+
+      $("brandGrid")
+        ?.scrollIntoView({
+          behavior:"smooth"
+        });
+
+      break;
+
+
+    case "orders":
+
+      if (!currentUser) {
+
+        openAuth();
+
+        showToast(
+          "Soo gal si aad u aragto orders-ka."
+        );
+
+      } else {
+
+        showToast(
+          "Orders-kaaga ayaa la diyaarinayaa."
+        );
+
+      }
+
+      break;
+
+
+    case "account":
+
+      openAuth();
+
+      break;
+
+
+    case "chat":
+
+      showToast(
+        "Chat-ka WaHeN ayaa la diyaarinayaa."
       );
 
-    });
-
-  window.scrollTo({
-    top:0,
-    behavior:"smooth"
-  });
+      break;
 
 
-  if (pageId === "cartPage") {
-    renderCart();
-  }
+    case "settings":
 
-  if (pageId === "ordersPage") {
-    loadOrders();
-  }
+      showToast(
+        "Settings-ka ayaa la diyaarinayaa."
+      );
 
-  if (pageId === "accountPage") {
-    loadProfile();
+      break;
+
+
+    case "favorites":
+
+      showFavorites();
+
+      break;
+
+
+    case "manufacturers":
+
+      showToast(
+        "Warshadaha ayaa la diyaarinayaa."
+      );
+
+      break;
+
+
+    case "support":
+
+      showToast(
+        "Customer Support."
+      );
+
+      break;
+
   }
 
 }
@@ -1095,73 +2051,899 @@ function showPage(pageId) {
 
 function setupButtons() {
 
-  $("homeBtn").onclick =
-    () => showPage("homePage");
+  $("cartBtn")
+    ?.addEventListener(
+      "click",
+      async () => {
 
-  $("accountBtn").onclick =
-    () => showPage("accountPage");
+        if (!currentUser) {
 
-  $("cartBtn").onclick =
-    () => showPage("cartPage");
+          openAuth();
 
-  $("shopNowBtn").onclick =
-    () => showPage("productsPage");
+          showToast(
+            "Soo gal si aad u isticmaasho Cart."
+          );
 
-  $("allProductsBtn").onclick =
-    () => showPage("productsPage");
+          return;
+        }
 
-  $("ordersBtn").onclick =
-    () => showPage("ordersPage");
+        await loadCart();
 
-  $("favoritesBtn").onclick =
-    () => showPage("favoritesPage");
+        renderCart();
 
-  $("detailBack").onclick =
-    () => showPage("productsPage");
+        openModal("cartModal");
 
-  $("checkoutForm").addEventListener(
-    "submit",
-    createOrder
-  );
+      }
+    );
 
-  document.querySelectorAll(".backBtn")
-    .forEach(btn => {
 
-      btn.addEventListener("click", () => {
+  $("bottomSearch")
+    ?.addEventListener(
+      "click",
+      () => {
 
-        showPage("homePage");
+        $("searchInput")
+          ?.focus();
 
-      });
+        window.scrollTo({
+          top:0,
+          behavior:"smooth"
+        });
 
-    });
+      }
+    );
+
+
+  $("heroShopBtn")
+    ?.addEventListener(
+      "click",
+      () => {
+
+        $("searchInput")
+          ?.focus();
+
+      }
+    );
+
+
+  $("allProductsBtn")
+    ?.addEventListener(
+      "click",
+      () => {
+
+        activeCategory = "all";
+
+        renderProducts(
+          products
+        );
+
+        scrollToProducts();
+
+      }
+    );
+
+
+  $("allCategoriesBtn")
+    ?.addEventListener(
+      "click",
+      () => {
+
+        $("categoryGrid")
+          ?.scrollIntoView({
+            behavior:"smooth"
+          });
+
+      }
+    );
+
+
+  $("allBrandsBtn")
+    ?.addEventListener(
+      "click",
+      () => {
+
+        $("brandGrid")
+          ?.scrollIntoView({
+            behavior:"smooth"
+          });
+
+      }
+    );
+
+
+  $("wholesaleBtn")
+    ?.addEventListener(
+      "click",
+      () => {
+
+        const wholesale =
+          products.filter(
+            product =>
+              product.is_wholesale === true
+          );
+
+        if (wholesale.length) {
+
+          renderProducts(
+            wholesale
+          );
+
+          scrollToProducts();
+
+        } else {
+
+          showToast(
+            "Alaab jumlo ah hadda lama helin."
+          );
+
+        }
+
+      }
+    );
+
+
+  $("offerBtn")
+    ?.addEventListener(
+      "click",
+      () => {
+
+        const offers =
+          products.filter(
+            product =>
+              Number(
+                product.old_price || 0
+              ) >
+              Number(
+                product.price || 0
+              )
+          );
+
+        if (offers.length) {
+
+          renderProducts(
+            offers
+          );
+
+          scrollToProducts();
+
+        } else {
+
+          showToast(
+            "Dalabyo gaar ah hadda lama helin."
+          );
+
+        }
+
+      }
+    );
+
+
+  $("clearSearch")
+    ?.addEventListener(
+      "click",
+      () => {
+
+        const input =
+          $("searchInput");
+
+        if (!input) return;
+
+        input.value = "";
+
+        $("clearSearch")
+          .style.display = "none";
+
+        $("searchResultsSection")
+          ?.classList.add("hidden");
+
+        renderProducts(
+          products
+        );
+
+      }
+    );
+
+
+  $("closeSearchResults")
+    ?.addEventListener(
+      "click",
+      () => {
+
+        $("searchResultsSection")
+          ?.classList.add("hidden");
+
+      }
+    );
+
+
+  $("checkoutBtn")
+    ?.addEventListener(
+      "click",
+      () => {
+
+        if (!cartItems.length) {
+
+          showToast(
+            "Cart-kaagu waa madhan yahay."
+          );
+
+          return;
+        }
+
+        showToast(
+          "Checkout-ka ayaa xiga."
+        );
+
+      }
+    );
+
+
+  $("notificationBtn")
+    ?.addEventListener(
+      "click",
+      () => {
+
+        showToast(
+          "Ma jiraan notifications cusub."
+        );
+
+      }
+    );
+
+
+  $("changeLocation")
+    ?.addEventListener(
+      "click",
+      () => {
+
+        showToast(
+          "Doorashada magaalada ayaa xigta."
+        );
+
+      }
+    );
+
+
+  $("filterBtn")
+    ?.addEventListener(
+      "click",
+      () => {
+
+        showToast(
+          "Filter-ka ayaa xiga."
+        );
+
+      }
+    );
 
 }
 
 
 /* =========================================================
-   UTILITIES
+   AUTH SETUP
    ========================================================= */
 
-function toast(message) {
+function setupAuth() {
 
-  const box = $("toast");
+  $("loginForm")
+    ?.addEventListener(
+      "submit",
+      loginUser
+    );
 
-  box.textContent = message;
 
-  box.classList.add("show");
+  $("signupForm")
+    ?.addEventListener(
+      "submit",
+      signupUser
+    );
 
-  setTimeout(() => {
 
-    box.classList.remove("show");
-
-  }, 2500);
+  $("authSwitchBtn")
+    ?.addEventListener(
+      "click",
+      toggleAuthMode
+    );
 
 }
 
 
+/* =========================================================
+   LOGIN
+   ========================================================= */
+
+async function loginUser(event) {
+
+  event.preventDefault();
+
+  if (!hasSupabase()) return;
+
+  const email =
+    $("loginEmail")
+      ?.value
+      .trim();
+
+  const password =
+    $("loginPassword")
+      ?.value;
+
+  if (!email || !password) {
+
+    setAuthMessage(
+      "Fadlan buuxi labada meelood."
+    );
+
+    return;
+  }
+
+  setAuthMessage(
+    "Soo galaya..."
+  );
+
+  try {
+
+    const result =
+      await SB.auth.signInWithPassword({
+        email,
+        password
+      });
+
+    if (result.error) {
+
+      setAuthMessage(
+        result.error.message
+      );
+
+      return;
+    }
+
+    closeModal("authModal");
+
+    showToast(
+      "Si guul leh ayaad u soo gashay ✓"
+    );
+
+  } catch (error) {
+
+    console.error(error);
+
+    setAuthMessage(
+      "Login-ku wuu fashilmay."
+    );
+
+  }
+
+}
+
+
+/* =========================================================
+   SIGNUP
+   ========================================================= */
+
+async function signupUser(event) {
+
+  event.preventDefault();
+
+  if (!hasSupabase()) return;
+
+  const name =
+    $("signupName")
+      ?.value
+      .trim();
+
+  const phone =
+    $("signupPhone")
+      ?.value
+      .trim();
+
+  const email =
+    $("signupEmail")
+      ?.value
+      .trim();
+
+  const password =
+    $("signupPassword")
+      ?.value;
+
+
+  if (
+    !name ||
+    !phone ||
+    !email ||
+    !password
+  ) {
+
+    setAuthMessage(
+      "Fadlan buuxi dhammaan xogta."
+    );
+
+    return;
+  }
+
+
+  setAuthMessage(
+    "Account-ka ayaa la sameynayaa..."
+  );
+
+
+  try {
+
+    const result =
+      await SB.auth.signUp({
+
+        email,
+        password,
+
+        options:{
+          data:{
+            full_name:name,
+            phone:phone
+          }
+        }
+
+      });
+
+
+    if (result.error) {
+
+      setAuthMessage(
+        result.error.message
+      );
+
+      return;
+    }
+
+
+    if (result.data?.user) {
+
+      setAuthMessage(
+        "Account waa la sameeyay. Haddii email verification loo baahan yahay, email-ka hubi."
+      );
+
+    }
+
+  } catch (error) {
+
+    console.error(error);
+
+    setAuthMessage(
+      "Account-ka lama sameyn."
+    );
+
+  }
+
+}
+
+
+/* =========================================================
+   AUTH MODE
+   ========================================================= */
+
+function toggleAuthMode() {
+
+  const login =
+    $("loginForm");
+
+  const signup =
+    $("signupForm");
+
+  const title =
+    $("authTitle");
+
+  const description =
+    $("authDescription");
+
+  const switchText =
+    $("authSwitchText");
+
+  const switchBtn =
+    $("authSwitchBtn");
+
+  const message =
+    $("authMessage");
+
+
+  if (
+    !login ||
+    !signup
+  ) return;
+
+
+  const signupVisible =
+    !signup.classList.contains(
+      "hidden"
+    );
+
+
+  if (signupVisible) {
+
+    signup.classList.add("hidden");
+    login.classList.remove("hidden");
+
+    if (title)
+      title.textContent =
+        "Ku soo dhawoow WaHeN";
+
+    if (description)
+      description.textContent =
+        "Soo gal si aad u isticmaasho dhammaan adeegyada WaHeN.";
+
+    if (switchText)
+      switchText.textContent =
+        "Account ma lihid?";
+
+    if (switchBtn)
+      switchBtn.textContent =
+        "Samee Account";
+
+  } else {
+
+    login.classList.add("hidden");
+    signup.classList.remove("hidden");
+
+    if (title)
+      title.textContent =
+        "Samee Account";
+
+    if (description)
+      description.textContent =
+        "Samee account-kaaga WaHeN si aad u dalbato.";
+
+    if (switchText)
+      switchText.textContent =
+        "Account ma leedahay?";
+
+    if (switchBtn)
+      switchBtn.textContent =
+        "Soo Gal";
+
+  }
+
+
+  if (message)
+    message.textContent = "";
+
+}
+
+
+/* =========================================================
+   AUTH MESSAGE
+   ========================================================= */
+
+function setAuthMessage(message) {
+
+  const element =
+    $("authMessage");
+
+  if (element) {
+
+    element.textContent =
+      message;
+
+  }
+
+}
+
+
+/* =========================================================
+   MODALS
+   ========================================================= */
+
+function setupModals() {
+
+  $("closeProductModal")
+    ?.addEventListener(
+      "click",
+      () =>
+        closeModal(
+          "productModal"
+        )
+    );
+
+
+  $("closeCartModal")
+    ?.addEventListener(
+      "click",
+      () =>
+        closeModal(
+          "cartModal"
+        )
+    );
+
+
+  $("closeAuthModal")
+    ?.addEventListener(
+      "click",
+      () =>
+        closeModal(
+          "authModal"
+        )
+    );
+
+
+  qsa(".modal")
+    .forEach(modal => {
+
+      modal.addEventListener(
+        "click",
+        event => {
+
+          if (
+            event.target === modal
+          ) {
+
+            closeModal(
+              modal.id
+            );
+
+          }
+
+        }
+      );
+
+    });
+
+
+  document.addEventListener(
+    "keydown",
+    event => {
+
+      if (
+        event.key === "Escape"
+      ) {
+
+        qsa(".modal.show")
+          .forEach(modal =>
+            closeModal(
+              modal.id
+            )
+          );
+
+        closeSideMenu();
+
+      }
+
+    }
+  );
+
+}
+
+
+/* =========================================================
+   OPEN MODAL
+   ========================================================= */
+
+function openModal(id) {
+
+  const modal =
+    $(id);
+
+  if (!modal) return;
+
+  modal.classList.add(
+    "show"
+  );
+
+  document.body.style.overflow =
+    "hidden";
+
+}
+
+
+/* =========================================================
+   CLOSE MODAL
+   ========================================================= */
+
+function closeModal(id) {
+
+  const modal =
+    $(id);
+
+  if (!modal) return;
+
+  modal.classList.remove(
+    "show"
+  );
+
+  if (
+    !document.querySelector(
+      ".modal.show"
+    )
+  ) {
+
+    document.body.style.overflow =
+      "";
+
+  }
+
+}
+
+
+/* =========================================================
+   OPEN AUTH
+   ========================================================= */
+
+function openAuth() {
+
+  openModal(
+    "authModal"
+  );
+
+}
+
+
+/* =========================================================
+   FAVORITES
+   ========================================================= */
+
+function showFavorites() {
+
+  const favorites =
+    JSON.parse(
+      localStorage.getItem(
+        "wahen_favorites"
+      ) || "[]"
+    );
+
+  const list =
+    products.filter(
+      product =>
+        favorites.includes(
+          String(product.id)
+        )
+    );
+
+  renderProducts(list);
+
+  scrollToProducts();
+
+  showToast(
+    `${list.length} favorite ayaa la helay`
+  );
+
+}
+
+
+/* =========================================================
+   SCROLL PRODUCTS
+   ========================================================= */
+
+function scrollToProducts() {
+
+  const grid =
+    $("productGrid");
+
+  if (!grid) return;
+
+  grid.scrollIntoView({
+    behavior:"smooth",
+    block:"start"
+  });
+
+}
+
+
+/* =========================================================
+   LOADING
+   ========================================================= */
+
+function showLoading(show) {
+
+  const loading =
+    $("globalLoading");
+
+  if (!loading) return;
+
+  if (show) {
+
+    loading.classList.remove(
+      "hidden"
+    );
+
+  } else {
+
+    loading.classList.add(
+      "hidden"
+    );
+
+  }
+
+}
+
+
+/* =========================================================
+   TOAST
+   ========================================================= */
+
+let toastTimer = null;
+
+function showToast(message) {
+
+  const toast =
+    $("toast");
+
+  if (!toast) return;
+
+  toast.textContent =
+    message;
+
+  toast.classList.add(
+    "show"
+  );
+
+  clearTimeout(
+    toastTimer
+  );
+
+  toastTimer =
+    setTimeout(
+      () => {
+
+        toast.classList.remove(
+          "show"
+        );
+
+      },
+      2500
+    );
+
+}
+
+
+/* =========================================================
+   FORMAT MONEY
+   ========================================================= */
+
+function formatMoney(value) {
+
+  const number =
+    Number(value || 0);
+
+  return `$${number.toFixed(2)}`;
+
+}
+
+
+/* =========================================================
+   STARS
+   ========================================================= */
+
+function getStars(rating) {
+
+  const rounded =
+    Math.round(
+      Number(rating || 0)
+    );
+
+  let result = "";
+
+  for (
+    let i = 1;
+    i <= 5;
+    i++
+  ) {
+
+    result +=
+      i <= rounded
+        ? "★"
+        : "☆";
+
+  }
+
+  return result;
+
+}
+
+
+/* =========================================================
+   ESCAPE HTML
+   ========================================================= */
+
 function escapeHTML(value) {
 
-  return String(value ?? "")
+  return String(
+    value ?? ""
+  )
     .replaceAll("&","&amp;")
     .replaceAll("<","&lt;")
     .replaceAll(">","&gt;")
@@ -1171,8 +2953,51 @@ function escapeHTML(value) {
 }
 
 
-function escapeAttr(value) {
+/* =========================================================
+   ESCAPE ATTRIBUTE
+   ========================================================= */
 
-  return escapeHTML(value);
+function escapeAttribute(value) {
+
+  return escapeHTML(
+    value
+  );
 
 }
+
+
+/* =========================================================
+   GLOBAL ACCESS
+   ========================================================= */
+
+window.WaHeN = {
+
+  getProducts(){
+    return products;
+  },
+
+  getUser(){
+    return currentUser;
+  },
+
+  getProfile(){
+    return currentProfile;
+  },
+
+  openProduct,
+  addToCart,
+  openAuth,
+  showToast,
+  loadProducts,
+  loadCart
+
+};
+
+
+/* =========================================================
+   END
+   ========================================================= */
+
+console.log(
+  "WAHEN Marketplace script loaded successfully."
+);

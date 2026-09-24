@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'home_page.dart';
+import 'screens/home_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Geli URL-ka iyo Anon Key-gaaga dhabta ah ee Supabase
+  // Geli Anon Key-gaaga dhabta ah ee Supabase
   await Supabase.initialize(
     url: 'https://hkmtlyknwsqxuxmvfaqv.supabase.co',
     anonKey: 'GELI_SUPABASE_ANON_KEY_GAAGA_HALKAN',
@@ -33,7 +33,7 @@ class WahenApp extends StatelessWidget {
         scaffoldBackgroundColor: const Color(0xFFF8FAFC),
         useMaterial3: true,
       ),
-      home: const HomePage(),
+      home: const HomeScreen(),
     );
   }
 }
